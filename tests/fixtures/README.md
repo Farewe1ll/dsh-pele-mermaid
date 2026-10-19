@@ -3,7 +3,10 @@
 This directory is a **standalone, real-browser harness** for the built browser
 bundle (`lib/client.js`). It is not used by `node --test`; it exists so a human
 or an automated browser can verify rendering, theming, toolbar interaction and
-teardown against the same DOM/token environment the real DSH Web client uses.
+teardown using DSH-like DOM and copied host theme tokens. The card fixtures
+carry static committed-shape Fiber objects for every Mermaid fence; they do
+not run React. `tests/react-lifecycle.test.mjs` and the real-React bundle test
+cover lifecycle separately; `scripts/verify-host.mjs` probes installed CodeBlock.
 
 ## Files
 
@@ -81,32 +84,29 @@ self-describing. It reports:
   a theme (colour) switch must add **zero**; a font-metric change adds 4 more;
 - resolved `--pele-*` custom properties and container background, i.e. the real
   token mapping in the active theme;
-- teardown result: the plugin-owned `#thread` subtree must be byte-identical to
-  its pre-plugin snapshot after `ctx.effect` cleanup, with 0 styles/diagrams.
+- teardown result: this fixture makes no host source updates, so its `#thread`
+  subtree can be compared with the pre-plugin snapshot. Dynamic cleanup tests
+  instead assert preservation of the latest host state.
 
 ## Reproducing the captured screenshots
 
-The committed PNGs in `screenshots/` were produced with the installed Google
-Chrome (155) driven over CDP against the local server. The Obscura MCP browser
-blocks loopback URLs by default (`Access to private/internal IP address … is not
-allowed`), so the same real-browser checks were done with headless Chrome:
-
 ```sh
-node scripts/serve-fixture.mjs --port 8123 &
-
-# One-shot screenshots (light/dark) with a virtual time budget for the settle gate:
-"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
-  --headless=new --no-sandbox --disable-gpu --disable-crash-reporter --disable-breakpad \
-  --user-data-dir="$(mktemp -d)" --window-size=1400,2400 --hide-scrollbars \
-  --virtual-time-budget=8000 \
-  --screenshot="$PWD/tests/fixtures/screenshots/fixture-light.png" \
-  "http://127.0.0.1:8123/tests/fixtures/fixture.html?locale=en"
-
-# Interaction sequence (theme toggle, Diagram/Source, font refresh, teardown)
-# was driven over the DevTools protocol: launch Chrome with
-#   --remote-debugging-port=<port> about:blank
-# and use Page.navigate / Runtime.evaluate / Page.captureScreenshot.
+npm run build
+npm run verify:visual
 ```
 
-`scripts/verify-install.mjs` is the unrelated real-profile install proof; see
-`docs/VERIFICATION.md`.
+This command starts a loopback server and an isolated headless Chrome profile,
+checks rendering, theme changes, source visibility/parent identity, font refresh
+and teardown, and regenerates all five PNGs together with `visual-evidence.json`.
+The JSON records browser version, viewport, locale/query, bundle hash and each
+PNG's size/hash. It also records external requests from this fixture page for
+these inputs; it does not claim complete network coverage of all diagram types.
+Set `CHROME_BIN` to use another Chrome/Chromium binary. The temporary profile and
+server are cleaned up after the run. No daily browser or DSH profile is used.
+
+Current captures use `?locale=en`: the DSH card label remains `代码块`, while
+plugin toolbar labels are `Diagram` / `Source`. The fixed viewport is 1400×2400.
+The sidebar is intentionally a live report and contains per-run timing values.
+
+`scripts/verify-install.mjs` separately validates DSH install/disable/remove with
+an isolated `DSH_HOME`; see `docs/VERIFICATION.md`.

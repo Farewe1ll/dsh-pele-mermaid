@@ -9,6 +9,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { JSDOM } from 'jsdom'
+import { attachCodeBlockFiber } from './helpers/fiber.mjs'
+import { SOURCE_HIDDEN_ATTR } from '../src/client/theme-css.js'
 
 import {
   MERMAID_LANG,
@@ -326,7 +328,7 @@ test('settle gate: renders only after the source is stable for settleMs', () => 
   const container = containerOf(block)
   assert.ok(container, 'diagram container exists')
   assert.equal(container.querySelector('svg.pele')?.tagName.toLowerCase(), 'svg')
-  assert.equal(content.querySelector('pre'), null, 'source `<pre>` was detached')
+  assert.ok(content.querySelector(`pre[${SOURCE_HIDDEN_ATTR}]`), 'source remains mounted but hidden')
 })
 
 test('settle gate: streaming source changes reset the window (never partial)', () => {
@@ -369,8 +371,8 @@ test('successful mount inserts our container, keeps the artifact, leaves banner 
   assert.ok(container)
   assert.equal(container.querySelector('svg.pele').getAttribute('data-fake-source'), BASE_SOURCE)
   assert.equal(content.querySelectorAll(`.${CLASS.diagram}`).length, 1)
-  assert.equal(content.querySelector('pre'), null, 'original pre detached from content')
-  assert.equal(originalPre.isConnected, false)
+  assert.equal(originalPre.parentElement, content, 'original parent is preserved')
+  assert.equal(originalPre.hasAttribute(SOURCE_HIDDEN_ATTR), true)
 
   // Banner and its Copy button are untouched and still in place.
   assert.equal(block.querySelector('[data-code-block-banner]'), banner)
@@ -430,8 +432,9 @@ test('toolbar toggles Diagram ⇄ Source with aria-pressed and the same pre node
   assert.equal(diagramButton.getAttribute('aria-pressed'), 'false')
   assert.ok(sourceButton.classList.contains(CLASS.active))
   const wrapper = content.querySelector(`.${CLASS.source}`)
-  assert.ok(wrapper, 'source view wrapper exists')
-  assert.equal(wrapper.querySelector('pre'), originalPre, 'original pre node restored')
+  assert.ok(wrapper, 'toolbar marks Source mode')
+  assert.equal(originalPre.parentElement, content, 'original pre stays in its host-owned position')
+  assert.equal(originalPre.hasAttribute(SOURCE_HIDDEN_ATTR), false)
   assert.equal(originalPre.textContent, BASE_SOURCE)
   assert.equal(content.querySelector(`.${CLASS.diagram} [data-dsh-pele-mermaid-host]`).hidden, true)
   assert.equal(manager.count, 1, 'diagram still mounted while inspecting source')
@@ -441,8 +444,8 @@ test('toolbar toggles Diagram ⇄ Source with aria-pressed and the same pre node
   assert.equal(diagramButton.getAttribute('aria-pressed'), 'true')
   assert.equal(sourceButton.getAttribute('aria-pressed'), 'false')
   assert.equal(content.querySelector(`.${CLASS.source}`), null)
-  assert.equal(content.querySelector('pre'), null)
-  assert.equal(originalPre.isConnected, false)
+  assert.equal(content.querySelector('pre'), originalPre)
+  assert.equal(originalPre.hasAttribute(SOURCE_HIDDEN_ATTR), true)
   assert.equal(manager.count, 1)
 
   // Toggling is idempotent.
@@ -749,7 +752,7 @@ test('React wipe (same source): next scan re-applies without waiting', () => {
   assert.equal(mountDiagram.calls.length, 2, 're-applied on the next scan')
   assert.equal(manager.count, 1)
   assert.equal(content.querySelectorAll(`.${CLASS.diagram}`).length, 1)
-  assert.equal(content.querySelectorAll('pre').length, 0)
+  assert.equal(content.querySelectorAll('pre').length, 1)
   assert.equal(block.querySelectorAll(`.${CLASS.toolbar}`).length, 1)
   // The fresh React pre became the new source artifact.
   buttonsOf(block)[1].click()
@@ -780,19 +783,19 @@ test('React wipe (changed source): re-settles instead of mounting stale text', (
   assert.equal(manager.count, 1)
 })
 
-test('React patching the detached artifact source re-settles on the next scan', () => {
+test('host patching its original source re-settles on the next scan', () => {
   const { doc, clock, mountDiagram, manager } = setup()
   const { block, content } = addBlock(doc)
 
   manager.scan()
   clock.advance(180)
-  // Grab the detached artifact the same way a user would (toggle + back).
+  // Toggle without moving the host's source node.
   buttonsOf(block)[1].click()
   const pre = content.querySelector('pre')
   buttonsOf(block)[0].click()
-  assert.equal(pre.isConnected, false)
+  assert.equal(pre.isConnected, true)
 
-  // React may patch its own DOM node even when we detached it.
+  // The source update remains in the observed host subtree.
   pre.querySelector('code').textContent = 'sequenceDiagram\n  A->>B: hi'
   manager.scan()
   assert.equal(manager.count, 0, 'old diagram dropped for the changed source')
@@ -905,5 +908,86 @@ test('scan is defensive when document-like inputs are broken', () => {
   assert.doesNotThrow(() => manager.scan())
   clock.advance(1000)
   assert.equal(manager.count, 0)
+  manager.destroy()
+})
+
+/* -------------------------------------------------------------------------- */
+/* Detection: DSH card-toolbar shape (real chat DOM)                          */
+/* -------------------------------------------------------------------------- */
+
+test('readFenceLanguage: a generic code label is not a language', () => {
+  const doc = makeDocument()
+  const { block } = addBlock(doc, { language: '代码块' })
+  assert.equal(readFenceLanguage(block), null, 'localized generic label => unknown')
+
+  const { block: english } = addBlock(doc, { language: 'Code' })
+  assert.equal(readFenceLanguage(english), null, 'en generic label => unknown')
+})
+
+test('card mode: React fiber props give the exact language and source', () => {
+  const { doc, clock, mountDiagram, manager } = setup()
+  const codeBlockProps = { code: 'flowchart LR\n  A-->B', lang: 'mermaid' }
+  // Simulate the host fiber -> CodeBlock component fiber chain React attaches.
+  const { block } = addBlock(doc, { language: '代码块', source: 'rendered pre fallback' })
+  attachCodeBlockFiber(block, codeBlockProps)
+
+  assert.equal(readFenceLanguage(block), 'mermaid')
+  assert.equal(readFenceSource(block), codeBlockProps.code, 'React code prop wins over the rendered pre')
+
+  manager.scan()
+  clock.advance(300)
+  assert.equal(mountDiagram.calls.length, 1)
+  assert.equal(mountDiagram.calls[0].source, codeBlockProps.code)
+  assert.equal(manager.count, 1)
+  manager.destroy()
+})
+
+test('generic banner without usable React internals leaves even valid diagram source untouched', () => {
+  const { doc, clock, mountDiagram, manager } = setup()
+  const { block } = addBlock(doc, { language: '代码块', source: BASE_SOURCE })
+  const before = block.outerHTML
+  manager.scan()
+  clock.advance(300)
+  assert.equal(mountDiagram.calls.length, 0)
+  assert.equal(manager.count, 0)
+  assert.equal(block.outerHTML, before)
+  manager.destroy()
+})
+
+test('uncommitted or malformed fiber props cannot override an explicit DOM language', () => {
+  const { doc, clock, mountDiagram, manager } = setup()
+  const { block } = addBlock(doc, { language: 'javascript', source: BASE_SOURCE })
+  const component = attachCodeBlockFiber(block, { lang: 'mermaid', code: BASE_SOURCE })
+  component.return.stateNode.current = null
+  assert.equal(readFenceLanguage(block), 'javascript')
+  manager.scan()
+  clock.advance(300)
+  assert.equal(mountDiagram.calls.length, 0)
+  manager.destroy()
+})
+
+test('unknown language becoming explicit mermaid retries the unchanged source with the error path', () => {
+  const { doc, clock, mountDiagram, manager } = setup({
+    mountDiagram: makeMount({ ok: false, error: 'Parse error' }),
+  })
+  const { block } = addBlock(doc, { language: '代码块', source: 'flowchart LR A--' })
+  manager.scan()
+  clock.advance(300)
+  assert.equal(mountDiagram.calls.length, 0)
+  attachCodeBlockFiber(block, { lang: 'mermaid', code: 'flowchart LR A--' })
+  manager.scan()
+  clock.advance(300)
+  assert.equal(mountDiagram.calls.length, 1)
+  assert.ok(block.querySelector(`.${CLASS.error}`))
+  assert.equal(block.querySelector(`pre[${SOURCE_HIDDEN_ATTR}]`), null)
+  manager.destroy()
+})
+
+test('explicit non-mermaid languages with drawable diagram source stay native', () => {
+  const { doc, clock, mountDiagram, manager } = setup()
+  addBlock(doc, { language: 'lua', source: BASE_SOURCE })
+  manager.scan()
+  clock.advance(300)
+  assert.equal(mountDiagram.calls.length, 0)
   manager.destroy()
 })

@@ -4,7 +4,7 @@
  * One Cordis client plugin that watches the rendered assistant Markdown for
  * settled ```mermaid code blocks and replaces each fence body with a Pele
  * diagram. Pele is bundled into this file: synchronous rendering, zero runtime
- * dependencies, no network.
+ * dependencies, no renderer downloads, and diagram images disabled.
  *
  * Decoupling contract:
  *  - No `require()` of any DSH client package; we only use the public `theme`
@@ -14,7 +14,7 @@
  *    never re-render a diagram.
  *  - The Markdown DOM is read and locally augmented; the Session log and the
  *    original code-block source are never modified. Destroying the plugin
- *    restores the page to its pre-plugin DOM.
+ *    removes its additions while preserving the latest host-owned DOM.
  */
 import { installStyles } from './theme-css.js'
 import { createBlockManager } from './blocks.js'
@@ -24,6 +24,9 @@ export const inject = ['theme']
 
 /** Debounce for DOM mutation bursts (streaming Markdown, layout churn). */
 const SCAN_DEBOUNCE_MS = 150
+
+/** Private React props can change without any DOM mutation (generic labels). */
+const PROPS_AUDIT_MS = 1000
 
 /**
  * Client plugin body.
@@ -41,6 +44,8 @@ export function apply(ctx) {
     let removeStyles = null
     /** @type {ReturnType<typeof setTimeout> | null} */
     let timer = null
+    /** @type {ReturnType<typeof setTimeout> | null} */
+    let propsTimer = null
     /** @type {(() => void) | null} */
     let removeDomReady = null
     /** @type {(() => void) | null} */
@@ -61,6 +66,12 @@ export function apply(ctx) {
         timer = null
         runScan()
       }, SCAN_DEBOUNCE_MS)
+    }
+
+    const auditProps = () => {
+      if (disposed) return
+      runScan()
+      propsTimer = setTimeout(auditProps, PROPS_AUDIT_MS)
     }
 
     const scheduleRefresh = () => {
@@ -121,6 +132,7 @@ export function apply(ctx) {
       observer.observe(document.body, { childList: true, subtree: true, characterData: true })
       wireTheme()
       scheduleScan()
+      propsTimer = setTimeout(auditProps, PROPS_AUDIT_MS)
     }
 
     if (typeof document !== 'undefined' && document.body !== null) {
@@ -135,6 +147,10 @@ export function apply(ctx) {
 
     return () => {
       disposed = true
+      if (propsTimer !== null) {
+        clearTimeout(propsTimer)
+        propsTimer = null
+      }
       if (timer !== null) {
         clearTimeout(timer)
         timer = null

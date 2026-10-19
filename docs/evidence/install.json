@@ -1,0 +1,65 @@
+{
+  "status": "PASS",
+  "date": "2026-10-19T15:49:52.994Z",
+  "elapsedMs": 3039,
+  "packageVersion": "0.1.1",
+  "nodeVersion": "v24.22.0",
+  "scope": "Isolated DSH web profile install/disable/remove and served bundle identity; no live chat interaction.",
+  "evidence": {
+    "bundle.path": "lib/client.js",
+    "bundle.bytes": 694058,
+    "bundle.sha256": "ba5b29085cac5c6f3fe34b2e76e5b00744b191f7c98877700982ddad90a8a1e4",
+    "temp.root": "/var/folders/sw/5hpt8bss3fg9rb4b9791kt7r0000gn/T/dsh-pele-verify-install-KAjLzq",
+    "temp.dsh_home": "/var/folders/sw/5hpt8bss3fg9rb4b9791kt7r0000gn/T/dsh-pele-verify-install-KAjLzq/home",
+    "dsh.version": "0.2.1-rc.2",
+    "install.profile.dependency": "link:/Users/farewe1ll/Objects/dsh-pele-mermaid",
+    "install.profile.bundles": [
+      "@deepseek-ai/dsh-base",
+      "@deepseek-ai/dsh-web-app",
+      "dsh-pele-mermaid"
+    ],
+    "dump-config.active.section": "- id: dsh-pele-mermaid |   name: dsh-pele-mermaid",
+    "active.index.bytes": 37676,
+    "active.boot.entry": {
+      "id": "dsh-pele-mermaid",
+      "url": "plugins/??dsh-pele-mermaid/client.js&rev=b9c0842f7739",
+      "rev": "b9c0842f7739",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-theme"
+      ]
+    },
+    "active.boot.entries": 70,
+    "active.boot.batches": 3,
+    "active.boot.release": {
+      "version": "0.2.1-rc.2",
+      "commit": "332895e"
+    },
+    "active.html.pluginOccurrences": 5,
+    "active.route.status": 200,
+    "active.route.contentType": "text/javascript; charset=utf-8",
+    "active.route.bytes": 694131,
+    "active.route.servedOverCommittedBytes": 73,
+    "active.route.suffix": ";\\n//# sourceMappingURL=??dsh-pele-mermaid/client.js.map&rev=b9c0842f7739\\n",
+    "active.route.hasWrapper": true,
+    "disabled.patch.file": "/var/folders/sw/5hpt8bss3fg9rb4b9791kt7r0000gn/T/dsh-pele-verify-install-KAjLzq/home/profiles/web/cordis.patch.yml",
+    "disabled.patch.content": "# Verification: keep the package installed but disable its Loader row. | - id: dsh-pele-mermaid |   name: dsh-pele-mermaid |   disabled: true",
+    "dump-config.disabled.section": ", patched by /var/folders/sw/5hpt8bss3fg9rb4b9791kt7r0000gn/T/dsh-pele-verify-install-KAjLzq/home/profiles/web/cordis.patch.yml | - id: dsh-pele-mermaid |   name: dsh-pele-mermaid |   disabled: true",
+    "disabled.index.bytes": 37448,
+    "disabled.boot.entries": 69,
+    "disabled.boot.batches": 3,
+    "disabled.html.pluginOccurrences": 0,
+    "disabled.html.shrunkByBytes": 228,
+    "disabled.route.status": 404,
+    "disabled.route.bytes": 0,
+    "removed.profile.bundles": [
+      "@deepseek-ai/dsh-base",
+      "@deepseek-ai/dsh-web-app"
+    ],
+    "parity.disabledEqualsRemoved": true,
+    "parity.entries": 69,
+    "parity.batches": 3,
+    "parity.note": "per-boot rev values normalized; entry ids/order/inject and batch structure compared exactly",
+    "cleanup.tempRemoved": true,
+    "cleanup.tempPath": "/var/folders/sw/5hpt8bss3fg9rb4b9791kt7r0000gn/T/dsh-pele-verify-install-KAjLzq"
+  }
+}

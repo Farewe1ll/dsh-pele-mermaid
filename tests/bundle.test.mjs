@@ -441,8 +441,9 @@ test('apply(): settled mermaid fences become Pele diagrams; banners, source and 
       )
       assert.ok(host.querySelectorAll('.pele-zoom button').length >= 2, 'Pele zoom controls must be present')
 
-      // The source artifact is detached while the diagram is shown, but retained.
-      assert.equal(document.contains(pres[index]), false, 'original <pre> must be detached while the diagram is mounted')
+      // Source stays in the host tree while a temporary marker hides it.
+      assert.equal(pres[index].parentElement, content, 'host parent is preserved')
+      assert.equal(pres[index].hasAttribute('data-dsh-pele-mermaid-source-hidden'), true)
 
       // Banner untouched: DSH's Copy button keeps working.
       const banner = block.querySelector('[data-code-block-banner]')
@@ -511,9 +512,9 @@ test('toolbar: Diagram/Source round-trips the original <pre> node and aria-press
     const buttons = Array.from(container.querySelectorAll('.dsh-pele-mermaid-toolbar button'))
 
     buttons[1].click() // Source
-    assert.equal(document.contains(originalPre), true, 'Source view must reinsert the original <pre> into the page')
-    assert.ok(originalPre.closest('.dsh-pele-mermaid-source'), 'restored <pre> must be wrapped in the source view')
-    assert.equal(content.contains(originalPre), true, 'the source wrapper must live in the code-block content')
+    assert.equal(document.contains(originalPre), true, 'Source view keeps the original <pre> connected')
+    assert.equal(originalPre.hasAttribute('data-dsh-pele-mermaid-source-hidden'), false, 'Source reveals the original node')
+    assert.equal(content.contains(originalPre), true, 'source stays in the code-block content')
     assert.equal(host.hidden, true, 'diagram host must be hidden while showing source')
     assert.deepEqual(
       buttons.map((button) => button.getAttribute('aria-pressed')),
@@ -523,7 +524,8 @@ test('toolbar: Diagram/Source round-trips the original <pre> node and aria-press
     assert.equal(diagramSvgs(document).length, 3, 'toggling to source must not unmount the diagrams')
 
     buttons[0].click() // Diagram
-    assert.equal(document.contains(originalPre), false, 'Diagram view must detach the source again')
+    assert.equal(originalPre.parentElement, content, 'Diagram view preserves the host parent')
+    assert.equal(originalPre.hasAttribute('data-dsh-pele-mermaid-source-hidden'), true)
     assert.equal(content.querySelector('.dsh-pele-mermaid-source'), null, 'source wrapper must be removed')
     assert.equal(host.hidden, false, 'diagram host must be visible again')
     assert.deepEqual(
@@ -651,5 +653,77 @@ test('MutationObserver: a mermaid fence appended after boot settles and renders'
     assert.equal(styleElements(document).length, 1, 'the single stylesheet is reused, not stacked')
   } finally {
     plugin.cleanup()
+  }
+})
+
+test('built bundle: real React generic cards update from source-only mutations, preserve Copy, and clean language reuse', async () => {
+  const runtime = track(createBundleRuntime('<!doctype html><html><head></head><body></body></html>'))
+  const saved = new Map()
+  for (const key of ['window', 'document', 'Node', 'HTMLElement']) {
+    saved.set(key, Object.getOwnPropertyDescriptor(globalThis, key))
+    Object.defineProperty(globalThis, key, { configurable: true, writable: true, value: runtime.window[key] })
+  }
+  const React = (await import('react')).default
+  const { createRoot } = await import('react-dom/client')
+  const { flushSync } = await import('react-dom')
+  const { CodeBlock } = await import('./helpers/react-code-block.mjs')
+  const point = runtime.document.createElement('div')
+  runtime.document.body.append(point)
+  const root = createRoot(point)
+  const nativeUnknown = createCodeBlockElement(runtime.document, '代码块', FLOWCHART)
+  runtime.document.body.append(nativeUnknown)
+  const nativeSnapshot = nativeUnknown.outerHTML
+  let copied
+  const render = (code, lang = 'mermaid', mode = 'plain') => flushSync(() => root.render(React.createElement(CodeBlock, {
+    code, lang, mode, onCopy: (value) => { copied = value },
+  })))
+  render(FLOWCHART + '\n\n')
+  const block = point.querySelector('.md-code-block')
+  const pre = block.querySelector('pre')
+  const parent = pre.parentElement
+  const copy = () => { flushSync(() => block.querySelector('[data-code-block-banner] button').click()); return copied }
+  const before = copy()
+  const plugin = applyPlugin(runtime)
+  try {
+    await waitFor(() => diagramSvgs(runtime.document).length === 1, { message: 'generic React card to render' })
+    assert.equal(nativeUnknown.outerHTML, nativeSnapshot, 'unknown language without Fiber stays native')
+    assert.equal(copy(), before)
+    assert.equal(before, FLOWCHART + '\n')
+    assert.equal(pre.parentElement, parent)
+    assert.equal(runtime.window.getComputedStyle(pre).display, 'none')
+    // Mermaid -> text can leave both the generic banner and source DOM
+    // unchanged. A body MutationObserver alone cannot detect this props edit.
+    await new Promise((resolve) => setTimeout(resolve, 500)) // drain scans scheduled by the initial plugin DOM insertion
+    render(FLOWCHART + '\n\n', 'text')
+    await waitFor(() => diagramSvgs(runtime.document).length === 0, { message: 'props-only language change to release the native block' })
+    assert.equal(pre.hasAttribute('data-dsh-pele-mermaid-source-hidden'), false)
+    render(FLOWCHART + '\n\n', 'mermaid')
+    await waitFor(() => diagramSvgs(runtime.document).length === 1, { message: 'props-only language change to reactivate Mermaid' })
+    render('flowchart LR\n A-->UpdatedNode\n')
+    await waitFor(() => block.querySelector('svg.pele')?.textContent.includes('UpdatedNode'), { message: 'source-only React update to reach the built bundle' })
+    assert.equal(block.querySelector('pre'), pre)
+    assert.equal(pre.parentElement, parent)
+    assert.equal(copy(), 'flowchart LR\n A-->UpdatedNode')
+    block.querySelectorAll('.dsh-pele-mermaid-toolbar button')[1].click()
+    assert.notEqual(runtime.window.getComputedStyle(pre).display, 'none')
+    assert.equal(pre.parentElement, parent)
+    render('console.log(42)\n', 'javascript', 'static')
+    await waitFor(() => diagramSvgs(runtime.document).length === 0, { message: 'language reuse to remove the old diagram' })
+    assert.equal(pre.isConnected, false)
+    assert.equal(block.querySelectorAll('pre').length, 1)
+    assert.equal(block.querySelector('pre').textContent, 'console.log(42)')
+    plugin.cleanup()
+    assert.equal(block.querySelector('[data-dsh-pele-mermaid-source-hidden]'), null)
+    assert.equal(block.querySelector('.dsh-pele-mermaid-diagram'), null)
+    render('console.log(43)\n', 'javascript', 'streaming')
+    assert.equal(copy(), 'console.log(43)')
+    assertOnlyExpectedJsdomNotices(runtime.jsdomNotices)
+  } finally {
+    plugin.cleanup()
+    flushSync(() => root.unmount())
+    for (const [key, descriptor] of saved) {
+      if (descriptor) Object.defineProperty(globalThis, key, descriptor)
+      else delete globalThis[key]
+    }
   }
 })

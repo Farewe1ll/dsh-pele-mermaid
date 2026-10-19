@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "date": "2026-10-19T15:46:41.889Z",
+  "hostVersion": "0.2.1-rc.2",
+  "reactVersion": "18.3.1",
+  "archive": "/Applications/DeepSeek Harness.app/Contents/Resources/app.asar",
+  "componentAsset": "dsh/node_modules/@deepseek-ai/dsh-web-frontend/dist/assets/index-CN7NIWNw.js",
+  "componentSha256": "3ec423c4bd570d98d05fa70c9d27c79d473a7de539631a288d9f4a1950e3c557",
+  "bundleSha256": "ba5b29085cac5c6f3fe34b2e76e5b00744b191f7c98877700982ddad90a8a1e4",
+  "scope": "Installed CodeBlock function, real React; fixture styling/toolbar/tokenization helpers. Not a live DSH session.",
+  "checks": [
+    "generic toolbar: current props, mount/update/language reuse across four committed renders; source parent preserved",
+    "unmounted component supplies no React props",
+    "plain: source shape and host Copy preserve all but one trailing newline",
+    "static: source shape and host Copy preserve all but one trailing newline",
+    "streaming: source shape and host Copy preserve all but one trailing newline"
+  ]
+}

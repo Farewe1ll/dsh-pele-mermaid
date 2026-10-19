@@ -3,8 +3,8 @@
  *
  * Detects settled ` ```mermaid ` fences in the rendered DSH Markdown DOM,
  * mounts a Pele diagram inside `[data-code-block-content]`, keeps the original
- * `<pre>` as the source artifact, and restores the page to its pre-plugin DOM
- * on destroy.
+ * `<pre>` as the source artifact, and removes only plugin additions on destroy,
+ * preserving host updates.
  *
  * Contracts (docs/ARCH.md § `src/client/blocks.js`):
  *  - `scan()` is synchronous and idempotent; it is also the settle-timer
@@ -12,14 +12,14 @@
  *  - Nothing here may throw into React: every DOM operation is defensive and
  *    `scan()` swallows failures.
  *  - We never touch the DSH code-block banner (its Copy button keeps working
- *    because CodeBlock falls back to its `source` prop when no `<pre>` exists).
+ *    because its original `<pre>` stays in the host-owned subtree).
  *  - Pele is NOT imported here directly; `mountDiagram` is injected (defaults
  *    to the engine adapter) so the DOM layer stays testable and swappable.
  *
  * @module dsh-pele-mermaid/blocks
  */
 
-import { CLASS as THEME_CLASS } from './theme-css.js'
+import { CLASS as THEME_CLASS, SOURCE_HIDDEN_ATTR } from './theme-css.js'
 import { mountDiagram as engineMountDiagram } from './engine.js'
 
 /** Language tag of the fenced blocks this plugin owns. */
@@ -29,6 +29,24 @@ export const MERMAID_LANG = 'mermaid'
 const BLOCK_SELECTOR = '.md-code-block'
 const BANNER_SELECTOR = '[data-code-block-banner]'
 const CONTENT_SELECTOR = '[data-code-block-content]'
+
+/**
+ * DSH renders a fence whose language Shiki cannot highlight (Mermaid is one)
+ * with the toolbar's localized generic label instead of the info string:
+ * `t('codeBlock.title')` — `代码块` in zh, `Code` in en. Such a label carries no
+ * language information, so it is treated as "unknown" rather than as an
+ * explicit non-Mermaid language.
+ */
+const GENERIC_CODE_LABELS = new Set(['代码块', 'code'])
+
+/** React internals: host DOM nodes carry their owning fiber and DOM props. */
+const REACT_FIBER_PREFIX = '__reactFiber$'
+
+/** Maximum ancestor hops when looking for the CodeBlock component fiber. */
+const FIBER_WALK_LIMIT = 40
+
+/** Root validation includes the host app's providers outside CodeBlock. */
+const FIBER_ROOT_WALK_LIMIT = 512
 
 /** Default settle window: source must be unchanged this long before rendering. */
 const DEFAULT_SETTLE_MS = 180
@@ -98,19 +116,6 @@ function isLive(node, doc) {
     return !!owner && owner === doc
   } catch {
     return false
-  }
-}
-
-/**
- * @param {Node} parent
- * @param {Node} node
- * @returns {number} child index, or -1
- */
-function indexInParent(parent, node) {
-  try {
-    return Array.prototype.indexOf.call(parent.childNodes, node)
-  } catch {
-    return -1
   }
 }
 
@@ -190,17 +195,101 @@ function normalizeSettleMs(input) {
 /* -------------------------------------------------------------------------- */
 
 /**
- * Read the settled fence language from a CodeBlock banner, lowercased.
+ * Resolve a React 18 fiber against the committed root. The DOM's attached
+ * fiber can be the previous alternate after an update. Return pointers alone
+ * are insufficient: bailout subtrees can be shared by both parent alternates.
+ * Check child membership up to root.current, considering both parents. Unknown
+ * internals or a disconnected tree fail closed and leave DOM fallback usable.
+ * @param {any} fiber
+ * @param {Map<object, boolean>} membership
+ * @returns {any | null}
+ */
+function currentFiber(fiber, membership) {
+  function belongs(node, depth = 0) {
+    if (!node || depth >= FIBER_ROOT_WALK_LIMIT) return false
+    if (membership.has(node)) return membership.get(node)
+    membership.set(node, false)
+    if (node.tag === 3) {
+      const current = node.stateNode?.current === node
+      membership.set(node, current)
+      return current
+    }
+    for (const parent of [node.return, node.return?.alternate]) {
+      if (!parent) continue
+      let child = parent.child
+      // Bound malformed/private structures as well as ancestor traversal.
+      for (let count = 0; child && count < 4096; count += 1, child = child.sibling) {
+        if (child !== node) continue
+        if (belongs(parent, depth + 1)) {
+          membership.set(node, true)
+          return true
+        }
+        break
+      }
+    }
+    return false
+  }
+  if (belongs(fiber)) return fiber
+  return belongs(fiber?.alternate) ? fiber.alternate : null
+}
+
+/**
+ * Find the CodeBlock component props through React's host fiber.
+ *
+ * DSH renders a fence whose language Shiki cannot highlight (Mermaid is one)
+ * with a localized generic code label, so the DOM alone no longer states the
+ * language. React attaches a fiber to every host node; walking up the `return`
+ * chain from the `.md-code-block` host reaches the CodeBlock component fiber,
+ * whose memoized props still carry the raw `code` and `lang` the Markdown
+ * renderer passed. This reads a framework internal on purpose — every caller
+ * falls back to DOM-only facts when it is unavailable.
+ *
+ * @param {Element} block - a `.md-code-block` element
+ * @returns {{ code: string, lang?: unknown } | null}
+ */
+function reactCodeBlockProps(block) {
+  try {
+    if (!block.isConnected) return null
+    for (const key of Object.getOwnPropertyNames(block)) {
+      if (!key.startsWith(REACT_FIBER_PREFIX)) continue
+      const membership = new Map()
+      /** @type {{ memoizedProps?: unknown, return?: unknown } | null} */
+      let fiber = /** @type {any} */ (block)[key]
+      if (fiber?.stateNode !== block) return null
+      for (let depth = 0; fiber !== null && depth < FIBER_WALK_LIMIT; depth += 1) {
+        fiber = currentFiber(fiber, membership)
+        if (!fiber) return null
+        const props = fiber.memoizedProps
+        if (
+          props !== null &&
+          typeof props === 'object' &&
+          typeof (/** @type {{ code?: unknown }} */ (props).code) === 'string' &&
+          'lang' in /** @type {object} */ (props)
+        ) {
+          return /** @type {{ code: string, lang?: unknown }} */ (props)
+        }
+        fiber = fiber.return ?? null
+      }
+      break
+    }
+  } catch {
+    /* React internals are optional; DOM facts still work */
+  }
+  return null
+}
+
+/**
+ * Read a language tag from the rendered banner, lowercased.
  *
  * The banner can be either the plain infostring banner or the card-toolbar
  * shape, so the banner is cloned and interactive chrome (buttons, SVG icons,
  * aria-hidden icon wrappers) is stripped before reading the remaining text.
+ * A generic code label (`代码块` / `Code`) is not a language and reads as null.
  *
- * @param {Element | null | undefined} block - a `.md-code-block` element
- * @returns {string | null} lowercased language tag, or null when unreadable
+ * @param {Element} block - a `.md-code-block` element
+ * @returns {string | null}
  */
-export function readFenceLanguage(block) {
-  if (!isElement(block)) return null
+function readBannerLanguage(block) {
   const banner = safeQuery(block, BANNER_SELECTOR)
   if (!isElement(banner)) return null
   let text = ''
@@ -218,25 +307,64 @@ export function readFenceLanguage(block) {
   const trimmed = text.trim()
   if (trimmed === '') return null
   const token = trimmed.split(/\s+/)[0]
-  return token ? token.toLowerCase() : null
+  if (!token) return null
+  const lowered = token.toLowerCase()
+  return GENERIC_CODE_LABELS.has(lowered) ? null : lowered
 }
 
 /**
- * Read the fence source from the settled code-block content, or null.
+ * Read the round-trip facts for one rendered fence.
  *
- * The raw `textContent` is returned unchanged (Pele owns source semantics);
- * callers only trim for the blank-source check.
+ * - `lang`: the exact fence info-string language when React internals expose it,
+ *   otherwise the banner tag; null when the banner only shows a generic code
+ *   label (the case for Mermaid in the real DSH chat UI).
+ * - `source`: the raw fenced code when React exposes it, otherwise the rendered
+ *   `<pre>` text (returned unchanged; callers own blank checks).
  *
+ * @param {Element | null | undefined} block - a `.md-code-block` element
+ * @returns {{ lang: string | null, source: string | null, fromReact: boolean, hasBanner: boolean }}
+ */
+export function readFenceFacts(block) {
+  if (!isElement(block)) return { lang: null, source: null, fromReact: false, hasBanner: false }
+  const props = reactCodeBlockProps(block)
+  const hasBanner = isElement(safeQuery(block, BANNER_SELECTOR))
+  /** @type {string | null} */
+  let lang = null
+  /** @type {string | null} */
+  let source = null
+  if (props) {
+    const rawLang = props.lang
+    if (typeof rawLang === 'string') {
+      const token = rawLang.trim().split(/\s+/)[0]
+      if (token) lang = token.toLowerCase()
+    }
+    if (typeof props.code === 'string') source = props.code
+  }
+  if (!props) lang = readBannerLanguage(block)
+  if (source === null) {
+    const content = safeQuery(block, CONTENT_SELECTOR)
+    const pre = content ? safeQuery(content, 'pre') : null
+    if (pre) source = textOf(pre)
+  }
+  return { lang, source, fromReact: props !== null, hasBanner }
+}
+
+/**
+ * Read the settled fence language, lowercased.
+ * @param {Element | null | undefined} block - a `.md-code-block` element
+ * @returns {string | null} lowercased language tag, or null when unknown
+ */
+export function readFenceLanguage(block) {
+  return readFenceFacts(block).lang
+}
+
+/**
+ * Read the fence source, preferring the exact React `code` prop.
  * @param {Element | null | undefined} block - a `.md-code-block` element
  * @returns {string | null}
  */
 export function readFenceSource(block) {
-  if (!isElement(block)) return null
-  const content = safeQuery(block, CONTENT_SELECTOR)
-  if (!content) return null
-  const pre = safeQuery(content, 'pre')
-  if (!pre) return null
-  return textOf(pre)
+  return readFenceFacts(block).source
 }
 
 /* -------------------------------------------------------------------------- */
@@ -256,7 +384,6 @@ export function readFenceSource(block) {
  * @property {Element} block
  * @property {Element} content
  * @property {Element | null} pre            source artifact (original <pre>)
- * @property {number} originalIndex          pre position inside content
  * @property {string} source                 last observed source
  * @property {number} since                  now() when `source` last changed
  * @property {boolean} pendingTimer
@@ -266,7 +393,8 @@ export function readFenceSource(block) {
  * @property {Element | null} host      Pele mount target (sibling of the toolbar)
  * @property {Element | null} toolbar
  * @property {{ diagram: HTMLButtonElement, source: HTMLButtonElement } | null} buttons
- * @property {Element | null} sourceWrapper
+ * @property {boolean} hidingSource
+ * @property {string | null} previousHiddenAttribute
  * @property {Element | null} errorNote
  * @property {'diagram'|'source'} view
  */
@@ -319,12 +447,10 @@ export function createBlockManager(options = {}) {
    * @returns {BlockRecord}
    */
   function createRecord(block, content, pre, source) {
-    const index = indexInParent(content, pre)
     return {
       block,
       content,
       pre,
-      originalIndex: index >= 0 ? index : content.childNodes.length,
       source,
       since: now(),
       pendingTimer: false,
@@ -334,7 +460,8 @@ export function createBlockManager(options = {}) {
       host: null,
       toolbar: null,
       buttons: null,
-      sourceWrapper: null,
+      hidingSource: false,
+      previousHiddenAttribute: null,
       errorNote: null,
       view: 'diagram',
     }
@@ -342,7 +469,7 @@ export function createBlockManager(options = {}) {
 
   /**
    * First `<pre>` in `content` that we do not own (i.e. React rendered it).
-   * A `<pre>` inside our container (source view) belongs to us and is skipped.
+   * Skip any engine-generated pre; host source nodes never enter our container.
    * @param {Element} content
    * @param {BlockRecord | null} record
    * @returns {Element | null}
@@ -361,120 +488,49 @@ export function createBlockManager(options = {}) {
     return null
   }
 
-  /**
-   * Latest observable source for a record: a React-rendered `<pre>` wins,
-   * otherwise our detached source artifact (React may patch that detached node
-   * directly when it re-renders text without replacing the tree).
-   * @param {BlockRecord | null} record
-   * @param {Element | null} externalPre
-   * @returns {string | null}
-   */
-  function observedSource(record, externalPre) {
-    if (externalPre) return textOf(externalPre)
-    if (record && record.pre) return textOf(record.pre)
-    return null
-  }
-
-  /**
-   * Put the source artifact back exactly where DSH rendered it.
-   * @param {BlockRecord} record
-   * @returns {boolean}
-   */
-  function restorePre(record) {
-    const content = record.content
+  /** Hide/show the host source without changing its parent, text or children. */
+  function setSourceHidden(record, hidden) {
     const pre = record.pre
-    if (!content || !pre) return false
+    if (!pre) return
     try {
-      if (pre.parentNode) pre.parentNode.removeChild(pre)
-      const index = record.originalIndex
-      const reference = content.childNodes[index] ?? null
-      content.insertBefore(pre, reference)
-      return true
+      if (hidden) {
+        if (!record.hidingSource) record.previousHiddenAttribute = pre.getAttribute(SOURCE_HIDDEN_ATTR)
+        pre.setAttribute(SOURCE_HIDDEN_ATTR, '')
+        record.hidingSource = true
+      } else if (record.hidingSource) {
+        if (record.previousHiddenAttribute === null) pre.removeAttribute(SOURCE_HIDDEN_ATTR)
+        else pre.setAttribute(SOURCE_HIDDEN_ATTR, record.previousHiddenAttribute)
+        record.hidingSource = false
+        record.previousHiddenAttribute = null
+      }
     } catch {
-      return false
+      /* Host removal can race a scan; never move or recreate its source. */
     }
   }
 
-  /**
-   * Remove every node we inserted (toolbar/container/error/source view) and
-   * destroy the Pele handle. Never touches the DSH banner.
-   *
-   * Order matters: the engine's `destroy()` clears the diagram container, so
-   * the source artifact is detached first.
-   *
-   * @param {BlockRecord} record
-   * @param {{ restorePre?: boolean }} [opts]
-   */
-  function destroyDiagramDom(record, opts = {}) {
-    const container = record.container
-    const wrapper = record.sourceWrapper
-    // Detach the artifact before destroying the engine container/wrapper.
-    if (record.pre && record.pre.parentNode) {
-      const parent = record.pre.parentNode
-      if (parent === wrapper || (container && container.contains(record.pre))) {
-        try {
-          parent.removeChild(record.pre)
-        } catch {
-          /* ignore */
-        }
-      }
-    }
+  /** Remove only our DOM and restore only the source attribute we changed. */
+  function destroyDiagramDom(record) {
+    setSourceHidden(record, false)
     const handle = record.handle
     record.handle = null
     if (handle && typeof handle.destroy === 'function') {
-      try {
-        handle.destroy()
-      } catch {
-        /* defensive: engine bugs must not leak */
-      }
+      try { handle.destroy() } catch { /* engine cleanup is best effort */ }
+    }
+    for (const node of [record.container, record.errorNote]) {
+      try { node?.remove() } catch { /* detached by host */ }
     }
     record.container = null
     record.host = null
     record.toolbar = null
     record.buttons = null
-    record.sourceWrapper = null
-    if (wrapper && wrapper.parentNode) {
-      try {
-        wrapper.parentNode.removeChild(wrapper)
-      } catch {
-        /* ignore */
-      }
-    }
-    if (container && container.parentNode) {
-      try {
-        container.parentNode.removeChild(container)
-      } catch {
-        /* ignore */
-      }
-    }
-    if (record.errorNote && record.errorNote.parentNode) {
-      try {
-        record.errorNote.parentNode.removeChild(record.errorNote)
-      } catch {
-        /* ignore */
-      }
-    }
     record.errorNote = null
     record.view = 'diagram'
-    if (opts.restorePre) restorePre(record)
   }
 
-  /**
-   * Restore a record's DOM and forget it. Pending records never touched the
-   * DOM, so they are dropped without moving the `<pre>` (exact round-trip).
-   * @param {BlockRecord} record
-   */
+  /** Forget plugin state without restoring any old host subtree. */
   function cleanupRecord(record) {
     if (!record) return
-    if (record.status === 'pending') {
-      record.handle = null
-      record.container = null
-      record.errorNote = null
-      record.sourceWrapper = null
-      record.view = 'diagram'
-      return
-    }
-    destroyDiagramDom(record, { restorePre: true })
+    destroyDiagramDom(record)
     record.status = 'pending'
   }
 
@@ -539,6 +595,7 @@ export function createBlockManager(options = {}) {
     const buttons = record.buttons
     if (!buttons) return
     const sourceView = record.view === 'source'
+    record.container?.classList.toggle(classes.source, sourceView)
     setPressed(buttons.diagram, !sourceView)
     setPressed(buttons.source, sourceView)
   }
@@ -547,82 +604,47 @@ export function createBlockManager(options = {}) {
 
   /** @param {BlockRecord} record */
   function isMountedHealthy(record) {
-    const { content, container, host, toolbar, sourceWrapper, pre } = record
-    if (!content || !isLive(content, doc)) return false
-    if (!container || !isLive(container, doc) || !content.contains(container)) return false
-    if (!host || !isLive(host, doc) || !container.contains(host)) return false
-    if (!toolbar || !isLive(toolbar, doc) || !container.contains(toolbar)) return false
-    if (record.view === 'source') {
-      return !!(
-        sourceWrapper &&
-        isLive(sourceWrapper, doc) &&
-        content.contains(sourceWrapper) &&
-        pre &&
-        sourceWrapper.contains(pre) &&
-        host.hidden === true
-      )
-    }
-    // Diagram view: the source artifact must be detached from the content.
-    if (host.hidden === true) return false
-    return !pre || !content.contains(pre)
+    const { content, container, host, toolbar, pre } = record
+    if (!content || !isLive(content, doc) || !pre || !content.contains(pre)) return false
+    if (!container || container.parentNode !== content) return false
+    if (!host || host.parentNode !== container || !toolbar || toolbar.parentNode !== container) return false
+    return record.view === 'source'
+      ? host.hidden === true && !record.hidingSource
+      : host.hidden !== true && pre.hasAttribute(SOURCE_HIDDEN_ATTR)
   }
 
   /** @param {BlockRecord} record */
   function isErrorHealthy(record) {
     const { content, pre, errorNote } = record
-    if (!content || !isLive(content, doc)) return false
-    if (!pre || !content.contains(pre)) return false
-    return !!(errorNote && isLive(errorNote, doc) && content.contains(errorNote))
+    return !!(content && isLive(content, doc) && pre && content.contains(pre) &&
+      errorNote && errorNote.parentNode === content)
   }
 
   /** @param {BlockRecord} record */
   function showSource(record) {
     if (destroyed || !record || record.status !== 'mounted') return
-    if (!isMountedHealthy(record)) {
-      mountRecord(record)
-      return
-    }
-    if (record.view === 'source') return
-    try {
-      const wrapper = doc.createElement('div')
-      wrapper.className = classes.source
-      wrapper.appendChild(record.pre)
-      record.content.appendChild(wrapper)
-      record.sourceWrapper = wrapper
-      // Hide the Pele host, keep our toolbar visible so the user can toggle back.
-      record.host.hidden = true
-      record.view = 'source'
-      updateToolbar(record)
-    } catch {
-      /* ignore */
-    }
+    if (!isMountedHealthy(record)) { scan(); return }
+    setSourceHidden(record, false)
+    record.host.hidden = true
+    record.view = 'source'
+    updateToolbar(record)
   }
 
   /** @param {BlockRecord} record */
   function showDiagram(record) {
     if (destroyed || !record || record.status !== 'mounted') return
-    if (record.view !== 'source') return
-    try {
-      const wrapper = record.sourceWrapper
-      if (wrapper) {
-        if (record.pre && record.pre.parentNode === wrapper) wrapper.removeChild(record.pre)
-        if (wrapper.parentNode) wrapper.parentNode.removeChild(wrapper)
-      }
-      record.sourceWrapper = null
-      if (record.host) record.host.hidden = false
-      record.view = 'diagram'
-      updateToolbar(record)
-    } catch {
-      /* ignore */
-    }
+    if (!isMountedHealthy(record)) { scan(); return }
+    setSourceHidden(record, true)
+    record.host.hidden = false
+    record.view = 'diagram'
+    updateToolbar(record)
   }
 
   /* -------------------------------- mount ------------------------------- */
 
   /**
    * Build the diagram/error state for `record.source`, destroying any previous
-   * handle and our previous DOM first. The source artifact is detached from the
-   * content only while a diagram is mounted.
+   * handle and our previous DOM first. The original source stays in place.
    * @param {BlockRecord} record
    */
   function mountRecord(record) {
@@ -645,42 +667,13 @@ export function createBlockManager(options = {}) {
     // A font-metric refresh must not throw the user out of the Source view.
     const previousView = record.view === 'source' ? 'source' : 'diagram'
 
-    // A React replacement may have re-rendered the <pre>; adopt its node.
-    const externalPre = findExternalPre(content, record)
-    if (externalPre && externalPre !== record.pre) {
-      if (record.pre && record.pre !== externalPre && record.pre.parentNode) {
-        try {
-          record.pre.parentNode.removeChild(record.pre)
-        } catch {
-          /* ignore */
-        }
-      }
-      record.pre = externalPre
-    }
-
-    // Drop previous diagram/error DOM, then make sure the artifact is detached
-    // from the content exactly once before mounting.
-    destroyDiagramDom(record, { restorePre: false })
-    const pre = record.pre
+    const pre = findExternalPre(content, record)
+    destroyDiagramDom(record)
     if (!pre) {
       records.delete(block)
       return
     }
-    if (pre.parentNode === content) {
-      const index = indexInParent(content, pre)
-      if (index >= 0) record.originalIndex = index
-      try {
-        content.removeChild(pre)
-      } catch {
-        /* ignore */
-      }
-    } else if (pre.parentNode) {
-      try {
-        pre.parentNode.removeChild(pre)
-      } catch {
-        /* ignore */
-      }
-    }
+    record.pre = pre
 
     // Pele owns the inner host's innerHTML (`svg.pele` + zoom controls), so the
     // toolbar is a sibling in normal flow and survives Pele-internal re-renders.
@@ -703,14 +696,18 @@ export function createBlockManager(options = {}) {
       host.setAttribute('data-dsh-pele-mermaid-host', '')
       container.appendChild(toolbar)
       container.appendChild(host)
-      content.appendChild(container)
+      // Insert our toolbar before the host source's top-level child; never
+      // reparent the pre, including content > div > pre from static Shiki.
+      let sourceRoot = pre
+      while (sourceRoot.parentNode && sourceRoot.parentNode !== content) sourceRoot = sourceRoot.parentNode
+      content.insertBefore(container, sourceRoot)
       record.container = container
       record.host = host
       record.toolbar = toolbar
       record.buttons = buttons
     } catch {
       // Extremely defensive: restore the source and leave the block untouched.
-      destroyDiagramDom(record, { restorePre: true })
+      destroyDiagramDom(record)
       return
     }
 
@@ -737,13 +734,14 @@ export function createBlockManager(options = {}) {
           /* ignore */
         }
       }
-      destroyDiagramDom(record, { restorePre: true })
+      destroyDiagramDom(record)
       showError(record, message)
       return
     }
 
     record.handle = /** @type {DiagramHandle} */ (handle)
     record.status = 'mounted'
+    setSourceHidden(record, true)
     record.view = 'diagram'
     record.errorNote = null
     updateToolbar(record)
@@ -762,9 +760,6 @@ export function createBlockManager(options = {}) {
       record.status = 'error'
       return
     }
-    if (record.pre.parentNode !== content || indexInParent(content, record.pre) !== record.originalIndex) {
-      restorePre(record)
-    }
     try {
       const note = doc.createElement('div')
       note.className = classes.error
@@ -782,7 +777,6 @@ export function createBlockManager(options = {}) {
     record.host = null
     record.toolbar = null
     record.buttons = null
-    record.sourceWrapper = null
   }
 
   /* ------------------------------- settle ------------------------------- */
@@ -842,23 +836,7 @@ export function createBlockManager(options = {}) {
    * @param {string} source
    */
   function resetForSource(record, source) {
-    const content = record.content
-    const external = content ? findExternalPre(content, record) : null
-    destroyDiagramDom(record, { restorePre: false })
-    if (external) {
-      if (record.pre && record.pre !== external && record.pre.parentNode) {
-        try {
-          record.pre.parentNode.removeChild(record.pre)
-        } catch {
-          /* ignore */
-        }
-      }
-      record.pre = external
-      if (content) record.originalIndex = Math.max(0, indexInParent(content, external))
-    } else if (content && record.pre) {
-      // Put the kept artifact back while we wait so the page shows source.
-      restorePre(record)
-    }
+    destroyDiagramDom(record)
     record.source = source
     record.since = now()
     record.status = 'pending'
@@ -899,56 +877,42 @@ export function createBlockManager(options = {}) {
     }
   }
 
-  /**
-   * @param {Element} block
-   */
+  /** @param {Element} block */
   function scanBlock(block) {
-    const record = records.get(block) ?? null
+    let record = records.get(block) ?? null
+    let settledSince = null
+    let previousView = 'diagram'
     const content = safeQuery(block, CONTENT_SELECTOR)
-    const language = readFenceLanguage(block)
-
-    if (language !== MERMAID_LANG || !content) {
-      if (record) {
-        cleanupRecord(record)
-        records.delete(block)
-      }
+    const pre = content ? findExternalPre(content, record) : null
+    const facts = readFenceFacts(block)
+    const source = facts.source
+    // Explicit committed React language wins; an explicit DOM banner is the
+    // fallback. Unknown language stays native, regardless of parseable source.
+    if (!content || !pre || !facts.hasBanner || facts.lang !== MERMAID_LANG || source === null || source.trim() === '') {
+      if (record) { cleanupRecord(record); records.delete(block) }
       return
     }
-    if (record) record.content = /** @type {Element} */ (content)
-
-    const externalPre = findExternalPre(/** @type {Element} */ (content), record)
-    const source = observedSource(record, externalPre)
-    if (source === null || source.trim() === '') {
-      if (record) {
-        cleanupRecord(record)
-        records.delete(block)
-      }
-      return
+    if (record && (record.content !== content || record.pre !== pre)) {
+      // React owns replacement/removal. Only remove our old additions; never
+      // reinsert the old pre or flatten a newly highlighted subtree.
+      if (record.source === source) { settledSince = record.since; previousView = record.view }
+      cleanupRecord(record)
+      records.delete(block)
+      record = null
     }
-
     if (!record) {
-      const fresh = createRecord(block, /** @type {Element} */ (content), /** @type {Element} */ (externalPre), source)
-      records.set(block, fresh)
-      progressPending(fresh)
-      return
-    }
-
-    if (externalPre && externalPre !== record.pre) record.pre = externalPre
-
-    if (record.status === 'pending') {
-      if (source !== record.source) {
-        record.source = source
-        record.since = now()
-        if (externalPre) record.originalIndex = Math.max(0, indexInParent(/** @type {Element} */ (content), externalPre))
-      }
+      record = createRecord(block, content, pre, source)
+      if (settledSince !== null) { record.since = settledSince; record.view = previousView }
+      records.set(block, record)
       progressPending(record)
       return
     }
-    if (record.status === 'mounted') {
+    if (record.status === 'pending') {
+      if (source !== record.source) { record.source = source; record.since = now() }
+      progressPending(record)
+    } else if (record.status === 'mounted') {
       maintainMounted(record, source)
-      return
-    }
-    if (record.status === 'error') {
+    } else if (record.status === 'error') {
       maintainError(record, source)
     }
   }
@@ -996,6 +960,7 @@ export function createBlockManager(options = {}) {
    */
   function refreshAll() {
     if (destroyed) return
+    scan()
     for (const record of Array.from(records.values())) {
       if (record.status !== 'mounted') continue
       try {

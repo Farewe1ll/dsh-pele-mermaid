@@ -24,6 +24,9 @@
 /** Attribute that marks our installed `<style>` element (single owner). */
 export const STYLE_ATTR = 'data-dsh-pele-mermaid'
 
+/** Temporary visibility marker; the block manager preserves its prior value. */
+export const SOURCE_HIDDEN_ATTR = 'data-dsh-pele-mermaid-source-hidden'
+
 /**
  * Class names shared with the block manager (`blocks.js`) and the plugin entry
  * (`index.js`). Frozen so a typo cannot silently create a second namespace.
@@ -140,11 +143,12 @@ ${MAPPING_RULE}
 }
 
 /* ---------------------------------------------------------------------------
- * Source view: the original DSH code-block <pre>, restored verbatim inside a
- * wrapper of its own. Keep DSH's own code styling; only drop outer margins.
+ * Source stays in its host-owned position and retains DSH styling. Only this
+ * plugin's temporary marker hides it; removing the stylesheet also reveals it.
  * ------------------------------------------------------------------------- */
-.${CLASS.source} > pre {
-  margin: 0;
+[${SOURCE_HIDDEN_ATTR}],
+[data-dsh-pele-mermaid-host][hidden] {
+  display: none !important;
 }
 
 /* ---------------------------------------------------------------------------

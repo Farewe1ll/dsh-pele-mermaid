@@ -155,9 +155,11 @@
    * Fixture Markdown DOM: exactly the ARCH.md CodeBlock shape.          *
    * ------------------------------------------------------------------ */
 
-  function makeCodeBlock({ lang, source }) {
+  function makeCodeBlock({ lang, source, fiberLang }) {
     const block = document.createElement('div')
-    block.className = 'md-code-block'
+    // Real chat shape: card/toolbar variant, not the plain banner variant.
+    block.className = 'md-code-block fixture-card'
+    block.setAttribute('data-code-wrap', 'true')
 
     const banner = document.createElement('div')
     banner.className = 'md-code-block-banner'
@@ -165,7 +167,9 @@
 
     const info = document.createElement('span')
     info.className = 'md-code-block-infostring'
-    info.textContent = lang
+    // Shiki has no Mermaid grammar, so the real card header shows DSH's
+    // localized generic code label; Mermaid is identified from explicit props.
+    info.textContent = lang === 'mermaid' ? '代码块' : lang
 
     const action = document.createElement('span')
     action.className = 'md-code-block-action'
@@ -175,6 +179,8 @@
     copy.textContent = 'Copy'
     copy.addEventListener('click', () => {
       state.copyClicks += 1
+      const displayCode = source.endsWith('\n') ? source.slice(0, -1) : source
+      state.copiedText = block.querySelector('pre')?.textContent ?? displayCode
       copy.textContent = 'Copied'
       setTimeout(() => {
         copy.textContent = 'Copy'
@@ -189,11 +195,22 @@
 
     const pre = document.createElement('pre')
     const code = document.createElement('code')
-    code.textContent = source
+    code.textContent = source.endsWith('\n') ? source.slice(0, -1) : source
     pre.appendChild(code)
     content.appendChild(pre)
 
     block.append(banner, content)
+    if (fiberLang !== undefined) {
+      // Simulate the React fiber chain the real chat DOM carries (exact `code`
+      // and `lang` props) so the explicit-language path is exercised too.
+      const root = { tag: 3, return: null, stateNode: {} }
+      root.stateNode.current = root
+      const component = { memoizedProps: { code: source, lang: fiberLang }, return: root }
+      const host = { memoizedProps: { className: 'md-code-block' }, stateNode: block, return: component }
+      root.child = component
+      component.child = host
+      block.__reactFiber$fixture = host
+    }
     return block
   }
 
@@ -211,7 +228,15 @@
       const heading = document.createElement('h3')
       heading.textContent = `Fence ${index + 1}: ${diagram.kind}` + (diagram.invalid ? ' (invalid source → source fallback)' : '')
       markdown.appendChild(heading)
-      markdown.appendChild(makeCodeBlock({ lang: 'mermaid', source: diagram.source }))
+      markdown.appendChild(
+        makeCodeBlock({
+          lang: 'mermaid',
+          source: diagram.source,
+          // Explicit language only for the invalid-source fallback; the other
+          // fences exercise the source-detection path of the real card shape.
+          fiberLang: 'mermaid',
+        }),
+      )
     }
 
     const heading = document.createElement('h3')

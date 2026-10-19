@@ -1,0 +1,243 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-19T15:53:45.310Z",
+  "status": "PASS for documented checks; remaining limitations apply",
+  "package": {
+    "name": "dsh-pele-mermaid",
+    "version": "0.1.1",
+    "publishedByThisTask": false
+  },
+  "gitBase": "0839b1ac01349b8ac1aefa775d21ca302f50ceff",
+  "workingTree": "Uncommitted changes; identify code with sourceSnapshotSha256 and bundle hash, not gitBase alone.",
+  "sourceSnapshotFormat": "SHA-256 of UTF-8 JSON.stringify(sourceFiles), with lexicographically sorted file keys",
+  "sourceSnapshotSha256": "6dbf481057adc1690f9a9e3e45f106168bc6042a349a106eafff6571fa144350",
+  "bundle": {
+    "path": "lib/client.js",
+    "bytes": 694058,
+    "sha256": "ba5b29085cac5c6f3fe34b2e76e5b00744b191f7c98877700982ddad90a8a1e4"
+  },
+  "environment": {
+    "node": "v24.22.0",
+    "npm": "11.19.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "pele": "1.6.0",
+    "jsdom": "29.1.1",
+    "esbuild": "0.28.2",
+    "dsh": "0.2.1-rc.2",
+    "browser": "Chrome/155.0.8059.85"
+  },
+  "results": {
+    "automatedTests": {
+      "pass": 84,
+      "fail": 0,
+      "skipped": 0
+    },
+    "bundleTests": {
+      "pass": 7,
+      "fail": 0,
+      "includedInAutomatedTests": true
+    },
+    "installedComponent": "PASS",
+    "isolatedInstall": "PASS",
+    "browserFixture": "PASS",
+    "screenshots": 5,
+    "packaging": "dry-run passed; no publication"
+  },
+  "sourceFiles": {
+    "cordis.patch.yml": {
+      "bytes": 573,
+      "sha256": "8da894950aaede2715663b3f42db3fdf2fc49fffdd5a0233be7c377120456bdb"
+    },
+    "index.js": {
+      "bytes": 632,
+      "sha256": "4881e82951e8567efa15c39e0590edb463edd07eb373a929c5753112e9a5d2c9"
+    },
+    "package-lock.json": {
+      "bytes": 36252,
+      "sha256": "1708e6e91da75523ca418cd240cea1394d03bd1e490e170381b6e51f05ca8fbf"
+    },
+    "package.json": {
+      "bytes": 1423,
+      "sha256": "9f0a2bab0313e813f55da47fce97353b29f1769a6ad8ab02ace128cb17d44491"
+    },
+    "src/client/blocks.js": {
+      "bytes": 33103,
+      "sha256": "15239917dc80a4d14d8f2adcd3b9ca6064d626436988ea5dc8f9ef1ac478b87a"
+    },
+    "src/client/engine.js": {
+      "bytes": 7720,
+      "sha256": "217b6592569b55abc45d49020a0d4ac4568b0929e2d066eaa973ae148ab3d953"
+    },
+    "src/client/index.js": {
+      "bytes": 5629,
+      "sha256": "99081727ce5d0bbe86a02556c6b4447b8a6087e55fd913220d2fb416fa456253"
+    },
+    "src/client/theme-css.js": {
+      "bytes": 8943,
+      "sha256": "45299cf73a892e4fbe15f2f53a4c06716d3819da501614976861cb68bd42a0bc"
+    }
+  },
+  "validationFiles": {
+    "scripts/build-client.mjs": {
+      "bytes": 3560,
+      "sha256": "b8145af26b40684f2959dfadab65bf9d39d06b58178c196a60f1476ae632a839"
+    },
+    "scripts/serve-fixture.mjs": {
+      "bytes": 6786,
+      "sha256": "f5ff9f2fbad39551415268cfaf702aa977530527d26216be81b3602562b9459e"
+    },
+    "scripts/verify-bundle.mjs": {
+      "bytes": 3902,
+      "sha256": "b2b3e457f9b1ef17070713e0c504db5b363776230bd604d43dce41a42f8769a1"
+    },
+    "scripts/verify-host.mjs": {
+      "bytes": 6502,
+      "sha256": "39cebe7cf5c8f714a61564725f2e6e7de446d55b6445cb5419963c435a856500"
+    },
+    "scripts/verify-install.mjs": {
+      "bytes": 30266,
+      "sha256": "c5bdf8d13d9e1a8a404ea859bedf7193326178c1d89402131a3083ee61c0ffce"
+    },
+    "scripts/verify-visual.mjs": {
+      "bytes": 8075,
+      "sha256": "3a048dd6cd0f8d46a25f14e1a69311f517ca0f848e1a75ebabaaf93a4552f961"
+    },
+    "tests/blocks.test.mjs": {
+      "bytes": 36663,
+      "sha256": "eab34dda5702dece62e4a1eaf3b88009b439e455e471b7c70f0b30837db604de"
+    },
+    "tests/bundle.test.mjs": {
+      "bytes": 33012,
+      "sha256": "75d97262ac625469aab6c72abf52f31b30a6e3237834bc719c8a8c68a798de09"
+    },
+    "tests/engine.test.mjs": {
+      "bytes": 13013,
+      "sha256": "33a9955a204ae3b66f5271840caf2c1fa552617159591325ba0a85a67bc4dd1b"
+    },
+    "tests/fixtures/README.md": {
+      "bytes": 5757,
+      "sha256": "5e8867f7b62f4fb9b09cbdb605b112ab1f95fb3df6aacb7d69e134de55c8e877"
+    },
+    "tests/fixtures/fixture.css": {
+      "bytes": 5488,
+      "sha256": "735fc6d89a48721dd89694c931463f7aac0f65a0119eca4cd1cbb45e7d287e4b"
+    },
+    "tests/fixtures/fixture.html": {
+      "bytes": 1791,
+      "sha256": "5f31b387f13ccbe419c53b985d44ad03afd0771ccc9d860e4bdca31341481230"
+    },
+    "tests/fixtures/fixture.js": {
+      "bytes": 23576,
+      "sha256": "313a594c8a88febeb51667ad33183decfbdaa2644b1875ab4d31b029694e9a44"
+    },
+    "tests/fixtures/theme-tokens-base.css": {
+      "bytes": 1797,
+      "sha256": "fbde7d74dc5ec9b9f2b62032dfc6c114e8555ad4de5f4d0e8b27728a419289cf"
+    },
+    "tests/fixtures/theme-tokens.css": {
+      "bytes": 19035,
+      "sha256": "679d76601164388d80a80719bb49a06ac83e7aa3847f4e881225086a61bcfa76"
+    },
+    "tests/helpers/fiber.mjs": {
+      "bytes": 484,
+      "sha256": "ac32b7ae46494e8a9f8f7974647d6b9e761d927015aa33a478d072bf47819499"
+    },
+    "tests/helpers/react-code-block.mjs": {
+      "bytes": 2832,
+      "sha256": "1709e8ef417eaa045e8c2c2a7b5e8f90fac658d2329933d4a2e1b350f73116bc"
+    },
+    "tests/react-lifecycle.test.mjs": {
+      "bytes": 9880,
+      "sha256": "a97edb8377dbe688b2b88702301a57d25df87ab671bf71a79c51cc4bc9312741"
+    },
+    "tests/theme-css.test.mjs": {
+      "bytes": 12491,
+      "sha256": "08a72fdb46e64036f7a5a7fbe4655ad69c0e5c3d09bc87d349f3ad4b59fae854"
+    }
+  },
+  "documentationFiles": {
+    "README.md": {
+      "bytes": 8996,
+      "sha256": "6a1dd799c730effd1e328e07244069080988eed6413eb2293be94fa8fd117b0f"
+    },
+    "README.zh.md": {
+      "bytes": 8118,
+      "sha256": "9e6533ae3fc80f3ee1f80e721a42d8553a8de0833cb1b61bb66c2c8a3c2879cf"
+    },
+    "docs/ARCH.md": {
+      "bytes": 15945,
+      "sha256": "a389fb2c57003a375dda1a9482c5db9e579aa661a3446b6cd89e9913d4e04263"
+    },
+    "docs/KNOWN-LIMITATIONS.md": {
+      "bytes": 3573,
+      "sha256": "f58ffb83e068e9e6e904a273ed1bd7ee032ae9b05eb74220638873615e310a14"
+    },
+    "docs/VERIFICATION.md": {
+      "bytes": 9547,
+      "sha256": "f8c8c2896e46e32c05dbd90246b81ac353d83d18f5c57b03fa609c09a69d6a06"
+    },
+    "docs/VERIFICATION-HISTORY.md": {
+      "bytes": 31008,
+      "sha256": "30772944c88634060948e1851809f9317164f5cde17878aac5cfe9656f4c2f4f"
+    }
+  },
+  "evidenceFiles": {
+    "docs/evidence/build-freshness.log": {
+      "bytes": 47,
+      "sha256": "41a38af22c727b8b10e251ef5b8759606a85863573be5a4860129f430c74f7f4"
+    },
+    "docs/evidence/bundle-verify.log": {
+      "bytes": 1789,
+      "sha256": "5794eb08f2b81b62eba9a47a1ab464efece7c83d615754084c0e10db797efbd3"
+    },
+    "docs/evidence/host-codeblock.json": {
+      "bytes": 1033,
+      "sha256": "cfbfddda6af7721705b1517b7ce59d9711b1d56293ecfc4e2389e7a278427aa5"
+    },
+    "docs/evidence/host-probe.log": {
+      "bytes": 1033,
+      "sha256": "cfbfddda6af7721705b1517b7ce59d9711b1d56293ecfc4e2389e7a278427aa5"
+    },
+    "docs/evidence/install.json": {
+      "bytes": 3015,
+      "sha256": "d442e182ec5f714db474c5f7ece7d30ff98426b9567c6bc556d051dbef888e94"
+    },
+    "docs/evidence/package-dry-run.json": {
+      "bytes": 1166,
+      "sha256": "e1589dc57e9ab9e31602c4f04caa1ed02ab64beec99c1dcb124ee38bf4e3db0f"
+    },
+    "docs/evidence/tests.log": {
+      "bytes": 7196,
+      "sha256": "9996a760c6edd89d271ca2258ef4f39f4d680628b299da326e6df5b1eaebebdf"
+    },
+    "docs/evidence/visual.log": {
+      "bytes": 884,
+      "sha256": "2aab8da8663f1578f7d06fb03f24f861f20d5aec9e36543273016593aa837d9a"
+    },
+    "tests/fixtures/screenshots/fixture-dark.png": {
+      "bytes": 334247,
+      "sha256": "5e3d61f3b5f782935489d3290297a54e938c361079e1da6d562c2eae456aa9e8"
+    },
+    "tests/fixtures/screenshots/fixture-font-refresh.png": {
+      "bytes": 334373,
+      "sha256": "9485ea065a8520f3551fbf050bcda00f2ffd2b43cfd9e44eac94ce285638508b"
+    },
+    "tests/fixtures/screenshots/fixture-light.png": {
+      "bytes": 329773,
+      "sha256": "5965ac067fc5080225e34f447747751330c3227516980316a02ca6867fc697ef"
+    },
+    "tests/fixtures/screenshots/fixture-source-view.png": {
+      "bytes": 333159,
+      "sha256": "3ec8e53c6b1a4eefcd4b1cfd31629f29462b190e37b138a31927c790b5e2c30a"
+    },
+    "tests/fixtures/screenshots/fixture-teardown.png": {
+      "bytes": 232311,
+      "sha256": "9fa616176b945e212ee0915f00c9640eecfa65234ff1138b3075424acb8fdc87"
+    },
+    "tests/fixtures/screenshots/visual-evidence.json": {
+      "bytes": 14474,
+      "sha256": "fdcb800dffc46bc6fb9ae7807dd00d228340e9b49b4fc34dec27c73b0c3e5897"
+    }
+  }
+}

@@ -225,8 +225,7 @@ test('card, toolbar, source and error chrome are styled with DSH tokens', () => 
   const focus = ruleBody(styles, `.${CLASS.toolbar} button:focus-visible`)
   assert.match(focus, /var\(--dsw-alias-border-l2\)/)
 
-  const source = ruleBody(styles, `.${CLASS.source} > pre`)
-  assert.match(source, /margin:\s*0/)
+  assert.match(styles, /\[data-dsh-pele-mermaid-source-hidden\],[\s\S]*?display:\s*none !important/)
 
   const error = ruleBody(styles, `.${CLASS.error}`)
   assert.ok(error.length > 0)

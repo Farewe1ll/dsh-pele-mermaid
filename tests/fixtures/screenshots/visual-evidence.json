@@ -1,4 +1,38 @@
 {
+  "status": "PASS",
+  "date": "2026-10-19T15:50:03.045Z",
+  "browser": "Chrome/155.0.8059.85",
+  "scope": "Browser fixture with static committed-shape Fiber objects; real React lifecycle is tested separately.",
+  "url": "http://127.0.0.1:49713/tests/fixtures/fixture.html",
+  "query": "?locale=en",
+  "viewport": {
+    "width": 1400,
+    "height": 2400,
+    "deviceScaleFactor": 1
+  },
+  "bundleSha256": "ba5b29085cac5c6f3fe34b2e76e5b00744b191f7c98877700982ddad90a8a1e4",
+  "screenshots": {
+    "fixture-light.png": {
+      "bytes": 329773,
+      "sha256": "5965ac067fc5080225e34f447747751330c3227516980316a02ca6867fc697ef"
+    },
+    "fixture-dark.png": {
+      "bytes": 334247,
+      "sha256": "5e3d61f3b5f782935489d3290297a54e938c361079e1da6d562c2eae456aa9e8"
+    },
+    "fixture-source-view.png": {
+      "bytes": 333159,
+      "sha256": "3ec8e53c6b1a4eefcd4b1cfd31629f29462b190e37b138a31927c790b5e2c30a"
+    },
+    "fixture-font-refresh.png": {
+      "bytes": 334373,
+      "sha256": "9485ea065a8520f3551fbf050bcda00f2ffd2b43cfd9e44eac94ce285638508b"
+    },
+    "fixture-teardown.png": {
+      "bytes": 232311,
+      "sha256": "9fa616176b945e212ee0915f00c9640eecfa65234ff1138b3075424acb8fdc87"
+    }
+  },
   "light": {
     "theme": "light",
     "darkAttribute": false,
@@ -60,11 +94,11 @@
       "sourceViews": 0,
       "nonMermaidPre": true,
       "bannerTexts": [
-        "mermaid",
-        "mermaid",
-        "mermaid",
-        "mermaid",
-        "mermaid",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
         "javascript"
       ]
     },
@@ -77,13 +111,13 @@
       {
         "count": 4,
         "remounts": 4,
-        "at": 554
+        "at": 466
       }
     ],
     "themeEvents": [
       {
         "theme": "light",
-        "at": 78
+        "at": 35
       }
     ],
     "errors": [],
@@ -166,11 +200,11 @@
       "sourceViews": 0,
       "nonMermaidPre": true,
       "bannerTexts": [
-        "mermaid",
-        "mermaid",
-        "mermaid",
-        "mermaid",
-        "mermaid",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
         "javascript"
       ]
     },
@@ -183,17 +217,17 @@
       {
         "count": 4,
         "remounts": 4,
-        "at": 554
+        "at": 466
       }
     ],
     "themeEvents": [
       {
         "theme": "light",
-        "at": 78
+        "at": 35
       },
       {
         "theme": "dark",
-        "at": 1326
+        "at": 698
       }
     ],
     "errors": [],
@@ -213,8 +247,7 @@
         "--pele-font": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif",
         "--pele-font-mono": "\"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\", \"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\""
       }
-    },
-    "remountsBeforeTheme": 4
+    }
   },
   "sourceView": {
     "theme": "dark",
@@ -277,11 +310,11 @@
       "sourceViews": 1,
       "nonMermaidPre": true,
       "bannerTexts": [
-        "mermaid",
-        "mermaid",
-        "mermaid",
-        "mermaid",
-        "mermaid",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
         "javascript"
       ]
     },
@@ -294,17 +327,17 @@
       {
         "count": 4,
         "remounts": 4,
-        "at": 554
+        "at": 466
       }
     ],
     "themeEvents": [
       {
         "theme": "light",
-        "at": 78
+        "at": 35
       },
       {
         "theme": "dark",
-        "at": 1326
+        "at": 698
       }
     ],
     "errors": [],
@@ -324,121 +357,7 @@
         "--pele-font": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif",
         "--pele-font-mono": "\"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\", \"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\""
       }
-    },
-    "preInContent": true,
-    "hostHidden": true
-  },
-  "diagramView": {
-    "theme": "dark",
-    "darkAttribute": true,
-    "bodyBackground": "rgb(21, 21, 23)",
-    "bodyColor": "rgb(249, 250, 251)",
-    "registrationId": "dsh-pele-mermaid",
-    "factoryType": "function",
-    "exportsFace": {
-      "apply": "function",
-      "inject": [
-        "theme"
-      ]
-    },
-    "applied": true,
-    "ready": true,
-    "requireCalls": 0,
-    "applyCalls": 1,
-    "effectCalls": 1,
-    "themeHandlers": 1,
-    "dom": {
-      "blocks": 6,
-      "mountedContainers": 4,
-      "hosts": 4,
-      "diagramSvgs": 4,
-      "svgTypes": [
-        "flowchart",
-        "sequence",
-        "pie",
-        "gantt"
-      ],
-      "zoomIconSvgs": 12,
-      "toolbars": 4,
-      "toolbarButtons": 8,
-      "ariaPressed": [
-        "true",
-        "false",
-        "true",
-        "false",
-        "true",
-        "false",
-        "true",
-        "false"
-      ],
-      "toolbarLabels": [
-        "Diagram",
-        "Source",
-        "Diagram",
-        "Source",
-        "Diagram",
-        "Source",
-        "Diagram",
-        "Source"
-      ],
-      "errorNotes": 1,
-      "errorTexts": [
-        "Pele: No diagram type detected for the given text."
-      ],
-      "styleElements": 1,
-      "sourceViews": 0,
-      "nonMermaidPre": true,
-      "bannerTexts": [
-        "mermaid",
-        "mermaid",
-        "mermaid",
-        "mermaid",
-        "mermaid",
-        "javascript"
-      ]
-    },
-    "remounts": 4,
-    "teardown": {
-      "tornDown": false,
-      "restored": null
-    },
-    "mountEvents": [
-      {
-        "count": 4,
-        "remounts": 4,
-        "at": 554
-      }
-    ],
-    "themeEvents": [
-      {
-        "theme": "light",
-        "at": 78
-      },
-      {
-        "theme": "dark",
-        "at": 1326
-      }
-    ],
-    "errors": [],
-    "pele": {
-      "target": "first .dsh-pele-mermaid-diagram",
-      "backgroundColor": "rgb(27, 27, 28)",
-      "vars": {
-        "--pele-bg": "#1b1b1c",
-        "--pele-fg": "#f9fafb",
-        "--pele-muted": "#adb2b8",
-        "--pele-line": "#cfd3d6",
-        "--pele-surface": "#232324",
-        "--pele-surface-alt": "#2c2c2e",
-        "--pele-border": "#ffffff1f",
-        "--pele-accent": "#f9fafb",
-        "--pele-radius": "12px",
-        "--pele-font": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif",
-        "--pele-font-mono": "\"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\", \"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\""
-      }
-    },
-    "preInContent": false,
-    "hostHidden": false
+    }
   },
   "fontRefresh": {
     "theme": "dark",
@@ -501,11 +420,11 @@
       "sourceViews": 0,
       "nonMermaidPre": true,
       "bannerTexts": [
-        "mermaid",
-        "mermaid",
-        "mermaid",
-        "mermaid",
-        "mermaid",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
         "javascript"
       ]
     },
@@ -518,26 +437,26 @@
       {
         "count": 4,
         "remounts": 4,
-        "at": 554
+        "at": 466
       },
       {
         "count": 4,
         "remounts": 8,
-        "at": 3578
+        "at": 2039
       }
     ],
     "themeEvents": [
       {
         "theme": "light",
-        "at": 78
+        "at": 35
       },
       {
         "theme": "dark",
-        "at": 1326
+        "at": 698
       },
       {
         "emit": "font",
-        "at": 3313
+        "at": 1884
       }
     ],
     "errors": [],
@@ -595,11 +514,11 @@
       "sourceViews": 0,
       "nonMermaidPre": true,
       "bannerTexts": [
-        "mermaid",
-        "mermaid",
-        "mermaid",
-        "mermaid",
-        "mermaid",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
         "javascript"
       ]
     },
@@ -612,34 +531,33 @@
       {
         "count": 4,
         "remounts": 4,
-        "at": 554
+        "at": 466
       },
       {
         "count": 4,
         "remounts": 8,
-        "at": 3578
+        "at": 2039
       }
     ],
     "themeEvents": [
       {
         "theme": "light",
-        "at": 78
+        "at": 35
       },
       {
         "theme": "dark",
-        "at": 1326
+        "at": 698
       },
       {
         "emit": "font",
-        "at": 3313
+        "at": 1884
       }
     ],
     "errors": [],
-    "pele": null,
-    "disposerReturned": true,
-    "styleCount": 0,
-    "diagramCount": 0
+    "pele": null
   },
-  "cdpExceptions": [],
-  "cdpConsoleErrors": []
+  "network": {
+    "scope": "Requests from this fixture page only, for these sample diagrams",
+    "externalRequests": []
+  }
 }

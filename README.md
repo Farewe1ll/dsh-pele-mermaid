@@ -4,8 +4,8 @@ Render Mermaid diagrams in the DeepSeek Harness (DSH) Web chat with
 [Pele](https://pele.run) — a synchronous, dependency-free Mermaid renderer.
 
 > **Decoupling guarantee.** This is a standard DSH **bundle plugin** in its own
-> package. It never patches, forks, or imports DSH source, and it loads nothing
-> from the network. When the plugin row is disabled or absent, DSH is exactly
+> package. It never patches, forks, or imports DSH source at runtime. The
+> renderer is bundled and diagram image loading is disabled. When the plugin row is disabled or absent, DSH is exactly
 > the shipped product: no boot-graph entry, no stylesheet, no observer, no DOM
 > changes. When active, settled ` ```mermaid ` code fences become interactive
 > Pele diagrams.
@@ -13,7 +13,8 @@ Render Mermaid diagrams in the DeepSeek Harness (DSH) Web chat with
 ## Why Pele
 
 - **Synchronous, zero runtime dependencies** — bundled into one browser script,
-  no CDN, no async engine, no `mermaid` global. Works fully offline.
+  no CDN, no async engine, no `mermaid` global. Pele image resources are
+  disabled, so the bundle performs no automatic image fetches.
 - **CSS-variable theming** — diagrams take `--pele-*` variables that this plugin
   maps to DSH `--dsw-*` tokens. Light/dark or theme switches change colors
   through CSS only; **diagrams are not re-rendered** for color changes.
@@ -39,7 +40,7 @@ dsh plugin --profile desktop add /path/to/dsh-pele-mermaid
 A packaged tarball or npm/git source works the same way:
 
 ```sh
-dsh plugin --profile web add ./dsh-pele-mermaid-0.1.0.tgz
+dsh plugin --profile web add ./dsh-pele-mermaid-0.1.1.tgz
 dsh plugin --profile web add dsh-pele-mermaid
 ```
 
@@ -70,18 +71,22 @@ Markdown source is ever rewritten by this plugin.
 ## What it renders
 
 - Only **settled** fenced code blocks whose info string is `mermaid`
-  (case-insensitive). While a reply streams, the fence is left alone until its
-  source stops changing, so partial diagrams and transient parse errors never
-  flash.
+  (case-insensitive). A 180 ms stable-source window reduces partial renders
+  during streaming; a longer pause can still expose an incomplete diagram.
 - Each diagram keeps a small toolbar: **Diagram / Source** toggle. The DSH code
-  block banner and its Copy button keep working; the original source `<pre>` is
-  kept as the source of truth and restored when the diagram is toggled to
-  source.
+  block banner and its Copy button keep working; the original source `<pre>`
+  stays in its React-owned position and is temporarily hidden in Diagram view.
 - If Pele cannot draw a diagram (syntax/limit), the original code block stays
   visible and a short plain-text note shows the error. An edit to the source
   retries automatically.
-- Everything else (non-Mermaid fences, inline code, links, images) is
-  untouched.
+- Language detection matches the real chat DOM: DSH shows a localized generic
+  label (`代码块` / `Code`) instead of `mermaid` for fences Shiki cannot
+  highlight, so the plugin reads the exact committed `lang`/`code` props from
+  React. Committed props take precedence; only when they are unavailable does
+  the plugin read a non-generic banner. Without explicit `mermaid`, the block
+  stays native; source heuristics are not used.
+- Non-Mermaid fences and inline code stay untouched. Pele filters user-activated
+  links, while diagram image resources are disabled (`images: false`).
 
 ## Theming
 
@@ -99,10 +104,12 @@ DSH design tokens, for example:
 | `--pele-font` / `--pele-font-mono` | `--dsw-font-family` / `--dsh` code font stack |
 | `--pele-radius` | `--dsw-radius-md` |
 
-Theme/scheme changes are pure CSS and never re-render a diagram. The only
-rebuild trigger is a **font-family or font-size** change from Appearance
-settings, because Pele measures label text at render time. Peer plugins that
-change colors by overriding tokens work too. To tune diagram colors, override
+Theme/scheme changes are pure CSS. Source changes, host node replacement and
+font-input changes can rebuild diagrams. Appearance font size is not yet passed
+to Pele: a font-size event can request a rebuild without changing Pele's default
+16 px size. Scan/refresh scheduling also has a known race; see
+[known limitations](docs/KNOWN-LIMITATIONS.md). Peer plugins that change colors
+by overriding tokens work too. To tune diagram colors, override
 the `--pele-*` variables on `.dsh-pele-mermaid-diagram` in your own stylesheet;
 no plugin code changes are needed.
 
@@ -115,13 +122,22 @@ no plugin code changes are needed.
   text is rendered with `textContent`.
 - Limits are Pele's defaults: 50,000 source characters, 4,000,000 SVG
   characters, 5,000 edges. Oversized diagrams fall back to source.
-- No telemetry, no network access from the plugin.
+- No telemetry or external renderer downloads. `images: false` blocks diagram
+  image resources, including relative paths. Filtered `<a href>` links require
+  user activation. The browser fixture observes requests for its sample inputs;
+  this is not an exhaustive proof for every future renderer feature.
 
 ## Compatibility
 
-- Verified against DSH `0.2.1-rc.2` Web/Desktop (`dsh-client-ui-primitives`
-  `0.2.1-rc.2`). The plugin only depends on the public `theme` Cordis service
-  and the rendered Markdown DOM contract; it never imports a DSH client package.
+- Target: DSH `0.2.1-rc.2`, React/React DOM `18.3.1`. In addition to the public
+  `theme` service and Markdown DOM, generic banners depend on private React
+  Fiber fields. These are version-sensitive; unknown or unreadable languages
+  stay native. Re-run the host probe before claiming support for a new host.
+  The current evidence includes an isolated install and component/browser
+  harnesses, not a fresh live Desktop conversation test.
+- Pure props changes are checked approximately once per second in addition to
+  DOM observation; background timer throttling can delay them. See the
+  [remaining limitations](docs/KNOWN-LIMITATIONS.md).
 - Pele `1.6.0` is bundled (MIT). Mermaid syntax support follows Pele: every
   diagram type built into Mermaid 12.1.0.
 - Do not enable another Mermaid-fence renderer at the same time; two plugins
@@ -131,13 +147,18 @@ no plugin code changes are needed.
 
 `docs/VERIFICATION.md` records the full evidence; the measured highlights:
 
-- **67 automated tests** (`npm test`): engine, theme CSS, block manager, and a
-  6-case jsdom end-to-end smoke of the real built bundle; `npm run verify`
-  also fails on a stale `lib/client.js`.
+- **84 automated tests** (`npm test`): engine, theme CSS, block manager, real
+  React 18.3.1 lifecycle cases, and built-bundle smoke; `npm run verify` also
+  fails on a stale `lib/client.js`.
+- **Installed-host probe** (`npm run verify:host`): read-only extraction of the
+  installed DSH CodeBlock function, with real React 18.3.1, checks committed
+  Fiber props, Copy newline behavior, and plain/static/streaming `<pre>` shapes.
+  Styling, toolbar and tokenization helpers are fixture adapters; this does not
+  exercise the whole running DSH app.
 - **Real DSH install** (`scripts/verify-install.mjs`, isolated `DSH_HOME`): the
   boot graph contains
   `{"id":"dsh-pele-mermaid","url":"plugins/??dsh-pele-mermaid/client.js&rev=…","inject":["@deepseek-ai/dsh-client-ui-theme"]}`,
-  and that route serves the committed bundle.
+  and that route serves the verified working-tree bundle.
 - **"Off ⇒ exactly normal"**: with the row disabled, the boot graph has zero
   plugin entries, the index HTML has zero occurrences, and the old bundle route
   returns 404; the disabled graph is structurally identical to a freshly
@@ -145,8 +166,8 @@ no plugin code changes are needed.
 - **Real browser** (Chrome headless fixture, screenshots in
   `tests/fixtures/screenshots/`): flowchart, sequence, pie, and gantt render;
   light↔dark flips the mapped Pele tokens with **zero re-renders**, a font
-  change re-renders, source toggling round-trips the same `<pre>` node, and
-  teardown restores the thread DOM byte-identically.
+  change re-renders, source toggling keeps the same host-owned `<pre>` node,
+  and teardown removes only plugin additions.
 
 ## Develop
 
@@ -155,6 +176,8 @@ npm install
 npm run build      # build lib/client.js (esbuild; Pele bundled)
 npm test           # node:test unit tests (engine, theme CSS, block manager)
 npm run verify     # build --check + bundle smoke test
+npm run verify:host # installed CodeBlock probe (macOS app required)
+npm run verify:visual # isolated Chrome screenshots + matching JSON
 ```
 
 `docs/ARCH.md` documents the module contracts, the Markdown DOM shape, the

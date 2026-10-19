@@ -27,6 +27,7 @@
  * Usage:
  *   node scripts/verify-install.mjs            # run, clean up temp dir on pass
  *   node scripts/verify-install.mjs --keep     # keep the temp dir for inspection
+ *   node scripts/verify-install.mjs --output=docs/evidence/install.json
  *   DSH_BIN=/path/to/dsh node scripts/verify-install.mjs
  *
  * Exit code 0 only if every step passes; logs each command and observation.
@@ -45,6 +46,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const PLUGIN_ID = 'dsh-pele-mermaid'
 const BUNDLE_PATH = path.join(ROOT, 'lib', 'client.js')
 const KEEP_TEMP = process.argv.includes('--keep')
+const OUTPUT_PATH = process.argv.find((arg) => arg.startsWith('--output='))?.slice('--output='.length)
 const DSH_BIN = process.env.DSH_BIN || 'dsh'
 const THEME_PACKAGE = '@deepseek-ai/dsh-client-ui-theme'
 
@@ -663,6 +665,16 @@ async function main() {
   log(`  served route: ${evidence['active.route.status']} ${evidence['active.route.bytes']} bytes (committed bundle + loader source-map suffix)`)
   log(`  disabled: entry absent, ${String(evidence['disabled.html.pluginOccurrences'])} HTML occurrences, route ${evidence['disabled.route.status']}`)
   log('  disabled boot graph == freshly uninstalled profile (rev-normalized): true')
+  if (OUTPUT_PATH) {
+    const target = path.resolve(ROOT, OUTPUT_PATH)
+    await mkdir(path.dirname(target), { recursive: true })
+    await writeFile(target, JSON.stringify({
+      status: 'PASS', date: new Date().toISOString(), elapsedMs: elapsed,
+      packageVersion: pkg.version, nodeVersion: process.version,
+      scope: 'Isolated DSH web profile install/disable/remove and served bundle identity; no live chat interaction.',
+      evidence,
+    }, null, 2) + '\n')
+  }
 }
 
 /**

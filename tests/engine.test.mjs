@@ -102,7 +102,7 @@ test('engine module imports without any DOM globals (no import-time document acc
 })
 
 test('DIAGRAM_OPTIONS is the frozen, engine-owned display contract', () => {
-  assert.deepEqual({ ...DIAGRAM_OPTIONS }, { zoom: true, autoDirection: true, responsive: true })
+  assert.deepEqual({ ...DIAGRAM_OPTIONS }, { zoom: true, autoDirection: true, responsive: true, images: false })
   assert.ok(Object.isFrozen(DIAGRAM_OPTIONS))
   assert.equal(Object.isExtensible(DIAGRAM_OPTIONS), false)
 })
@@ -225,6 +225,20 @@ test('diagram labels are escaped by Pele: markup never becomes DOM', () => {
   assert.equal(container.querySelector('script'), null)
   assert.equal(typeof handle.ok, 'boolean')
   handle.destroy()
+})
+
+test('diagram images are disabled for remote and relative URLs without breaking the graph', () => {
+  for (const url of ['https://example.invalid/probe.svg', 'probe.svg', '/probe.svg']) {
+    const container = makeContainer()
+    const handle = mountDiagram(container, `flowchart LR\n A@{ img: "${url}", label: "Probe", h: 40 }\n A-->B`)
+    assert.equal(handle.ok, true, `image syntax still renders: ${url}`)
+    assert.ok(container.querySelector('svg.pele'))
+    assert.equal(container.querySelector('image, img'), null, `no image resource: ${url}`)
+    assert.ok(!container.innerHTML.includes(url), 'the disabled URL is absent from the output')
+    handle.refresh()
+    assert.equal(container.querySelector('image, img'), null, 'refresh keeps images disabled')
+    handle.destroy()
+  }
 })
 
 test('destroy clears the container and is idempotent', () => {

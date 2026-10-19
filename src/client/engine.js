@@ -32,16 +32,19 @@ import { mount } from 'pele'
  * Pele display options used by {@link mountDiagram}. Frozen so no caller can
  * smuggle author-controlled options into the renderer.
  *
- * Deliberately absent: `icons`, `sanitize`, `links`/`images` overrides,
+ * Images are disabled, including relative URLs, so diagrams cannot embed
+ * image resources. Links retain Pele's filtering and require user activation.
+ * Deliberately absent: `icons`, `sanitize`, `links` overrides,
  * `config`, `limit`, and any author-supplied style. Pele's built-in escaping,
  * link filtering, and size/edge limits stay at their defaults.
  *
- * @type {Readonly<{ zoom: true, autoDirection: true, responsive: true }>}
+ * @type {Readonly<{ zoom: true, autoDirection: true, responsive: true, images: false }>}
  */
 export const DIAGRAM_OPTIONS = Object.freeze({
   zoom: true,
   autoDirection: true,
   responsive: true,
+  images: false,
 })
 
 /** Fallback text when Pele reports a non-Error without a usable message. */
