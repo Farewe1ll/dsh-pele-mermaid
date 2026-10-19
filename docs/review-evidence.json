@@ -1,0 +1,1021 @@
+{
+  "schemaVersion": 2,
+  "date": "2026-10-19",
+  "timezone": "Asia/Shanghai",
+  "commit": "6b66a2a201a1f26733fd2919db1fa5b5169f2295",
+  "revision": {
+    "kind": "Review-document correction after adjudication",
+    "changedFiles": [
+      "docs/REVIEW.md",
+      "docs/review-evidence.json",
+      "docs/ADVERSARIAL-REVIEW.md"
+    ],
+    "gitStateAtRevision": "All three review files untracked; tracked implementation, tests and bundle unchanged.",
+    "implementationTestsRerunDuringDocumentRevision": false,
+    "preservesOriginalMeasurements": true,
+    "severityIsReviewJudgment": true
+  },
+  "environment": {
+    "package": "dsh-pele-mermaid",
+    "packageVersion": "0.1.0",
+    "dsh": "0.2.1-rc.2",
+    "react": "18.3.1",
+    "reactDom": "18.3.1",
+    "pele": "1.6.0",
+    "node": "24.22.0",
+    "jsdom": "29.1.1",
+    "runtime": "Node + jsdom; no full dsh/Electron browser session",
+    "dshFontSizeRanges": {
+      "text": [
+        10,
+        22
+      ],
+      "code": [
+        10,
+        16
+      ],
+      "terminal": [
+        10,
+        20
+      ]
+    }
+  },
+  "severitySummary": {
+    "P1": 1,
+    "P2": 5,
+    "conditionalP3": 1,
+    "separateConditionalCompatibility": 1
+  },
+  "findings": [
+    {
+      "id": 1,
+      "severity": "P1",
+      "conditional": false,
+      "title": "React-owned source node detached",
+      "evidence": [
+        "domReproductions/0",
+        "reactConfirmations/detachedSource",
+        "reactConfirmations/structuralSwitch"
+      ],
+      "scope": "Stale source rendering reproduced with a React component matching the shipped plain CodeBlock shape; structural switch crash reachability in full dsh is unverified."
+    },
+    {
+      "id": 2,
+      "severity": "P3",
+      "conditional": true,
+      "title": "Old source restored after host replacement",
+      "evidence": [
+        "domReproductions/3",
+        "domReproductions/4",
+        "reactConfirmations/plainSourceChanges"
+      ],
+      "scope": "Synthetic manager host replacement reproduces duplicates; current React plain branch reuses the pre; full dsh trigger is not established."
+    },
+    {
+      "id": 3,
+      "severity": "P2",
+      "conditional": false,
+      "title": "DOM scan cancels font refresh",
+      "evidence": [
+        "fontRefreshRace"
+      ],
+      "scope": "Observed childList/characterData within the 150 ms debounce window; not attribute-only writes. Extracted settings rows reproduce the race with stubbed UI dependencies."
+    },
+    {
+      "id": 4,
+      "severity": "P2",
+      "conditional": false,
+      "title": "Remote images allowed despite broad offline claims",
+      "evidence": [
+        "remoteImage"
+      ],
+      "scope": "Remote image href generated; actual browser request and running-page CSP have not been observed."
+    },
+    {
+      "id": 5,
+      "severity": "P2",
+      "conditional": false,
+      "title": "Per-block settle timers trigger full scans",
+      "evidence": [
+        "domReproductions/5",
+        "scheduling"
+      ],
+      "scope": "Injected-clock manager fixtures with a stub renderer; DOM operation counts, not Pele/browser performance timings."
+    },
+    {
+      "id": 6,
+      "severity": "P2",
+      "conditional": false,
+      "title": "Trailing debounce delays removal cleanup",
+      "evidence": [
+        "retention",
+        "retentionVerification"
+      ],
+      "scope": "Sustained observed DOM mutations retain detached containers and observer registrations; not proof of a permanent memory leak."
+    },
+    {
+      "id": 7,
+      "severity": "P2",
+      "conditional": false,
+      "title": "Requested font size not passed to Pele",
+      "evidence": [
+        "fontSize"
+      ],
+      "scope": "Valid theme snapshots remount SVG but retain the 16px default; when remount runs, zoom/pan state is replaced."
+    },
+    {
+      "id": "nested-pre",
+      "severity": null,
+      "conditional": true,
+      "title": "Nested pre restored into the wrong parent",
+      "evidence": [
+        "domReproductions/2"
+      ],
+      "scope": "Manager-level compatibility defect; the current dsh Mermaid plain branch does not use the nested shape."
+    }
+  ],
+  "existingTests": {
+    "passed": 67,
+    "total": 67,
+    "verify": "passed",
+    "bundleBytes": 693967,
+    "bundleSha256": "f93c8feda14e3988296a0a6d636146a4d3d9610fcff4eef46479d11a1c6f7a08",
+    "buildCheck": "passed",
+    "bundleSmoke": {
+      "passed": 6,
+      "total": 6
+    },
+    "runDate": "2026-10-19",
+    "resultProvenance": "Previous verification turn; logs retained and inspected during this document-only revision.",
+    "logs": [
+      "/tmp/dsh-confirm-tests.log",
+      "/tmp/dsh-confirm-verify.log"
+    ],
+    "bundleHashRecheckedDuringDocumentRevision": true
+  },
+  "domReproductions": [
+    {
+      "case": "detached-source-update",
+      "preConnected": false,
+      "sourceUpdated": true,
+      "sameSvg": true,
+      "svgShowsUpdated": false,
+      "method": "Real bundle in jsdom; manually mutate the saved, detached code node after mount; wait 600 ms without calling manager.scan().",
+      "host": "Synthetic static CodeBlock DOM; separate real React corroboration appears in reactConfirmations.",
+      "findingId": 1
+    },
+    {
+      "case": "font-refresh-cancelled-by-DOM-change",
+      "sameSvg": true,
+      "method": "Real bundle; emit a font snapshot, append an unrelated aside immediately, wait 500 ms; no manual manager.scan().",
+      "findingId": 3
+    },
+    {
+      "case": "nested-pre-teardown",
+      "sameHtml": false,
+      "originalWrapperHasPre": false,
+      "after": "<div class=\"highlight-wrapper\"></div><pre><code>flowchart LR\nA[Original]--&gt;B</code></pre>",
+      "method": "Manager with settleMs=0 and stub renderer; destroy content > div.highlight-wrapper > pre fixture.",
+      "findingId": "nested-pre",
+      "currentDshMermaidReachability": "not demonstrated"
+    },
+    {
+      "case": "language-change-cleanup",
+      "sources": [
+        "flowchart LR\nA[Original]-->B",
+        "const answer = 42"
+      ],
+      "alive": 0,
+      "method": "Manager with settleMs=0 and stub renderer; after mounting, change banner to javascript and replace content.innerHTML with a new pre, then scan.",
+      "findingId": 2,
+      "host": "synthetic manual host DOM replacement",
+      "currentDshReachability": "not established",
+      "sourcesMeaning": "Array of pre.textContent after the final scan, in DOM document order; old cached node precedes new host node.",
+      "preCount": 2,
+      "preCountDerivation": "sources.length",
+      "aliveMeaning": "Active stub renderer handles after the final scan."
+    },
+    {
+      "case": "empty-source-cleanup",
+      "sources": [
+        "flowchart LR\nA[Original]-->B",
+        ""
+      ],
+      "method": "Manager with settleMs=0 and stub renderer; after mounting, replace content.innerHTML with a new empty pre, then scan.",
+      "findingId": 2,
+      "host": "synthetic manual host DOM replacement",
+      "currentDshReachability": "not established",
+      "sourcesMeaning": "Array of pre.textContent after the final scan, in DOM document order; old cached node precedes new host node.",
+      "preCount": 2,
+      "preCountDerivation": "sources.length",
+      "alive": null,
+      "aliveMeaning": "Not recorded in this original output."
+    },
+    {
+      "case": "many-block-settle-timers",
+      "blocks": 80,
+      "timers": 80,
+      "fullDocumentScans": 81,
+      "bannerClones": 6480,
+      "method": "Manager with injected clock and queued schedule callbacks plus stub renderer; initial scan, advance to 180 ms, run all queued callbacks.",
+      "findingId": 5,
+      "countIncludesInitialScan": true,
+      "browserTimingMeasured": false
+    }
+  ],
+  "reactAndLifecycle": {
+    "method": "Original jsdom evaluation of the real bundle. The initial source edit is a manual textContent write; only the structural-switch case renders a real React component matching CodeBlock shape.",
+    "script": "/tmp/dsh-review-react-run.mjs",
+    "dependencies": [
+      "/tmp/dsh-review-browser-eval.js",
+      "/tmp/dsh-review-react.js"
+    ],
+    "observerInstrumentation": {
+      "mutation": "Real jsdom MutationObserver with registration counter",
+      "resize": "Counting wrapper around a no-op ResizeObserver stub; no layout callbacks"
+    },
+    "errorsMeaning": "window error event messages collected by browser-eval; errors:[] does not mean no React exception occurred.",
+    "noticesMeaning": "Messages captured through jsdom VirtualConsole console.error/jsdomError; not the same channel as window error.",
+    "errorBoundaryInOriginalStructuralCase": false,
+    "output": [
+      {
+        "case": "initial-mount",
+        "svg": true,
+        "resizeActive": 1,
+        "mutationActive": 1
+      },
+      {
+        "case": "detached-source-update",
+        "sameSvg": true,
+        "showsUpdated": false
+      },
+      {
+        "case": "font-refresh-race",
+        "sameSvg": true
+      },
+      {
+        "case": "observer-lifecycle",
+        "cycles": [
+          {
+            "i": 0,
+            "mounted": true,
+            "resizeActive": 0,
+            "mutationActive": 0,
+            "pluginNodes": 0
+          },
+          {
+            "i": 1,
+            "mounted": true,
+            "resizeActive": 0,
+            "mutationActive": 0,
+            "pluginNodes": 0
+          },
+          {
+            "i": 2,
+            "mounted": true,
+            "resizeActive": 0,
+            "mutationActive": 0,
+            "pluginNodes": 0
+          },
+          {
+            "i": 3,
+            "mounted": true,
+            "resizeActive": 0,
+            "mutationActive": 0,
+            "pluginNodes": 0
+          },
+          {
+            "i": 4,
+            "mounted": true,
+            "resizeActive": 0,
+            "mutationActive": 0,
+            "pluginNodes": 0
+          },
+          {
+            "i": 5,
+            "mounted": true,
+            "resizeActive": 0,
+            "mutationActive": 0,
+            "pluginNodes": 0
+          },
+          {
+            "i": 6,
+            "mounted": true,
+            "resizeActive": 0,
+            "mutationActive": 0,
+            "pluginNodes": 0
+          },
+          {
+            "i": 7,
+            "mounted": true,
+            "resizeActive": 0,
+            "mutationActive": 0,
+            "pluginNodes": 0
+          },
+          {
+            "i": 8,
+            "mounted": true,
+            "resizeActive": 0,
+            "mutationActive": 0,
+            "pluginNodes": 0
+          },
+          {
+            "i": 9,
+            "mounted": true,
+            "resizeActive": 0,
+            "mutationActive": 0,
+            "pluginNodes": 0
+          },
+          {
+            "i": 10,
+            "mounted": true,
+            "resizeActive": 0,
+            "mutationActive": 0,
+            "pluginNodes": 0
+          },
+          {
+            "i": 11,
+            "mounted": true,
+            "resizeActive": 0,
+            "mutationActive": 0,
+            "pluginNodes": 0
+          }
+        ]
+      },
+      {
+        "case": "react-pre-to-highlighted",
+        "thrown": "NotFoundError: The node to be removed is not a child of this node.",
+        "errors": [],
+        "rootChildren": 0
+      },
+      {
+        "case": "final-cleanup",
+        "resizeActive": 0,
+        "mutationActive": 0
+      }
+    ],
+    "notices": [
+      "The node to be removed is not a child of this node."
+    ]
+  },
+  "reactConfirmations": {
+    "provenance": "Results already verified in the preceding review/verification turns; scripts retained, full console transcripts are not embedded here.",
+    "method": "Real shipped React/ReactDOM 18.3.1 plus real bundle in jsdom; components reproduce shipped CodeBlock plain/highlighted shapes, not a full imported dsh application.",
+    "detachedSource": {
+      "scripts": [
+        "/tmp/domver/react-detached.mjs",
+        "/tmp/lead-react-stale2.mjs"
+      ],
+      "sourceBefore": "flowchart LR\nA[Original]-->B",
+      "sourceAfter": "flowchart LR\nA[Updated]-->B",
+      "preDetachedAfterMount": true,
+      "reactUpdatedDetachedCode": true,
+      "bodyMutationRecordsDuringIsolatedUpdate": 0,
+      "sameSvgAfterUpdate": true,
+      "svgShowsUpdated": false,
+      "afterUnrelatedBodyMutation": {
+        "svgRemounted": true,
+        "svgShowsUpdated": true
+      }
+    },
+    "plainSourceChanges": {
+      "script": "/tmp/domver/react-finding2.mjs",
+      "languageChange": {
+        "from": "mermaid",
+        "to": "text",
+        "requestedSource": "const answer = 42",
+        "preCount": 1,
+        "sources": [
+          "const answer = 42"
+        ],
+        "samePreNode": true
+      },
+      "emptySource": {
+        "requestedSource": "",
+        "scanTrigger": "An unrelated aside is appended; the isolated detached code update alone does not trigger body observation.",
+        "preCount": 1,
+        "sources": [
+          ""
+        ]
+      }
+    },
+    "structuralSwitch": {
+      "script": "/tmp/domver/react-structure-switch.mjs",
+      "withoutPlugin": {
+        "throws": false
+      },
+      "withPluginWithoutBoundary": {
+        "throws": "NotFoundError: The node to be removed is not a child of this node.",
+        "rootChildren": 0
+      },
+      "withPluginWithBoundary": {
+        "caughtByBoundary": true,
+        "fallbackRendered": true
+      },
+      "fullDshCrashReproduced": false,
+      "currentMermaidInHighlightTable": false,
+      "currentLanguageSwitchEntryFound": false
+    },
+    "viewStateEffect": {
+      "basis": "Code-path inference from destruction and fresh Pele mount; SVG replacement observed.",
+      "zoomPanResetOnRemount": true,
+      "visibleFlicker": "risk; not visually measured",
+      "realBrowserInteractionTestPerformed": false
+    }
+  },
+  "fontRefreshRace": {
+    "scripts": [
+      "/tmp/sv-harness-abd.mjs",
+      "/tmp/dsh-confirm-theme-race.mjs"
+    ],
+    "outputArtifacts": [
+      "/tmp/sv-results-abd.json",
+      "/tmp/dsh-confirm-theme-race.json"
+    ],
+    "method": "Real bundle in jsdom, real timers, no manual manager.scan(); snapshots and host event delivery supplied by the fixture.",
+    "observedMutationOptions": {
+      "childList": true,
+      "subtree": true,
+      "characterData": true,
+      "attributes": false
+    },
+    "debounceMs": 150,
+    "controls": {
+      "noDomMutation": {
+        "svgRemounted": true
+      },
+      "immediateAside": {
+        "sameSvgAfter600ms": true,
+        "sameSvgAfterSameSnapshotRetry": true,
+        "differentSnapshotRefreshed": true
+      },
+      "mutationAt140ms": {
+        "sameSvg": true
+      },
+      "mutationAt200ms": {
+        "sameSvg": false
+      }
+    },
+    "extractedSettingsRows": {
+      "source": "FontFamilyRow/FontSizeRow extracted from installed dsh 0.2.1-rc.2; React 18.3.1",
+      "replacedDependencies": [
+        "Input rendered as a basic React input",
+        "icons return null",
+        "theme store and theme/change delivery driven by the fixture"
+      ],
+      "requestedSnapshots": {
+        "initial": {
+          "fontSizes": {
+            "text": 14
+          },
+          "fontFamilies": {
+            "text": "sans-serif"
+          }
+        },
+        "familyChange": {
+          "fontSizes": {
+            "text": 14
+          },
+          "fontFamilies": {
+            "text": "monospace"
+          }
+        },
+        "sizeChange": {
+          "fontSizes": {
+            "text": 22
+          },
+          "fontFamilies": {
+            "text": "sans-serif"
+          }
+        }
+      },
+      "rawResults": [
+        {
+          "kind": "family",
+          "rowSource": "DSH 0.2.1-rc.2 FontFamilyRow/FontSizeRow extracted verbatim; Input and icons stubbed",
+          "settingsMutations": [
+            {
+              "type": "childList",
+              "added": 0,
+              "removed": 1
+            },
+            {
+              "type": "childList",
+              "added": 1,
+              "removed": 0
+            }
+          ],
+          "inputReplaced": true,
+          "displayedValue": "monospace",
+          "svgRemounted": false,
+          "resizeObserverAvailable": false
+        },
+        {
+          "kind": "size",
+          "rowSource": "DSH 0.2.1-rc.2 FontFamilyRow/FontSizeRow extracted verbatim; Input and icons stubbed",
+          "settingsMutations": [
+            {
+              "type": "characterData",
+              "added": 0,
+              "removed": 0
+            }
+          ],
+          "inputReplaced": null,
+          "displayedValue": true,
+          "svgRemounted": false,
+          "resizeObserverAvailable": false
+        }
+      ],
+      "displayedValueMeaning": "For family, input.value; for size, boolean indicating settings text contains '22'.",
+      "realDshUiInteractionPerformed": false,
+      "realBrowserFontMeasurementPerformed": false,
+      "resizeObserverRecovery": "Not exercised by this fixture. Pele may refresh on resize, but a font change does not guarantee a container resize."
+    }
+  },
+  "scheduling": {
+    "method": "Manager fixtures with an injected clock/queue or intercepted global timer, and a stub renderer.",
+    "burst": {
+      "outputArtifact": "/tmp/sv-results-b.json",
+      "scripts": [
+        "/tmp/sv-harness-b.mjs"
+      ],
+      "measurements": [
+        {
+          "method": "seam",
+          "blocks": 1,
+          "timers": 1,
+          "fullDocumentScans": 2,
+          "bannerClones": 2,
+          "mounts": 1
+        },
+        {
+          "method": "seam",
+          "blocks": 2,
+          "timers": 2,
+          "fullDocumentScans": 3,
+          "bannerClones": 6,
+          "mounts": 2
+        },
+        {
+          "method": "seam",
+          "blocks": 5,
+          "timers": 5,
+          "fullDocumentScans": 6,
+          "bannerClones": 30,
+          "mounts": 5
+        },
+        {
+          "method": "seam",
+          "blocks": 10,
+          "timers": 10,
+          "fullDocumentScans": 11,
+          "bannerClones": 110,
+          "mounts": 10
+        },
+        {
+          "method": "seam",
+          "blocks": 80,
+          "timers": 80,
+          "fullDocumentScans": 81,
+          "bannerClones": 6480,
+          "mounts": 80
+        },
+        {
+          "method": "global",
+          "blocks": 10,
+          "timers": 10,
+          "fullDocumentScans": 11,
+          "bannerClones": 110,
+          "mounts": 10
+        },
+        {
+          "method": "global",
+          "blocks": 80,
+          "timers": 80,
+          "fullDocumentScans": 81,
+          "bannerClones": 6480,
+          "mounts": 80
+        }
+      ],
+      "formula": {
+        "timers": "N",
+        "fullDocumentScans": "N+1",
+        "bannerClones": "N*(N+1)"
+      }
+    },
+    "sequential": {
+      "script": "/tmp/sv-b-stream.mjs",
+      "method": "Append one block, manually scan, advance 180 ms and drain queued callbacks, then repeat.",
+      "verifiedInPreviousReview": true,
+      "formula": {
+        "fullDocumentScans": "2*N",
+        "bannerClones": "N*(N+1)"
+      },
+      "scope": "This controlled fixture only; not a claim about all real streaming updates."
+    },
+    "peleRenderPerformanceMeasured": false
+  },
+  "retention": [
+    {
+      "phase": "mounted",
+      "active": 1
+    },
+    {
+      "phase": "removed-but-body-streaming",
+      "active": 1,
+      "detachedPluginNodes": 1
+    },
+    {
+      "phase": "body-quiet",
+      "active": 0,
+      "detachedPluginNodes": 0
+    },
+    {
+      "phase": "disposed",
+      "active": 0
+    }
+  ],
+  "retentionVerification": {
+    "originalMethod": "Real bundle in jsdom; counting ResizeObserver stub; remove a mounted block and update unrelated aside.textContent every 40 ms.",
+    "originalScript": "/tmp/dsh-review-retention.mjs",
+    "followupScript": "/tmp/sv-harness-c.mjs",
+    "outputArtifact": "/tmp/sv-results-c.json",
+    "timingsAreSingleRunObservations": true,
+    "quietRemovalCleanupDelayMs": 155,
+    "churnRemoval": {
+      "mounted": true,
+      "duringChurn1s": {
+        "blockConnected": false,
+        "diagramContainerInDetachedBlock": 1,
+        "svgInDetachedBlock": 1,
+        "contentHasRestoredPre": 0,
+        "activeResizeObservers": 1,
+        "churnTicks": 24,
+        "elapsedMs": 1002
+      },
+      "duringChurn3s": {
+        "blockConnected": false,
+        "diagramContainerInDetachedBlock": 1,
+        "svgInDetachedBlock": 1,
+        "contentHasRestoredPre": 0,
+        "activeResizeObservers": 1,
+        "churnTicks": 73,
+        "elapsedMs": 3003
+      },
+      "cleanedAfterQuiet": true,
+      "cleanupDelayAfterQuietMs": 143,
+      "after": {
+        "blockConnected": false,
+        "diagramContainerInDetachedBlock": 0,
+        "svgInDetachedBlock": 0,
+        "contentHasRestoredPre": 1,
+        "activeResizeObservers": 0
+      },
+      "observeCalls": 1,
+      "disconnectCalls": 1
+    },
+    "disposeDuringChurn": {
+      "beforeDispose": {
+        "blockConnected": false,
+        "diagramContainerInDetachedBlock": 1,
+        "svgInDetachedBlock": 1,
+        "contentHasRestoredPre": 0,
+        "activeResizeObservers": 1
+      },
+      "afterDispose": {
+        "blockConnected": false,
+        "diagramContainerInDetachedBlock": 0,
+        "svgInDetachedBlock": 0,
+        "contentHasRestoredPre": 1,
+        "activeResizeObservers": 0
+      },
+      "activeAfterDispose": 0,
+      "cleanupTookMs": 54
+    },
+    "attributeOnlyChurn": {
+      "afterAttrChurn": {
+        "blockConnected": false,
+        "diagramContainerInDetachedBlock": 0,
+        "svgInDetachedBlock": 0,
+        "contentHasRestoredPre": 1,
+        "activeResizeObservers": 0
+      },
+      "after": {
+        "blockConnected": false,
+        "diagramContainerInDetachedBlock": 0,
+        "svgInDetachedBlock": 0,
+        "contentHasRestoredPre": 1,
+        "activeResizeObservers": 0
+      }
+    },
+    "heapSnapshotPerformed": false,
+    "gcVerificationPerformed": false,
+    "permanentLeakEstablished": false
+  },
+  "fontSize": {
+    "method": "Real bundle in jsdom, valid fontSizes.text theme snapshots 14 -> 22; synthetic host/theme fixture, not real browser layout.",
+    "outputArtifact": "/tmp/dsh-confirm-font.json",
+    "bundleSha256": "f93c8feda14e3988296a0a6d636146a4d3d9610fcff4eef46479d11a1c6f7a08",
+    "requestedRole": "text",
+    "validRange": [
+      10,
+      22
+    ],
+    "cases": [
+      {
+        "source": "flowchart LR\nA[Label]-->B",
+        "requestedSizes": [
+          14,
+          22
+        ],
+        "remounted": true,
+        "beforeViewBox": "0 0 188 64",
+        "afterViewBox": "0 0 188 64",
+        "stylesEqual": true,
+        "font": "16px sans-serif"
+      },
+      {
+        "source": "flowchart LR\nA[Original]-->B",
+        "requestedSizes": [
+          14,
+          22
+        ],
+        "remounted": true,
+        "beforeViewBox": "0 0 204 64",
+        "afterViewBox": "0 0 204 64",
+        "stylesEqual": true,
+        "font": "16px sans-serif"
+      }
+    ],
+    "originalSyntheticRun": {
+      "requestedSizes": [
+        14,
+        24
+      ],
+      "requestMetadataSource": "Original REVIEW narrative and preceding verification, not a retained generator script.",
+      "source": "flowchart LR\nA[Label]-->B",
+      "sourceMetadataOrigin": "Preceding verification identified the original Label fixture and reproduced its dimensions.",
+      "withinCurrentDshRange": false,
+      "generatorScriptRetained": false,
+      "outputArtifact": "/tmp/dsh-review-font-results.json",
+      "remounted": true,
+      "before": {
+        "style": "max-width: 100%; height: auto; --_bg: var(--pele-bg,#fff); --_fg: var(--pele-fg,#1f1f1f); --_m: var(--pele-muted,#6e6e6e); --_l: var(--pele-line,#1f1f1f); --_s: var(--pele-surface,#f3f3f3); --_a: var(--pele-surface-alt,#e6e6e6); --_b: var(--pele-border,#8a8a8a); --_c: var(--pele-accent,#5b7bd5); color: var(--_fg); --_r: var(--pele-radius,4px); --_fm: var(--pele-font-mono,monospace); font: 16px sans-serif; letter-spacing: normal; word-spacing: normal; text-transform: none; direction: ltr; touch-action: pan-y;",
+        "viewBox": "0 0 188 64"
+      },
+      "after": {
+        "style": "max-width: 100%; height: auto; --_bg: var(--pele-bg,#fff); --_fg: var(--pele-fg,#1f1f1f); --_m: var(--pele-muted,#6e6e6e); --_l: var(--pele-line,#1f1f1f); --_s: var(--pele-surface,#f3f3f3); --_a: var(--pele-surface-alt,#e6e6e6); --_b: var(--pele-border,#8a8a8a); --_c: var(--pele-accent,#5b7bd5); color: var(--_fg); --_r: var(--pele-radius,4px); --_fm: var(--pele-font-mono,monospace); font: 16px sans-serif; letter-spacing: normal; word-spacing: normal; text-transform: none; direction: ltr; touch-action: pan-y;",
+        "viewBox": "0 0 188 64"
+      }
+    },
+    "additionalValidCodeSizeCase": {
+      "script": "/tmp/sv-harness-abd.mjs",
+      "outputArtifact": "/tmp/sv-results-abd.json",
+      "source": "flowchart LR\nA[Original]-->B",
+      "requestedRole": "code",
+      "requestedSizes": [
+        11,
+        16
+      ],
+      "remounted": true,
+      "sameStyleAttr": true,
+      "sameViewBox": true
+    },
+    "terminalOnlyChange": {
+      "script": "/tmp/sv-harness-abd.mjs",
+      "requestedRole": "terminal",
+      "requestedSizes": [
+        13,
+        20
+      ],
+      "remounted": true
+    },
+    "geometryScope": "188x64 belongs to Label; 204x64 belongs to Original in these jsdom fixtures. Both were reproduced; neither is asserted as universal browser geometry.",
+    "onActualRefresh": "refreshAll destroys and mounts; zoom/pan reset is a code-path consequence. A refresh cancelled by the scheduling race does not remount.",
+    "confirmationGeneratorScriptRetained": false,
+    "confirmationScriptNote": "The two-source confirmation output is retained; its exact one-off generating command was not saved as a standalone script. A related independent font harness is retained."
+  },
+  "remoteImage": {
+    "input": "flowchart LR\n A@{ img: \"https://example.invalid/probe.svg\", label: \"remote\" }",
+    "generatedImage": "<image href=\"https://example.invalid/probe.svg\" x=\"-40\" y=\"-55\" width=\"80\" height=\"80\" preserveAspectRatio=\"none\"/>",
+    "method": "Real Pele 1.6.0 SVG generation and independent engine/bundle checks in jsdom; source-policy inspection.",
+    "peleVersion": "1.6.0",
+    "defaultImageSchemes": [
+      "http",
+      "https"
+    ],
+    "pluginExplicitlyDisablesImages": false,
+    "generatedSvgContainsRemoteImage": true,
+    "networkObservationPerformed": false,
+    "actualBrowserRequest": null,
+    "requestMadeFieldMigration": "Original requestMade:false meant no real-network observation was performed; it was not evidence that a browser cannot fetch this URL.",
+    "browserFetchInference": "An allowed remote image reference can cause a browser request, subject to the URL, browser behavior and page policy; not measured here.",
+    "disableControls": {
+      "imagesFalseGeneratedImageCount": 0,
+      "emptyImageSchemesGeneratedImageCount": 0,
+      "provenance": "Prior independent review; raw generator script/output not retained in the enumerated evidence."
+    },
+    "csp": {
+      "method": "Static inspection of installed frontend HTML, host server and Electron main-window paths.",
+      "applicableChatPagePolicyFound": false,
+      "runningPageInspected": false,
+      "absenceProven": false
+    },
+    "documentationScope": {
+      "readme": "Broad offline guarantee requires a restriction or a narrower claim.",
+      "verificationAcceptanceLine": 521,
+      "verificationAcceptanceCaveat": "No CDN/import checks do not establish that arbitrary diagram content cannot load remote resources.",
+      "verificationFixtureLine": 506,
+      "verificationFixtureClaimContradicted": false
+    },
+    "generatorScriptRetained": false
+  },
+  "provenance": {
+    "scope": "Temporary local artifacts from prior review turns, inspected during this revision. Paths are not checked-in test entry points and may disappear.",
+    "hashesMeaning": "SHA-256 of retained artifacts at document revision time; not proof of who authored or ran a script.",
+    "originalResults": "Original DOM, React/lifecycle, retention, font style/viewBox and remote image measurements are preserved; method annotations and later confirmations are separate.",
+    "dependencies": {
+      "originalReactRunner": [
+        "/tmp/dsh-review-browser-eval.js",
+        "/tmp/dsh-review-react.js"
+      ],
+      "realReactChecks": [
+        "/tmp/dsh-review-react.js"
+      ],
+      "settingsRowCheck": [
+        "/tmp/dsh-review-theme.js",
+        "/tmp/dsh-review-react.js"
+      ],
+      "shared": [
+        "Workspace node_modules",
+        "lib/client.js or src/client/blocks.js from the recorded commit"
+      ]
+    },
+    "artifacts": [
+      {
+        "path": "/tmp/dsh-review-repro.mjs",
+        "availableAtRevision": true,
+        "sha256": "6d453ee13ef6982818fe9e1c63dc6272334c682358166a70e26851c4f27701f5"
+      },
+      {
+        "path": "/tmp/dsh-review-react-run.mjs",
+        "availableAtRevision": true,
+        "sha256": "4192720b45dd0db8058d5563f80d8b67f213304aa7bf69b449794c4cf979ca19"
+      },
+      {
+        "path": "/tmp/dsh-review-browser-eval.js",
+        "availableAtRevision": true,
+        "sha256": "ae921bb6891eaca0e0d3135b05566da6637d5b50308756ac2083cddfd5a253a0"
+      },
+      {
+        "path": "/tmp/dsh-review-retention.mjs",
+        "availableAtRevision": true,
+        "sha256": "83d886900df01dd73e1b8605057b0e483c2e7274542691174afd7e0f8a6c5897"
+      },
+      {
+        "path": "/tmp/dsh-review-results.json",
+        "availableAtRevision": true,
+        "sha256": "95b96348a4acbb622438faf42474994e25ed34a800f4b1bb7cd808f2df711d84"
+      },
+      {
+        "path": "/tmp/dsh-review-react-results.json",
+        "availableAtRevision": true,
+        "sha256": "6a452550e8fd104fe8c87db255ffa7b1cf3ebf71f57f42eefbbe7f8e5815a41d"
+      },
+      {
+        "path": "/tmp/dsh-review-retention-results.json",
+        "availableAtRevision": true,
+        "sha256": "564d56d8eb75a5f119b0ae74d3a415c6a3f212d495778b0b5ce648fd4b4470a7"
+      },
+      {
+        "path": "/tmp/dsh-review-font-results.json",
+        "availableAtRevision": true,
+        "sha256": "3f2aef45074ba010b475fb45fbede92bc1fb7be0ba01271dd8ee1ed6391d0fee"
+      },
+      {
+        "path": "/tmp/dsh-review-react.js",
+        "availableAtRevision": true,
+        "sha256": "7a8aaa4d7736b7611a28efb86c4916d94c62dc972ef779f051a54cb95d0d1659"
+      },
+      {
+        "path": "/tmp/dsh-review-frontend.js",
+        "availableAtRevision": true,
+        "sha256": "fc2cde958eb816a18fbd1e9420f0f7196fab9b8e8086519620ad208113fc07b2"
+      },
+      {
+        "path": "/tmp/dsh-review-theme.js",
+        "availableAtRevision": true,
+        "sha256": "772bae48e275f89a88a1f20b475a2b8a2943f9f6817c0250f8cbf3c4331fef29"
+      },
+      {
+        "path": "/tmp/dsh-review-pele-mount.js",
+        "availableAtRevision": true,
+        "sha256": "1800e87e39052bcea7afb9e29ab9c9f8ef2170767b4de71a50ab036a5c8d01e7"
+      },
+      {
+        "path": "/tmp/lead-react-stale2.mjs",
+        "availableAtRevision": true,
+        "sha256": "58d59573ca2aa00e5aed0ee870cd5bd5b9209a9253cb151fa39d4bf240726115"
+      },
+      {
+        "path": "/tmp/lead-language-change.mjs",
+        "availableAtRevision": true,
+        "sha256": "943df32c443b2f834bd130342bd9e7b1bf87f9a1ace97f0c529c7757e412b3f3"
+      },
+      {
+        "path": "/tmp/domver/react-detached.mjs",
+        "availableAtRevision": true,
+        "sha256": "cb08246a138bd18cc8d974c16833236fcfec1019a3c7c283f4fda8ce50bef784"
+      },
+      {
+        "path": "/tmp/domver/react-finding2.mjs",
+        "availableAtRevision": true,
+        "sha256": "8aaaeb841e6b26c46889b3861bac94a37b65d2d578b83b04d97f44ec800b88fe"
+      },
+      {
+        "path": "/tmp/domver/react-structure-switch.mjs",
+        "availableAtRevision": true,
+        "sha256": "016f89950c7bf8d35423bb891d7bbdef0e37b53fb01ac176e076bd58e03bb06a"
+      },
+      {
+        "path": "/tmp/sv-harness-abd.mjs",
+        "availableAtRevision": true,
+        "sha256": "948fe35737bcceff8321f209981eb229856d95adfec3ca13b6145ce31f654b75"
+      },
+      {
+        "path": "/tmp/sv-results-abd.json",
+        "availableAtRevision": true,
+        "sha256": "17594054ba5b4df9a073e8ed22b8808d14ef64edbd53fa17f3db440a72bea581"
+      },
+      {
+        "path": "/tmp/sv-harness-b.mjs",
+        "availableAtRevision": true,
+        "sha256": "47d6876917664c17b8482c97fba5303b1e6962dbe2f2aaa10743560420f676b3"
+      },
+      {
+        "path": "/tmp/sv-results-b.json",
+        "availableAtRevision": true,
+        "sha256": "ce54a21e6e090a145a7e18c6bb6e45f3e2ad17836bd051021e66f892c0289b1f"
+      },
+      {
+        "path": "/tmp/sv-b-stream.mjs",
+        "availableAtRevision": true,
+        "sha256": "4776ad617a7228e7a2b5b1d8fd585a33fc7d47478f5845c60c2c104b25f56784"
+      },
+      {
+        "path": "/tmp/sv-harness-c.mjs",
+        "availableAtRevision": true,
+        "sha256": "8655cf08bded0bd41712e62daedc6daac89e7fbcdfbb279df16709e2eba7b21c"
+      },
+      {
+        "path": "/tmp/sv-results-c.json",
+        "availableAtRevision": true,
+        "sha256": "6875686ad589c5e2aa97619be0dc82a60b3f4a9fbea936990db3ace8a12a5e44"
+      },
+      {
+        "path": "/tmp/dsh-confirm-theme-race.mjs",
+        "availableAtRevision": true,
+        "sha256": "3e4d957fba8b6ee960f068992d76607f9e1b9e99a1d2a8d9f4376e8f00376750"
+      },
+      {
+        "path": "/tmp/dsh-confirm-theme-race.json",
+        "availableAtRevision": true,
+        "sha256": "eb094ab0441ec465178417cabed99f32f9745f1404f482e759c9340c2c3a551f"
+      },
+      {
+        "path": "/tmp/dsh-confirm-font.json",
+        "availableAtRevision": true,
+        "sha256": "0f7b72e66c163e84077f44d65690e84d00d707e30207c6c305c25571f278b3ba"
+      },
+      {
+        "path": "/tmp/dsh-confirm-tests.log",
+        "availableAtRevision": true,
+        "sha256": "3ac7f5c71312c2dadada3ebbd6435d5c61acc71f80e10fc61f06d0213797d392"
+      },
+      {
+        "path": "/tmp/dsh-confirm-verify.log",
+        "availableAtRevision": true,
+        "sha256": "c671640545047f2d7b9cedf6c71851a9f0a9ad74cdf57948c579f1f923ce1c93"
+      }
+    ],
+    "missingStandaloneGenerators": [
+      "Original font-size generator",
+      "Two-source font confirmation command",
+      "Original remote-image SVG generator"
+    ],
+    "repositoryOnlyReplayAvailable": false
+  },
+  "limitations": [
+    "No full dsh/Electron UI, profile install/disable acceptance or currently running chat-page CSP inspection.",
+    "React CodeBlock reproductions use matching component shapes; the extracted settings-row test stubs Input/icons and drives store/event updates.",
+    "jsdom is not a layout/canvas font measurement environment; SVG dimensions are fixture-specific.",
+    "ResizeObserver is a no-op/counting stub in lifecycle tests and absent in the extracted settings-row race; automatic resize recovery was not measured.",
+    "No actual browser/Electron remote-image network request observation; generated href establishes capability only.",
+    "No heap snapshot or GC retention proof; observer counts returning to zero do not establish leak freedom.",
+    "Structural-switch React failure reachability, full-app boundary placement and isolated streaming-update frequency in real dsh are not established.",
+    "Remount and SVG identity changes were observed; visible flicker and interactive zoom/pan resets were not browser-tested.",
+    "Manager scheduling counts use injected clocks and stub renderers, not Pele drawing-time benchmarks.",
+    "Temporary scripts and outputs are outside the repository; some one-off generators are missing.",
+    "Moli not run: prior loopback sandbox denial and approval-stream disconnect; no browser/server started during this document revision."
+  ]
+}
