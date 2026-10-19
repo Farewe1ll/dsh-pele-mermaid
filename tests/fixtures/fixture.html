@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>dsh-pele-mermaid — visual fixture</title>
+    <!--
+      theme-tokens.css is a verbatim copy of the real DSH 0.2.1-rc.2 theme layer
+      (light + dark). fixtures/theme-tokens.css explains the extraction command.
+    -->
+    <link rel="stylesheet" href="theme-tokens-base.css" />
+    <link rel="stylesheet" href="theme-tokens.css" />
+    <link rel="stylesheet" href="fixture.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand"><span class="dot"></span>dsh-pele-mermaid<span class="tag">visual fixture</span></div>
+        <div class="controls">
+          <span id="status" class="status">booting…</span>
+          <button id="theme-toggle" class="fixture-button" type="button">Switch to dark</button>
+        </div>
+      </header>
+
+      <main id="thread" class="thread">
+        <div class="message assistant">
+          <div class="avatar">DSH</div>
+          <div class="markdown" id="thread-markdown">
+            <!-- blocks are built by fixture.js from the ARCH.md DOM contract -->
+          </div>
+        </div>
+      </main>
+
+      <aside class="side">
+        <h2>Evidence panel</h2>
+        <pre id="report">initializing fixture…</pre>
+        <div class="note">
+          Query <code>?theme=dark</code> starts dark, <code>?locale=en|zh</code> pins the
+          toolbar locale. The toggle flips
+          <code>body[data-ds-dark-theme]</code>; the plugin must repaint through CSS only and
+          add <strong>no</strong> remounted <code>svg.pele</code>.
+        </div>
+      </aside>
+    </div>
+
+    <script src="fixture.js" defer></script>
+  </body>
+</html>

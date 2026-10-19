@@ -1,0 +1,13 @@
+# dsh-pele-mermaid bundle patch layer.
+#
+# The package declares both halves of a DSH web plugin:
+#   - `dsh.bundle.patch` (this file) inserts the Loader row below;
+#   - `dsh.client` makes the client-modules Host half scan that row and serve
+#     `lib/client.js` under /plugins/dsh-pele-mermaid/client.js.
+#
+# Disabling or deleting this row removes the browser bundle from the boot graph
+# entirely, which leaves DSH byte-for-byte at its shipped behavior: no styles,
+# no MutationObserver, no diagram DOM.
+- insert:
+    - id: dsh-pele-mermaid
+      name: dsh-pele-mermaid

@@ -1,0 +1,54 @@
+{
+  "name": "dsh-pele-mermaid",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness web client plugin: render ```mermaid fences with Pele — synchronous, dependency-free, fully offline, themeable through CSS variables. Disabled or absent, DSH behaves exactly as shipped.",
+  "license": "MIT",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "lib/client.js",
+    "README.md",
+    "README.zh.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "mermaid",
+    "pele",
+    "diagram",
+    "web-client"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-theme"
+      ]
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build-client.mjs",
+    "test": "node --test \"tests/*.test.mjs\"",
+    "verify": "node scripts/verify-bundle.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "jsdom": "^29.1.1",
+    "pele": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

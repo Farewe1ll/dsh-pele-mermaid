@@ -1,0 +1,260 @@
+/*
+ * Visual fixture chrome for dsh-pele-mermaid.
+ *
+ * This file deliberately styles ONLY the harness page around the plugin: it
+ * uses the same DSH design tokens the real product uses (theme-tokens.css is a
+ * verbatim extraction of the DSH 0.2.1-rc.2 theme layer), so light/dark token
+ * flips exercise exactly the CSS path the plugin relies on.
+ *
+ * The plugin's own stylesheet is injected by lib/client.js (one
+ * <style data-dsh-pele-mermaid> element); nothing here styles diagram internals.
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--dsw-alias-bg-base);
+  color: var(--dsw-alias-label-primary);
+  font-family: var(--dsw-font-family, system-ui, sans-serif);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  gap: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px 48px;
+}
+
+.topbar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--dsw-alias-border-l2);
+  position: sticky;
+  top: 0;
+  background: color-mix(in srgb, var(--dsw-alias-bg-base) 92%, transparent);
+  backdrop-filter: blur(6px);
+  z-index: 10;
+}
+
+.brand {
+  font-weight: 650;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--dsw-alias-brand-primary);
+}
+
+.tag {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--dsw-alias-label-tertiary);
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+button.fixture-button {
+  appearance: none;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsw-radius-md, 6px);
+  background: var(--dsw-alias-bg-layer-1, transparent);
+  color: var(--dsw-alias-label-primary);
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+button.fixture-button:hover {
+  background: var(--dsw-alias-markdown-code-block-banner);
+}
+
+.status {
+  font-size: 12px;
+  color: var(--dsw-alias-label-tertiary);
+  font-family: var(--ds-font-family-code, ui-monospace, monospace);
+}
+
+.thread {
+  min-width: 0;
+}
+
+.message {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 10px;
+  margin: 22px 0;
+}
+
+.avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--dsw-alias-label-tertiary);
+  background: var(--dsw-alias-bg-layer-1, transparent);
+  border: 1px solid var(--dsw-alias-border-l2);
+}
+
+.avatar.user {
+  color: var(--dsw-alias-brand-primary, currentColor);
+}
+
+.markdown {
+  min-width: 0;
+}
+
+.markdown > p {
+  margin: 0 0 10px;
+}
+
+.markdown h3 {
+  font-size: 14px;
+  margin: 18px 0 8px;
+}
+
+/* ---- DSH-like Markdown code block (reference shape from ARCH.md) --------- */
+
+.md-code-block {
+  margin: 12px 0 18px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsw-radius-md, 6px);
+  overflow: hidden;
+  background: var(--dsw-alias-markdown-code-block);
+}
+
+.md-code-block-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0 10px;
+  background: var(--dsw-alias-markdown-code-block-banner);
+  border-bottom: 1px solid var(--dsw-alias-border-l2);
+  font-family: var(--ds-font-family-code, ui-monospace, monospace);
+  font-size: 12px;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.md-code-block-infostring {
+  text-transform: none;
+  letter-spacing: 0.01em;
+}
+
+.md-code-block-copy {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.md-code-block-copy:hover {
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 8%, transparent);
+  color: var(--dsw-alias-label-primary);
+}
+
+.md-code-block-content {
+  min-width: 0;
+}
+
+.md-code-block-content > pre {
+  margin: 0;
+  padding: 12px 16px;
+  overflow: auto;
+  background: var(--dsw-alias-markdown-code-block);
+  color: var(--dsw-alias-label-primary);
+  font-family: var(--ds-font-family-code, ui-monospace, monospace);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.md-code-block-content > pre code {
+  font: inherit;
+}
+
+/* ---- evidence sidebar --------------------------------------------------- */
+
+.side {
+  min-width: 0;
+  position: sticky;
+  top: 64px;
+  align-self: start;
+  margin-top: 22px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsw-radius-md, 6px);
+  padding: 12px 14px;
+  background: var(--dsw-alias-bg-layer-1, transparent);
+}
+
+.side h2 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.side pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--ds-font-family-code, ui-monospace, monospace);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--dsw-alias-label-secondary);
+}
+
+.side .note {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--dsw-alias-border-l2);
+  font-size: 11.5px;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+@media (max-width: 1080px) {
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .side {
+    position: static;
+    margin-top: 0;
+  }
+}

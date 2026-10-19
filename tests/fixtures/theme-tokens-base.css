@@ -1,0 +1,11 @@
+/*
+ * DSH theme BASE token layer (fonts, radii, easings) — extracted verbatim from
+ * @deepseek-ai/dsh-client-ui-theme 0.2.1-rc.2 (lib/client.js, base.css.mjs).
+ *
+ * Why a second token file: theme-tokens.css is the color-token extraction that
+ * carries the light/dark --dsw-static-* and --dsw-alias-* layers, but the
+ * font-family and radius tokens the plugin maps (--pele-font, --pele-font-mono,
+ * --pele-radius) live in the base layer. Loading both gives the fixture the
+ * same custom-property environment as the real DSH Web client.
+ */
+:root{--dsh-font-family-text-default:-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;--dsw-font-family:var(--dsh-font-family-text-default);--dsw-font-family-brand:"Montserrat", var(--dsh-font-family-text-default);--dsh-font-family-code-default:"SF Mono", "JetBrains Mono", "Fira Code", Consolas, "Liberation Mono", Menlo, Courier, "PingFang SC", "Microsoft YaHei";--ds-font-family-code:var(--dsh-font-family-code-default);--ds-ease-in-out:cubic-bezier(.4, 0, .2, 1);--ds-transition-duration:.2s;--ds-transition-duration-fast:.1s;--ds-transition-duration-slow:.3s;--dsw-radius-xs:4px;--dsw-radius-sm:8px;--dsw-radius-md:12px;--dsw-radius-lg:16px;--dsw-radius-xl:20px;--dsw-radius-panel:28px}body{--dsw-font-family:var(--dsh-font-family-text,var(--dsh-font-family-text-default)), var(--dsh-font-family-text-default);--ds-font-family-code:var(--dsh-font-family-code,var(--dsh-font-family-code-default)), var(--dsh-font-family-code-default);--dsw-alias-settings-card-fill:var(--dsw-alias-bg-layer-2);--dsw-alias-settings-card-stroke:var(--dsw-alias-border-l4)}[data-dsh-automatic-focus]:focus,[data-dsh-automatic-focus]:focus:focus-visible{outline:none}

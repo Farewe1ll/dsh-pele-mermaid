@@ -1,0 +1,645 @@
+{
+  "light": {
+    "theme": "light",
+    "darkAttribute": false,
+    "bodyBackground": "rgb(255, 255, 255)",
+    "bodyColor": "rgb(15, 17, 21)",
+    "registrationId": "dsh-pele-mermaid",
+    "factoryType": "function",
+    "exportsFace": {
+      "apply": "function",
+      "inject": [
+        "theme"
+      ]
+    },
+    "applied": true,
+    "ready": true,
+    "requireCalls": 0,
+    "applyCalls": 1,
+    "effectCalls": 1,
+    "themeHandlers": 1,
+    "dom": {
+      "blocks": 6,
+      "mountedContainers": 4,
+      "hosts": 4,
+      "diagramSvgs": 4,
+      "svgTypes": [
+        "flowchart",
+        "sequence",
+        "pie",
+        "gantt"
+      ],
+      "zoomIconSvgs": 12,
+      "toolbars": 4,
+      "toolbarButtons": 8,
+      "ariaPressed": [
+        "true",
+        "false",
+        "true",
+        "false",
+        "true",
+        "false",
+        "true",
+        "false"
+      ],
+      "toolbarLabels": [
+        "Diagram",
+        "Source",
+        "Diagram",
+        "Source",
+        "Diagram",
+        "Source",
+        "Diagram",
+        "Source"
+      ],
+      "errorNotes": 1,
+      "errorTexts": [
+        "Pele: No diagram type detected for the given text."
+      ],
+      "styleElements": 1,
+      "sourceViews": 0,
+      "nonMermaidPre": true,
+      "bannerTexts": [
+        "mermaid",
+        "mermaid",
+        "mermaid",
+        "mermaid",
+        "mermaid",
+        "javascript"
+      ]
+    },
+    "remounts": 4,
+    "teardown": {
+      "tornDown": false,
+      "restored": null
+    },
+    "mountEvents": [
+      {
+        "count": 4,
+        "remounts": 4,
+        "at": 554
+      }
+    ],
+    "themeEvents": [
+      {
+        "theme": "light",
+        "at": 78
+      }
+    ],
+    "errors": [],
+    "pele": {
+      "target": "first .dsh-pele-mermaid-diagram",
+      "backgroundColor": "rgb(249, 250, 251)",
+      "vars": {
+        "--pele-bg": "#f9fafb",
+        "--pele-fg": "#0f1115",
+        "--pele-muted": "#81858c",
+        "--pele-line": "#61666b",
+        "--pele-surface": "#fff",
+        "--pele-surface-alt": "#f9fafb",
+        "--pele-border": "#0000001a",
+        "--pele-accent": "#0f1115",
+        "--pele-radius": "12px",
+        "--pele-font": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+        "--pele-font-mono": "\"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\", \"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\""
+      }
+    }
+  },
+  "dark": {
+    "theme": "dark",
+    "darkAttribute": true,
+    "bodyBackground": "rgb(21, 21, 23)",
+    "bodyColor": "rgb(249, 250, 251)",
+    "registrationId": "dsh-pele-mermaid",
+    "factoryType": "function",
+    "exportsFace": {
+      "apply": "function",
+      "inject": [
+        "theme"
+      ]
+    },
+    "applied": true,
+    "ready": true,
+    "requireCalls": 0,
+    "applyCalls": 1,
+    "effectCalls": 1,
+    "themeHandlers": 1,
+    "dom": {
+      "blocks": 6,
+      "mountedContainers": 4,
+      "hosts": 4,
+      "diagramSvgs": 4,
+      "svgTypes": [
+        "flowchart",
+        "sequence",
+        "pie",
+        "gantt"
+      ],
+      "zoomIconSvgs": 12,
+      "toolbars": 4,
+      "toolbarButtons": 8,
+      "ariaPressed": [
+        "true",
+        "false",
+        "true",
+        "false",
+        "true",
+        "false",
+        "true",
+        "false"
+      ],
+      "toolbarLabels": [
+        "Diagram",
+        "Source",
+        "Diagram",
+        "Source",
+        "Diagram",
+        "Source",
+        "Diagram",
+        "Source"
+      ],
+      "errorNotes": 1,
+      "errorTexts": [
+        "Pele: No diagram type detected for the given text."
+      ],
+      "styleElements": 1,
+      "sourceViews": 0,
+      "nonMermaidPre": true,
+      "bannerTexts": [
+        "mermaid",
+        "mermaid",
+        "mermaid",
+        "mermaid",
+        "mermaid",
+        "javascript"
+      ]
+    },
+    "remounts": 4,
+    "teardown": {
+      "tornDown": false,
+      "restored": null
+    },
+    "mountEvents": [
+      {
+        "count": 4,
+        "remounts": 4,
+        "at": 554
+      }
+    ],
+    "themeEvents": [
+      {
+        "theme": "light",
+        "at": 78
+      },
+      {
+        "theme": "dark",
+        "at": 1326
+      }
+    ],
+    "errors": [],
+    "pele": {
+      "target": "first .dsh-pele-mermaid-diagram",
+      "backgroundColor": "rgb(27, 27, 28)",
+      "vars": {
+        "--pele-bg": "#1b1b1c",
+        "--pele-fg": "#f9fafb",
+        "--pele-muted": "#adb2b8",
+        "--pele-line": "#cfd3d6",
+        "--pele-surface": "#232324",
+        "--pele-surface-alt": "#2c2c2e",
+        "--pele-border": "#ffffff1f",
+        "--pele-accent": "#f9fafb",
+        "--pele-radius": "12px",
+        "--pele-font": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+        "--pele-font-mono": "\"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\", \"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\""
+      }
+    },
+    "remountsBeforeTheme": 4
+  },
+  "sourceView": {
+    "theme": "dark",
+    "darkAttribute": true,
+    "bodyBackground": "rgb(21, 21, 23)",
+    "bodyColor": "rgb(249, 250, 251)",
+    "registrationId": "dsh-pele-mermaid",
+    "factoryType": "function",
+    "exportsFace": {
+      "apply": "function",
+      "inject": [
+        "theme"
+      ]
+    },
+    "applied": true,
+    "ready": true,
+    "requireCalls": 0,
+    "applyCalls": 1,
+    "effectCalls": 1,
+    "themeHandlers": 1,
+    "dom": {
+      "blocks": 6,
+      "mountedContainers": 4,
+      "hosts": 4,
+      "diagramSvgs": 4,
+      "svgTypes": [
+        "flowchart",
+        "sequence",
+        "pie",
+        "gantt"
+      ],
+      "zoomIconSvgs": 12,
+      "toolbars": 4,
+      "toolbarButtons": 8,
+      "ariaPressed": [
+        "false",
+        "true",
+        "true",
+        "false",
+        "true",
+        "false",
+        "true",
+        "false"
+      ],
+      "toolbarLabels": [
+        "Diagram",
+        "Source",
+        "Diagram",
+        "Source",
+        "Diagram",
+        "Source",
+        "Diagram",
+        "Source"
+      ],
+      "errorNotes": 1,
+      "errorTexts": [
+        "Pele: No diagram type detected for the given text."
+      ],
+      "styleElements": 1,
+      "sourceViews": 1,
+      "nonMermaidPre": true,
+      "bannerTexts": [
+        "mermaid",
+        "mermaid",
+        "mermaid",
+        "mermaid",
+        "mermaid",
+        "javascript"
+      ]
+    },
+    "remounts": 4,
+    "teardown": {
+      "tornDown": false,
+      "restored": null
+    },
+    "mountEvents": [
+      {
+        "count": 4,
+        "remounts": 4,
+        "at": 554
+      }
+    ],
+    "themeEvents": [
+      {
+        "theme": "light",
+        "at": 78
+      },
+      {
+        "theme": "dark",
+        "at": 1326
+      }
+    ],
+    "errors": [],
+    "pele": {
+      "target": "first .dsh-pele-mermaid-diagram",
+      "backgroundColor": "rgb(27, 27, 28)",
+      "vars": {
+        "--pele-bg": "#1b1b1c",
+        "--pele-fg": "#f9fafb",
+        "--pele-muted": "#adb2b8",
+        "--pele-line": "#cfd3d6",
+        "--pele-surface": "#232324",
+        "--pele-surface-alt": "#2c2c2e",
+        "--pele-border": "#ffffff1f",
+        "--pele-accent": "#f9fafb",
+        "--pele-radius": "12px",
+        "--pele-font": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+        "--pele-font-mono": "\"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\", \"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\""
+      }
+    },
+    "preInContent": true,
+    "hostHidden": true
+  },
+  "diagramView": {
+    "theme": "dark",
+    "darkAttribute": true,
+    "bodyBackground": "rgb(21, 21, 23)",
+    "bodyColor": "rgb(249, 250, 251)",
+    "registrationId": "dsh-pele-mermaid",
+    "factoryType": "function",
+    "exportsFace": {
+      "apply": "function",
+      "inject": [
+        "theme"
+      ]
+    },
+    "applied": true,
+    "ready": true,
+    "requireCalls": 0,
+    "applyCalls": 1,
+    "effectCalls": 1,
+    "themeHandlers": 1,
+    "dom": {
+      "blocks": 6,
+      "mountedContainers": 4,
+      "hosts": 4,
+      "diagramSvgs": 4,
+      "svgTypes": [
+        "flowchart",
+        "sequence",
+        "pie",
+        "gantt"
+      ],
+      "zoomIconSvgs": 12,
+      "toolbars": 4,
+      "toolbarButtons": 8,
+      "ariaPressed": [
+        "true",
+        "false",
+        "true",
+        "false",
+        "true",
+        "false",
+        "true",
+        "false"
+      ],
+      "toolbarLabels": [
+        "Diagram",
+        "Source",
+        "Diagram",
+        "Source",
+        "Diagram",
+        "Source",
+        "Diagram",
+        "Source"
+      ],
+      "errorNotes": 1,
+      "errorTexts": [
+        "Pele: No diagram type detected for the given text."
+      ],
+      "styleElements": 1,
+      "sourceViews": 0,
+      "nonMermaidPre": true,
+      "bannerTexts": [
+        "mermaid",
+        "mermaid",
+        "mermaid",
+        "mermaid",
+        "mermaid",
+        "javascript"
+      ]
+    },
+    "remounts": 4,
+    "teardown": {
+      "tornDown": false,
+      "restored": null
+    },
+    "mountEvents": [
+      {
+        "count": 4,
+        "remounts": 4,
+        "at": 554
+      }
+    ],
+    "themeEvents": [
+      {
+        "theme": "light",
+        "at": 78
+      },
+      {
+        "theme": "dark",
+        "at": 1326
+      }
+    ],
+    "errors": [],
+    "pele": {
+      "target": "first .dsh-pele-mermaid-diagram",
+      "backgroundColor": "rgb(27, 27, 28)",
+      "vars": {
+        "--pele-bg": "#1b1b1c",
+        "--pele-fg": "#f9fafb",
+        "--pele-muted": "#adb2b8",
+        "--pele-line": "#cfd3d6",
+        "--pele-surface": "#232324",
+        "--pele-surface-alt": "#2c2c2e",
+        "--pele-border": "#ffffff1f",
+        "--pele-accent": "#f9fafb",
+        "--pele-radius": "12px",
+        "--pele-font": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+        "--pele-font-mono": "\"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\", \"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\""
+      }
+    },
+    "preInContent": false,
+    "hostHidden": false
+  },
+  "fontRefresh": {
+    "theme": "dark",
+    "darkAttribute": true,
+    "bodyBackground": "rgb(21, 21, 23)",
+    "bodyColor": "rgb(249, 250, 251)",
+    "registrationId": "dsh-pele-mermaid",
+    "factoryType": "function",
+    "exportsFace": {
+      "apply": "function",
+      "inject": [
+        "theme"
+      ]
+    },
+    "applied": true,
+    "ready": true,
+    "requireCalls": 0,
+    "applyCalls": 1,
+    "effectCalls": 1,
+    "themeHandlers": 1,
+    "dom": {
+      "blocks": 6,
+      "mountedContainers": 4,
+      "hosts": 4,
+      "diagramSvgs": 4,
+      "svgTypes": [
+        "flowchart",
+        "sequence",
+        "pie",
+        "gantt"
+      ],
+      "zoomIconSvgs": 12,
+      "toolbars": 4,
+      "toolbarButtons": 8,
+      "ariaPressed": [
+        "true",
+        "false",
+        "true",
+        "false",
+        "true",
+        "false",
+        "true",
+        "false"
+      ],
+      "toolbarLabels": [
+        "Diagram",
+        "Source",
+        "Diagram",
+        "Source",
+        "Diagram",
+        "Source",
+        "Diagram",
+        "Source"
+      ],
+      "errorNotes": 1,
+      "errorTexts": [
+        "Pele: No diagram type detected for the given text."
+      ],
+      "styleElements": 1,
+      "sourceViews": 0,
+      "nonMermaidPre": true,
+      "bannerTexts": [
+        "mermaid",
+        "mermaid",
+        "mermaid",
+        "mermaid",
+        "mermaid",
+        "javascript"
+      ]
+    },
+    "remounts": 8,
+    "teardown": {
+      "tornDown": false,
+      "restored": null
+    },
+    "mountEvents": [
+      {
+        "count": 4,
+        "remounts": 4,
+        "at": 554
+      },
+      {
+        "count": 4,
+        "remounts": 8,
+        "at": 3578
+      }
+    ],
+    "themeEvents": [
+      {
+        "theme": "light",
+        "at": 78
+      },
+      {
+        "theme": "dark",
+        "at": 1326
+      },
+      {
+        "emit": "font",
+        "at": 3313
+      }
+    ],
+    "errors": [],
+    "pele": {
+      "target": "first .dsh-pele-mermaid-diagram",
+      "backgroundColor": "rgb(27, 27, 28)",
+      "vars": {
+        "--pele-bg": "#1b1b1c",
+        "--pele-fg": "#f9fafb",
+        "--pele-muted": "#adb2b8",
+        "--pele-line": "#cfd3d6",
+        "--pele-surface": "#232324",
+        "--pele-surface-alt": "#2c2c2e",
+        "--pele-border": "#ffffff1f",
+        "--pele-accent": "#f9fafb",
+        "--pele-radius": "12px",
+        "--pele-font": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+        "--pele-font-mono": "\"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\", \"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\""
+      }
+    }
+  },
+  "teardown": {
+    "theme": "dark",
+    "darkAttribute": true,
+    "bodyBackground": "rgb(21, 21, 23)",
+    "bodyColor": "rgb(249, 250, 251)",
+    "registrationId": "dsh-pele-mermaid",
+    "factoryType": "function",
+    "exportsFace": {
+      "apply": "function",
+      "inject": [
+        "theme"
+      ]
+    },
+    "applied": true,
+    "ready": true,
+    "requireCalls": 0,
+    "applyCalls": 1,
+    "effectCalls": 1,
+    "themeHandlers": 1,
+    "dom": {
+      "blocks": 6,
+      "mountedContainers": 0,
+      "hosts": 0,
+      "diagramSvgs": 0,
+      "svgTypes": [],
+      "zoomIconSvgs": 0,
+      "toolbars": 0,
+      "toolbarButtons": 0,
+      "ariaPressed": [],
+      "toolbarLabels": [],
+      "errorNotes": 0,
+      "errorTexts": [],
+      "styleElements": 0,
+      "sourceViews": 0,
+      "nonMermaidPre": true,
+      "bannerTexts": [
+        "mermaid",
+        "mermaid",
+        "mermaid",
+        "mermaid",
+        "mermaid",
+        "javascript"
+      ]
+    },
+    "remounts": 8,
+    "teardown": {
+      "tornDown": true,
+      "restored": true
+    },
+    "mountEvents": [
+      {
+        "count": 4,
+        "remounts": 4,
+        "at": 554
+      },
+      {
+        "count": 4,
+        "remounts": 8,
+        "at": 3578
+      }
+    ],
+    "themeEvents": [
+      {
+        "theme": "light",
+        "at": 78
+      },
+      {
+        "theme": "dark",
+        "at": 1326
+      },
+      {
+        "emit": "font",
+        "at": 3313
+      }
+    ],
+    "errors": [],
+    "pele": null,
+    "disposerReturned": true,
+    "styleCount": 0,
+    "diagramCount": 0
+  },
+  "cdpExceptions": [],
+  "cdpConsoleErrors": []
+}
