@@ -45,6 +45,31 @@ function svgOf(document) {
   return document.querySelector(`.${CLASS.viewerSvg}`)
 }
 
+// Compare serialized viewBox numbers with tolerance for 0.001-unit rounding.
+function viewBox(env) {
+  return svgOf(env.document).getAttribute('viewBox').split(/\s+/).map(Number)
+}
+
+function near(actual, expected, epsilon = 0.001) {
+  assert.ok(Number.isFinite(actual) && Math.abs(actual - expected) <= epsilon,
+    `expected ${actual} ≈ ${expected} (±${epsilon})`)
+}
+
+function assertView(env, expected) {
+  viewBox(env).forEach((value, index) => near(value, expected[index]))
+}
+
+// Independent reference: fit is the minimum screen-pixels-per-diagram-unit.
+function extents(width = 400, height = 200, box = STAGE, zoom = 1) {
+  const pixelsPerUnit = Math.min(box.width / width, box.height / height) * zoom
+  return [box.width / pixelsPerUnit, box.height / pixelsPerUnit]
+}
+
+function centered(width = 400, height = 200, box = STAGE, zoom = 1) {
+  const [vw, vh] = extents(width, height, box, zoom)
+  return [(width - vw) / 2, (height - vh) / 2, vw, vh]
+}
+
 function buttonsOf(document) {
   return Array.from(document.querySelectorAll(`.${CLASS.viewerToolbar} button`))
 }
@@ -100,7 +125,7 @@ test('open builds an accessible modal, locks scrolling and focuses the close but
   assert.ok(buttonsOf(env.document).every((button) => button.querySelector('svg')), 'icon controls are decorative SVGs')
 
   const svg = svgOf(env.document)
-  assert.equal(svg.getAttribute('viewBox'), '0 0 400 200')
+  assertView(env, centered())
   assert.ok(svg.getAttribute('class').includes(CLASS.viewerSvg))
   assert.equal(svg.getAttribute('tabindex'), null, 'the inline tabindex is removed')
 
@@ -116,7 +141,7 @@ test('open starts at the inline zoom factor and clamps it', () => {
   const env = makeEnv()
   assert.equal(open(env, { zoomFactor: 2 }), true)
   assert.equal(env.viewer.scale, 2)
-  assert.equal(svgOf(env.document).getAttribute('viewBox'), '100 50 200 100')
+  assertView(env, centered(400, 200, STAGE, 2))
   env.viewer.close()
 
   assert.equal(open(env, { zoomFactor: 100 }), true)
@@ -137,12 +162,12 @@ test('zoom buttons and fit-to-window drive the viewBox and disabled states', () 
   assert.equal(zoomOut.disabled, true, 'cannot zoom out below fit')
   zoomIn.click()
   assert.equal(env.viewer.scale, 1.25)
-  assert.equal(svgOf(env.document).getAttribute('viewBox'), '40 20 320 160')
+  assertView(env, centered(400, 200, STAGE, 1.25))
   assert.equal(zoomOut.disabled, false)
 
   zoomOut.click()
   assert.equal(env.viewer.scale, 1)
-  assert.equal(svgOf(env.document).getAttribute('viewBox'), '0 0 400 200')
+  assertView(env, centered())
 
   for (let index = 0; index < 20; index += 1) zoomIn.click()
   assert.equal(env.viewer.scale, 8)
@@ -150,7 +175,7 @@ test('zoom buttons and fit-to-window drive the viewBox and disabled states', () 
 
   fit.click()
   assert.equal(env.viewer.scale, 1)
-  assert.equal(svgOf(env.document).getAttribute('viewBox'), '0 0 400 200')
+  assertView(env, centered())
   env.viewer.destroy()
 })
 
@@ -163,10 +188,10 @@ test('Ctrl/Cmd + wheel zooms at the pointer; plain wheel is ignored', () => {
   assert.ok(env.viewer.scale > 1, 'ctrl+wheel zooms in')
   const zoomed = env.viewer.scale
   const viewBox = svgOf(env.document).getAttribute('viewBox')
-  assert.doesNotMatch(viewBox, /^0 0 400 200$/, 'the viewBox is cropped while zoomed')
+  assert.ok(Number(viewBox.split(/\s+/)[2]) < 400, 'zoom reduces the visible width')
 
   wheel(env, stage, { clientX: 400, clientY: 300, deltaY: -100 })
-  assert.equal(env.viewer.scale, zoomed, 'without ctrl/meta the page keeps scrolling')
+  assert.equal(env.viewer.scale, zoomed, 'without ctrl/meta the viewer ignores the wheel')
 
   wheel(env, stage, { clientX: 400, clientY: 300, deltaY: 100, ctrlKey: true })
   assert.ok(env.viewer.scale < zoomed, 'the opposite wheel direction zooms out')
@@ -182,20 +207,20 @@ test('dragging pans a zoomed diagram and clamps to the diagram bounds', () => {
   zoomIn.click()
   assert.equal(env.viewer.scale, 1.5625)
 
-  const before = svgOf(env.document).getAttribute('viewBox')
+  const before = viewBox(env)
   pointer(env, stage, 'pointerdown', 0, 0)
   pointer(env, stage, 'pointermove', 100, 0)
   pointer(env, stage, 'pointerup', 100, 0)
-  const moved = svgOf(env.document).getAttribute('viewBox')
-  assert.notEqual(moved, before)
-  const x = Number(moved.split(/\s+/)[0])
+  const moved = viewBox(env)
+  assert.ok(moved.some((value, index) => Math.abs(value - before[index]) > 0.001))
+  const x = moved[0]
   assert.ok(x >= 0 && x < 72, `panned x stays in bounds, got ${moved}`)
 
   // A drag far past the left edge clamps at 0 instead of exposing blank space.
   pointer(env, stage, 'pointerdown', 0, 0)
   pointer(env, stage, 'pointermove', 4000, 4000)
   pointer(env, stage, 'pointerup', 4000, 4000)
-  assert.equal(svgOf(env.document).getAttribute('viewBox'), '0 0 256 128')
+  assertView(env, [0, 0, ...extents(400, 200, STAGE, 1.5625)])
   assert.equal(stage.hasAttribute('data-panning'), false, 'panning state is cleared')
   env.viewer.destroy()
 })
@@ -319,10 +344,135 @@ test('keyboard zoom and arrow panning work while the dialog is open', () => {
   key(env, env.document, '-')
   assert.equal(env.viewer.scale, 1)
   key(env, env.document, '+')
-  const before = svgOf(env.document).getAttribute('viewBox')
+  const before = viewBox(env)
   key(env, env.document, 'ArrowRight')
-  assert.notEqual(svgOf(env.document).getAttribute('viewBox'), before)
+  assert.ok(viewBox(env).some((value, index) => Math.abs(value - before[index]) > 0.001))
   key(env, env.document, '0')
-  assert.equal(svgOf(env.document).getAttribute('viewBox'), '0 0 400 200')
+  assertView(env, centered())
+  env.viewer.destroy()
+})
+
+// Both orientations, equal ratios, extreme shapes, and the short-window axis flip.
+for (const [width, height, box] of [
+  [400, 200, STAGE], [200, 400, STAGE], [300, 300, STAGE],
+  [400, 300, STAGE], [4000, 20, STAGE], [20, 4000, STAGE],
+  [400, 200, { width: 1318, height: 377 }],
+]) {
+  test(`full viewport geometry and per-axis pan rules: ${width}×${height} in ${box.width}×${box.height}`, () => {
+    const env = makeEnv({ measureStage: () => box })
+    const stageNode = () => env.document.querySelector(`.${CLASS.viewerStage}`)
+    for (const zoom of [1, 1.25, 2, 8]) {
+      open(env, { width, height, zoomFactor: zoom, svg: SVG.replace('<svg ', '<svg preserveAspectRatio="none" ') })
+      assertView(env, centered(width, height, box, zoom))
+      const svg = svgOf(env.document)
+      near(parseFloat(svg.style.width), box.width)
+      near(parseFloat(svg.style.height), box.height)
+      assert.equal(svg.getAttribute('preserveAspectRatio'), 'xMidYMid meet')
+      const original = viewBox(env)
+      near(original[2] / original[3], box.width / box.height, 0.0001)
+      for (const direction of [1, -1]) {
+        pointer(env, stageNode(), 'pointerdown', 0, 0)
+        pointer(env, stageNode(), 'pointermove', direction * 1e8, direction * 1e8)
+        pointer(env, stageNode(), 'pointerup', direction * 1e8, direction * 1e8)
+        const result = viewBox(env)
+        const size = extents(width, height, box, zoom)
+        for (const axis of [0, 1]) {
+          const content = [width, height][axis]
+          const extent = size[axis]
+          const expected = extent >= content ? (content - extent) / 2
+            : direction > 0 ? 0 : content - extent
+          near(result[axis], expected)
+        }
+        if (zoom === 1) assertView(env, original)
+      }
+    }
+    env.viewer.destroy()
+  })
+}
+
+test('pointer zoom preserves diagram coordinates using the jsdom rectangle fallback', () => {
+  const env = makeEnv()
+  open(env, { zoomFactor: 2 })
+  const stage = env.document.querySelector(`.${CLASS.viewerStage}`)
+  const before = viewBox(env)
+  const anchor = [0.37, 0.61]
+  wheel(env, stage, { clientX: STAGE.width * anchor[0], clientY: STAGE.height * anchor[1], deltaY: -10, ctrlKey: true })
+  const after = viewBox(env)
+  for (const axis of [0, 1]) near(after[axis] + anchor[axis] * after[axis + 2], before[axis] + anchor[axis] * before[axis + 2])
+  // A zoom out crosses into the vertically centered state: bounds take priority.
+  env.viewer.zoomOut()
+  env.viewer.zoomOut()
+  const centeredY = viewBox(env)
+  near(centeredY[1], (200 - centeredY[3]) / 2)
+  env.viewer.destroy()
+})
+
+test('resize keeps the diagram-space center and relative zoom, then clamps or centers each axis', () => {
+  let box = { ...STAGE }
+  const env = makeEnv({ measureStage: () => box })
+  open(env, { zoomFactor: 4 })
+  key(env, env.document, 'ArrowRight')
+  key(env, env.document, 'ArrowDown')
+  for (const next of [{ width: 1000, height: 600 }, { width: 200, height: 1000 }, STAGE]) {
+    const before = viewBox(env)
+    box = { ...next }
+    env.window.dispatchEvent(new env.window.Event('resize'))
+    const size = extents(400, 200, box, 4)
+    const expected = size.map((extent, axis) => {
+      const content = [400, 200][axis]
+      const desired = before[axis] + before[axis + 2] / 2 - extent / 2
+      return extent >= content ? (content - extent) / 2 : Math.max(0, Math.min(content - extent, desired))
+    })
+    assertView(env, [...expected, ...size])
+    assert.equal(env.viewer.scale, 4)
+    near(parseFloat(svgOf(env.document).style.width), box.width)
+    near(parseFloat(svgOf(env.document).style.height), box.height)
+  }
+  env.viewer.fit()
+  assertView(env, centered())
+  box = { width: 1318, height: 377 }
+  env.window.dispatchEvent(new env.window.Event('resize'))
+  assertView(env, centered(400, 200, box))
+  assert.ok(viewBox(env)[0] < 0 && Math.abs(viewBox(env)[1]) < 0.001, 'short window flips the fit-limiting axis')
+  env.viewer.destroy()
+})
+
+test('invalid stage sizes keep the natural viewBox, skip sizing, and recover on resize', () => {
+  for (const invalid of [{ width: 0, height: 0 }, { width: -1, height: 600 }, { width: Infinity, height: 600 }, { width: 800, height: NaN }]) {
+    let box = invalid
+    const env = makeEnv({ measureStage: () => box })
+    open(env, { zoomFactor: 2 })
+    assertView(env, [0, 0, 400, 200])
+    assert.equal(svgOf(env.document).style.width, '')
+    env.viewer.zoomIn()
+    assertView(env, [0, 0, 400, 200])
+    key(env, env.document, 'ArrowRight')
+    box = STAGE
+    env.window.dispatchEvent(new env.window.Event('resize'))
+    assertView(env, centered(400, 200, STAGE, 2.5))
+    const sizedWidth = svgOf(env.document).style.width
+    box = invalid
+    env.window.dispatchEvent(new env.window.Event('resize'))
+    assertView(env, [0, 0, 400, 200])
+    assert.equal(svgOf(env.document).style.width, sizedWidth, 'invalid measurement does not write CSS sizes')
+    env.viewer.destroy()
+  }
+})
+
+
+test('resize ends an active drag and releases its pointer capture', () => {
+  const env = makeEnv()
+  open(env, { zoomFactor: 2 })
+  const stage = env.document.querySelector(`.${CLASS.viewerStage}`)
+  const releases = []
+  stage.releasePointerCapture = (id) => releases.push(id)
+  pointer(env, stage, 'pointerdown', 0, 0)
+  pointer(env, stage, 'pointermove', 100, 0)
+  env.window.dispatchEvent(new env.window.Event('resize'))
+  const before = viewBox(env)
+  pointer(env, stage, 'pointermove', 200, 0)
+  assertView(env, before)
+  assert.equal(stage.hasAttribute('data-panning'), false)
+  assert.deepEqual(releases, [0])
   env.viewer.destroy()
 })

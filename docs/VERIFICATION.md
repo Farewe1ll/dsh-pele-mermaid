@@ -14,6 +14,27 @@ Their old counts, hashes and screenshots do not describe the `0.2.0` build.
 Current evidence is under [`evidence/2026-11-17/`](evidence/2026-11-17/) and
 [`screenshots/`](../tests/fixtures/screenshots/).
 
+## 0. Current viewer-stage update — 2026-11-17
+
+The current unreleased working bundle is **739,631 bytes**, SHA-256
+`48fb4f4f019e8107ef3a0f4db55edc36997ef66599c31de16d6c2af1c2e2c74f`.
+`npm test` passes **147/147**, including **24 viewer tests**; `npm run verify`
+passes before/after capture. Chrome/157.0.8103.79 visual verification exits 0,
+with no console errors. New 1400×900 and 1400×500 cases verify the SVG fills the
+stage content box at fit/zoom/pan, matching viewBox proportions, per-axis bounds,
+and resize center/zoom behavior. The existing live-theme and lifecycle checks pass.
+
+| Evidence | Record |
+| --- | --- |
+| Results, source identities and numeric geometry | [verification.json](evidence/2026-11-17-viewer-stage/verification.json) |
+| Compared builds, scope and screenshot provenance | [PUBLICATION.md](evidence/2026-11-17-viewer-stage/PUBLICATION.md) |
+| Four selected original screenshots, byte lengths and SHA-256 | [manifest.json](evidence/2026-11-17-viewer-stage/manifest.json) |
+
+This update changes the workspace bundle only; it does not update the installed
+Desktop plugin or claim live DSH compatibility. The dated counts, bundle hashes,
+screenshot table and install records in sections 1–7 below describe the earlier
+`906b1cc2…` baseline, preserved as historical evidence rather than current results.
+
 ## 1. Scope: what is and is not verified
 
 | Claim | State | Evidence |

@@ -330,12 +330,29 @@ Rules:
   the overlay is open; the dialog chrome uses DSH tokens directly and repaints
   too. A downloaded file is the opposite by design: `resolved` colors frozen at
   download time.
+- Geometry: the SVG and retained canvas use the measured stage content width
+  and height (excluding 16 px padding on every side), with explicit
+  `preserveAspectRatio="xMidYMid meet"`. `computeView()` is the shared model:
+  `r = availableWidth / availableHeight`, `viewW = max(w, h*r) / zoom`,
+  `viewH = viewW/r`. Thus element and viewBox proportions agree and zoom can
+  use the whole stage instead of cropping within a diagram-shaped strip.
+- Per-axis bounds: if the viewport extent is at least the content extent,
+  origin is `(content - view)/2` (negative origins are legal) and pan is inert;
+  otherwise origin clamps to `[0, content - view]`. Only floating-point noise
+  below 1e-7 screen pixels is treated as equality. Blank margins reveal the
+  dialog/stage background; the SVG background rect covers only natural bounds.
 - Zoom: opens at `zoomFactor` clamped to `[1, 8]`; button steps are ×1.25;
-  fit resets to scale 1 and viewBox 0 0 w h; zoom is anchored at the pointer for
-  Ctrl/Cmd + wheel (plain wheel is left to the page); the viewBox is cropped and
-  clamped so blank space is never exposed.
-- Pan: pointer drag with capture (when available) moves within the diagram
+  fit resets to scale 1 and centers the whole diagram. Buttons preserve the
+  viewport center; Ctrl/Cmd + wheel preserves the pointer's diagram coordinate
+  unless bounds/centering take priority. Plain wheel is ignored; background
+  scrolling remains locked.
+- Pan: pointer drag with capture (when available) moves within each axis's
   bounds; arrow keys pan by 48 px; `data-panning` marks drag state.
+- Resize: save the old viewport center in diagram coordinates, remeasure,
+  retain relative-to-fit zoom, then recenter and apply the per-axis bounds.
+  Resize ends an active drag and releases capture. Invalid/zero measurements
+  skip CSS sizing and use the natural viewBox until a valid resize arrives.
+  The SVG → stage → measured-box coordinate fallback remains available in jsdom.
 - Keyboard: `Escape` closes, `Tab`/`Shift+Tab` trap focus among enabled
   controls, `+`/`=` and `-`/`_` zoom, `0` fits. Focus moves to the close
   button on open and returns to the saved trigger on close.

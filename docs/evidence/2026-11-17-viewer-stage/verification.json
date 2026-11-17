@@ -1,0 +1,833 @@
+{
+  "date": "2026-11-17T10:27:54.303Z",
+  "status": "PASS",
+  "scope": "Browser fixture only; no installed DSH session or package installation tested.",
+  "baseCommit": "a5a223660caf156259fc9c6beac1eaaec333301c",
+  "workingTreeChanges": "viewer geometry, tests and fixture/visual checks; see source digests",
+  "package": "dsh-pele-mermaid@0.2.0 (unreleased working changes)",
+  "bundle": {
+    "bytes": 739631,
+    "sha256": "48fb4f4f019e8107ef3a0f4db55edc36997ef66599c31de16d6c2af1c2e2c74f"
+  },
+  "sourceSha256": {
+    "src/client/viewer.js": "01266d00eb2e5dd46be9f0261bafeead5df724b2e225d96fe952a4e9d2282c34",
+    "src/client/theme-css.js": "979df962f9d1da25011a35ca19e72dce21a09007fb3e8d0f73e5a9a0514c1bbc",
+    "scripts/verify-visual.mjs": "e66db3e800b4e327f0cd1664845e65827d60d828630e99172b95366708c8efc0",
+    "tests/viewer.test.mjs": "426215964b2e20b9f0be99230fa6db9c3ac6868b9d8adb5e9763956bd9bf8d26",
+    "tests/fixtures/fixture.js": "60aeb7c456298384fee6769b0a1e68bd7c6aeb40fb0f4ca3baec7ca905783f52",
+    "package-lock.json": "f04632df5ee6d686ac73213ebe3ec813c1827e9dbe96e7906fbcb422b1e8e48c",
+    "scripts/build-client.mjs": "2fd879e7656c9d01132e945d4d94303ca1ef2ae15e706aee19218b6a1a436d9d"
+  },
+  "checks": {
+    "suite": {
+      "passed": 147,
+      "failed": 0
+    },
+    "viewerTests": 24,
+    "bundleVerification": "PASS before and after capture",
+    "browser": "Chrome/157.0.8103.79",
+    "visualExitCode": 0,
+    "console": {
+      "scope": "Error-level console/log entries during the whole run",
+      "errors": []
+    }
+  },
+  "viewerGeometry": [
+    {
+      "name": "wide",
+      "viewport": {
+        "width": 1400,
+        "height": 900,
+        "deviceScaleFactor": 1,
+        "mobile": false
+      },
+      "fit": {
+        "viewerViewBox": "0 -172.144 813 479.288",
+        "viewerSvgRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 777
+        },
+        "viewerStageRect": {
+          "x": 25,
+          "y": 66,
+          "width": 1350,
+          "height": 809
+        },
+        "viewerContentRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 777
+        },
+        "viewerNaturalSize": {
+          "width": 813,
+          "height": 135
+        }
+      },
+      "zoom": {
+        "viewerViewBox": "239.998 -30.658 333.005 196.316",
+        "viewerSvgRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 777
+        },
+        "viewerStageRect": {
+          "x": 25,
+          "y": 66,
+          "width": 1350,
+          "height": 809
+        },
+        "viewerContentRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 777
+        },
+        "viewerNaturalSize": {
+          "width": 813,
+          "height": 135
+        }
+      },
+      "pan": {
+        "viewerViewBox": "219.785 -30.658 333.005 196.316",
+        "viewerSvgRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 777
+        },
+        "viewerStageRect": {
+          "x": 25,
+          "y": 66,
+          "width": 1350,
+          "height": 809
+        },
+        "viewerContentRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 777
+        },
+        "viewerNaturalSize": {
+          "width": 813,
+          "height": 135
+        }
+      },
+      "resize": {
+        "viewerViewBox": "219.785 -43.291 333.005 221.582",
+        "viewerSvgRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 877
+        },
+        "viewerStageRect": {
+          "x": 25,
+          "y": 66,
+          "width": 1350,
+          "height": 909
+        },
+        "viewerContentRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 877
+        },
+        "viewerNaturalSize": {
+          "width": 813,
+          "height": 135
+        }
+      }
+    },
+    {
+      "name": "tall",
+      "viewport": {
+        "width": 1400,
+        "height": 900,
+        "deviceScaleFactor": 1,
+        "mobile": false
+      },
+      "fit": {
+        "viewerViewBox": "-284.964 0 759.928 448",
+        "viewerSvgRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 777
+        },
+        "viewerStageRect": {
+          "x": 25,
+          "y": 66,
+          "width": 1350,
+          "height": 809
+        },
+        "viewerContentRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 777
+        },
+        "viewerNaturalSize": {
+          "width": 190,
+          "height": 448
+        }
+      },
+      "zoom": {
+        "viewerViewBox": "-60.633 132.25 311.266 183.501",
+        "viewerSvgRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 777
+        },
+        "viewerStageRect": {
+          "x": 25,
+          "y": 66,
+          "width": 1350,
+          "height": 809
+        },
+        "viewerContentRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 777
+        },
+        "viewerNaturalSize": {
+          "width": 190,
+          "height": 448
+        }
+      },
+      "pan": {
+        "viewerViewBox": "-60.633 122.803 311.266 183.501",
+        "viewerSvgRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 777
+        },
+        "viewerStageRect": {
+          "x": 25,
+          "y": 66,
+          "width": 1350,
+          "height": 809
+        },
+        "viewerContentRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 777
+        },
+        "viewerNaturalSize": {
+          "width": 190,
+          "height": 448
+        }
+      },
+      "resize": {
+        "viewerViewBox": "-42.887 122.803 275.774 183.501",
+        "viewerSvgRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 877
+        },
+        "viewerStageRect": {
+          "x": 25,
+          "y": 66,
+          "width": 1350,
+          "height": 909
+        },
+        "viewerContentRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 877
+        },
+        "viewerNaturalSize": {
+          "width": 190,
+          "height": 448
+        }
+      }
+    },
+    {
+      "name": "ordinary",
+      "viewport": {
+        "width": 1400,
+        "height": 900,
+        "deviceScaleFactor": 1,
+        "mobile": false
+      },
+      "fit": {
+        "viewerViewBox": "-65.548 0 502.095 296",
+        "viewerSvgRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 777
+        },
+        "viewerStageRect": {
+          "x": 25,
+          "y": 66,
+          "width": 1350,
+          "height": 809
+        },
+        "viewerContentRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 777
+        },
+        "viewerNaturalSize": {
+          "width": 371,
+          "height": 296
+        }
+      },
+      "zoom": {
+        "viewerViewBox": "82.671 87.379 205.658 121.242",
+        "viewerSvgRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 777
+        },
+        "viewerStageRect": {
+          "x": 25,
+          "y": 66,
+          "width": 1350,
+          "height": 809
+        },
+        "viewerContentRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 777
+        },
+        "viewerNaturalSize": {
+          "width": 371,
+          "height": 296
+        }
+      },
+      "pan": {
+        "viewerViewBox": "70.188 81.138 205.658 121.242",
+        "viewerSvgRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 777
+        },
+        "viewerStageRect": {
+          "x": 25,
+          "y": 66,
+          "width": 1350,
+          "height": 809
+        },
+        "viewerContentRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 777
+        },
+        "viewerNaturalSize": {
+          "width": 371,
+          "height": 296
+        }
+      },
+      "resize": {
+        "viewerViewBox": "81.913 81.138 182.208 121.242",
+        "viewerSvgRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 877
+        },
+        "viewerStageRect": {
+          "x": 25,
+          "y": 66,
+          "width": 1350,
+          "height": 909
+        },
+        "viewerContentRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 877
+        },
+        "viewerNaturalSize": {
+          "width": 371,
+          "height": 296
+        }
+      }
+    },
+    {
+      "name": "wide",
+      "viewport": {
+        "width": 1400,
+        "height": 500,
+        "deviceScaleFactor": 1,
+        "mobile": false
+      },
+      "fit": {
+        "viewerViewBox": "0 -48.775 813 232.55",
+        "viewerSvgRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 377
+        },
+        "viewerStageRect": {
+          "x": 25,
+          "y": 66,
+          "width": 1350,
+          "height": 409
+        },
+        "viewerContentRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 377
+        },
+        "viewerNaturalSize": {
+          "width": 813,
+          "height": 135
+        }
+      },
+      "zoom": {
+        "viewerViewBox": "239.998 19.874 333.005 95.253",
+        "viewerSvgRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 377
+        },
+        "viewerStageRect": {
+          "x": 25,
+          "y": 66,
+          "width": 1350,
+          "height": 409
+        },
+        "viewerContentRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 377
+        },
+        "viewerNaturalSize": {
+          "width": 813,
+          "height": 135
+        }
+      },
+      "pan": {
+        "viewerViewBox": "219.785 9.767 333.005 95.253",
+        "viewerSvgRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 377
+        },
+        "viewerStageRect": {
+          "x": 25,
+          "y": 66,
+          "width": 1350,
+          "height": 409
+        },
+        "viewerContentRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 377
+        },
+        "viewerNaturalSize": {
+          "width": 813,
+          "height": 135
+        }
+      },
+      "resize": {
+        "viewerViewBox": "219.785 0 333.005 120.518",
+        "viewerSvgRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 477
+        },
+        "viewerStageRect": {
+          "x": 25,
+          "y": 66,
+          "width": 1350,
+          "height": 509
+        },
+        "viewerContentRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 477
+        },
+        "viewerNaturalSize": {
+          "width": 813,
+          "height": 135
+        }
+      }
+    },
+    {
+      "name": "tall",
+      "viewport": {
+        "width": 1400,
+        "height": 500,
+        "deviceScaleFactor": 1,
+        "mobile": false
+      },
+      "fit": {
+        "viewerViewBox": "-688.109 0 1566.218 448",
+        "viewerSvgRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 377
+        },
+        "viewerStageRect": {
+          "x": 25,
+          "y": 66,
+          "width": 1350,
+          "height": 409
+        },
+        "viewerContentRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 377
+        },
+        "viewerNaturalSize": {
+          "width": 190,
+          "height": 448
+        }
+      },
+      "zoom": {
+        "viewerViewBox": "-225.761 132.25 641.523 183.501",
+        "viewerSvgRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 377
+        },
+        "viewerStageRect": {
+          "x": 25,
+          "y": 66,
+          "width": 1350,
+          "height": 409
+        },
+        "viewerContentRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 377
+        },
+        "viewerNaturalSize": {
+          "width": 190,
+          "height": 448
+        }
+      },
+      "pan": {
+        "viewerViewBox": "-225.761 112.78 641.523 183.501",
+        "viewerSvgRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 377
+        },
+        "viewerStageRect": {
+          "x": 25,
+          "y": 66,
+          "width": 1350,
+          "height": 409
+        },
+        "viewerContentRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 377
+        },
+        "viewerNaturalSize": {
+          "width": 190,
+          "height": 448
+        }
+      },
+      "resize": {
+        "viewerViewBox": "-158.516 112.78 507.032 183.501",
+        "viewerSvgRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 477
+        },
+        "viewerStageRect": {
+          "x": 25,
+          "y": 66,
+          "width": 1350,
+          "height": 509
+        },
+        "viewerContentRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 477
+        },
+        "viewerNaturalSize": {
+          "width": 190,
+          "height": 448
+        }
+      }
+    },
+    {
+      "name": "ordinary",
+      "viewport": {
+        "width": 1400,
+        "height": 500,
+        "deviceScaleFactor": 1,
+        "mobile": false
+      },
+      "fit": {
+        "viewerViewBox": "-331.911 0 1034.822 296",
+        "viewerSvgRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 377
+        },
+        "viewerStageRect": {
+          "x": 25,
+          "y": 66,
+          "width": 1350,
+          "height": 409
+        },
+        "viewerContentRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 377
+        },
+        "viewerNaturalSize": {
+          "width": 371,
+          "height": 296
+        }
+      },
+      "zoom": {
+        "viewerViewBox": "-26.432 87.379 423.863 121.242",
+        "viewerSvgRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 377
+        },
+        "viewerStageRect": {
+          "x": 25,
+          "y": 66,
+          "width": 1350,
+          "height": 409
+        },
+        "viewerContentRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 377
+        },
+        "viewerNaturalSize": {
+          "width": 371,
+          "height": 296
+        }
+      },
+      "pan": {
+        "viewerViewBox": "-26.432 74.515 423.863 121.242",
+        "viewerSvgRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 377
+        },
+        "viewerStageRect": {
+          "x": 25,
+          "y": 66,
+          "width": 1350,
+          "height": 409
+        },
+        "viewerContentRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 377
+        },
+        "viewerNaturalSize": {
+          "width": 371,
+          "height": 296
+        }
+      },
+      "resize": {
+        "viewerViewBox": "17.999 74.515 335.003 121.242",
+        "viewerSvgRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 477
+        },
+        "viewerStageRect": {
+          "x": 25,
+          "y": 66,
+          "width": 1350,
+          "height": 509
+        },
+        "viewerContentRect": {
+          "x": 41,
+          "y": 82,
+          "width": 1318,
+          "height": 477
+        },
+        "viewerNaturalSize": {
+          "width": 371,
+          "height": 296
+        }
+      }
+    }
+  ],
+  "viewerTheme": {
+    "light": {
+      "label": "light",
+      "hasBackground": true,
+      "backgroundFill": "rgb(249, 250, 251)",
+      "dialogBackground": "rgb(255, 255, 255)",
+      "inlineStyle": "max-width: 100%; height: 2277px; --_bg: var(--pele-bg,#fff); --_fg: var(--pele-fg,#1f1f1f); --_m: var(--pele-muted,#6e6e6e); --_l: var(--pele-line,#1f1f1f); --_s: var(--pele-surface,#f3f3f3); --_a: var(--pele-surface-alt,#e6e6e6); --_b: var(--pele-border,#8a8a8a); --_c: var(--pele-accent,#5b7bd5); color: var(--_fg); --_r: var(--pele-radius,4px); --_fm: var(--pele-font-mono,\"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\", \"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\"); font-style: normal; font-variant: normal; font-size-adjust: none; font-language-override: normal; font-kerning: auto; font-optical-sizing: auto; font-feature-settings: normal; font-variation-settings: normal; font-weight: normal; font-stretch: normal; font-size: 16px; line-height: normal; letter-spacing: normal; word-spacing: normal; text-transform: none; direction: ltr; font-family: var(--pele-font,-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif); --pele-bg: var(--dsw-alias-markdown-code-block); --pele-fg: var(--dsw-alias-label-primary); --pele-muted: var(--dsw-alias-label-tertiary); --pele-line: var(--dsw-alias-label-secondary); --pele-surface: var(--dsw-alias-bg-layer-1); --pele-surface-alt: var(--dsw-alias-markdown-code-block-banner); --pele-border: var(--dsw-alias-border-l2); --pele-accent: var(--dsw-alias-brand-primary); --pele-critical: var(--dsw-alias-state-error-primary); --pele-error: var(--dsw-alias-state-error-primary); --pele-font: var(--dsw-font-family); --pele-font-mono: var(--ds-font-family-code, ui-monospace, monospace); --pele-radius: var(--dsw-radius-md); width: 1318px;"
+    },
+    "dark": {
+      "label": "dark",
+      "hasBackground": true,
+      "backgroundFill": "rgb(27, 27, 28)",
+      "dialogBackground": "rgb(35, 35, 36)",
+      "inlineStyle": "max-width: 100%; height: 2277px; --_bg: var(--pele-bg,#fff); --_fg: var(--pele-fg,#1f1f1f); --_m: var(--pele-muted,#6e6e6e); --_l: var(--pele-line,#1f1f1f); --_s: var(--pele-surface,#f3f3f3); --_a: var(--pele-surface-alt,#e6e6e6); --_b: var(--pele-border,#8a8a8a); --_c: var(--pele-accent,#5b7bd5); color: var(--_fg); --_r: var(--pele-radius,4px); --_fm: var(--pele-font-mono,\"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\", \"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\"); font-style: normal; font-variant: normal; font-size-adjust: none; font-language-override: normal; font-kerning: auto; font-optical-sizing: auto; font-feature-settings: normal; font-variation-settings: normal; font-weight: normal; font-stretch: normal; font-size: 16px; line-height: normal; letter-spacing: normal; word-spacing: normal; text-transform: none; direction: ltr; font-family: var(--pele-font,-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif); --pele-bg: var(--dsw-alias-markdown-code-block); --pele-fg: var(--dsw-alias-label-primary); --pele-muted: var(--dsw-alias-label-tertiary); --pele-line: var(--dsw-alias-label-secondary); --pele-surface: var(--dsw-alias-bg-layer-1); --pele-surface-alt: var(--dsw-alias-markdown-code-block-banner); --pele-border: var(--dsw-alias-border-l2); --pele-accent: var(--dsw-alias-brand-primary); --pele-critical: var(--dsw-alias-state-error-primary); --pele-error: var(--dsw-alias-state-error-primary); --pele-font: var(--dsw-font-family); --pele-font-mono: var(--ds-font-family-code, ui-monospace, monospace); --pele-radius: var(--dsw-radius-md); width: 1318px;"
+    }
+  },
+  "comparison": {
+    "before": {
+      "browser": "Chrome/157.0.8103.79",
+      "bundleSha256": "906b1cc2f77c99a41e8453d85bd1554e60ff36b7a9d12558b3e998a56f1ea4af",
+      "cases": [
+        {
+          "name": "tall",
+          "index": 7,
+          "viewport": {
+            "width": 1400,
+            "height": 900
+          },
+          "state": "zoom",
+          "svg": {
+            "x": 535.234375,
+            "y": 82,
+            "width": 329.515625,
+            "height": 777
+          },
+          "stage": {
+            "x": 25,
+            "y": 66,
+            "width": 1350,
+            "height": 809
+          },
+          "viewBox": "56.088 132.25 77.824 183.501",
+          "natural": [
+            "190",
+            "448"
+          ],
+          "file": "before-tall-900-zoom.png",
+          "sha256": "7d63a6cb300aae7015b68b8a52463602ee60b2753687b1157b4bbeb63506267f"
+        },
+        {
+          "name": "wide",
+          "index": 0,
+          "viewport": {
+            "width": 1400,
+            "height": 500
+          },
+          "state": "zoom",
+          "svg": {
+            "x": 41,
+            "y": 161.078125,
+            "width": 1318,
+            "height": 218.84375
+          },
+          "stage": {
+            "x": 25,
+            "y": 66,
+            "width": 1350,
+            "height": 409
+          },
+          "viewBox": "239.998 39.852 333.005 55.296",
+          "natural": [
+            "813",
+            "135"
+          ],
+          "file": "before-wide-500-zoom.png",
+          "sha256": "a5380be8c0766e80a1d0669be13859a9f639bf9aa0a47ce58fcd963e3b18df74"
+        }
+      ]
+    },
+    "after": {
+      "browser": "Chrome/157.0.8103.79",
+      "bundleSha256": "48fb4f4f019e8107ef3a0f4db55edc36997ef66599c31de16d6c2af1c2e2c74f",
+      "cases": [
+        {
+          "name": "tall",
+          "index": 7,
+          "viewport": {
+            "width": 1400,
+            "height": 900
+          },
+          "state": "zoom",
+          "svg": {
+            "x": 41,
+            "y": 82,
+            "width": 1318,
+            "height": 777
+          },
+          "stage": {
+            "x": 25,
+            "y": 66,
+            "width": 1350,
+            "height": 809
+          },
+          "viewBox": "-60.633 132.25 311.266 183.501",
+          "natural": [
+            "190",
+            "448"
+          ],
+          "file": "after-tall-900-zoom.png",
+          "sha256": "23888282bfc82bcde4a791dfa297dcbfcc2938ea3a41cfc30918865e45efaeb5"
+        },
+        {
+          "name": "wide",
+          "index": 0,
+          "viewport": {
+            "width": 1400,
+            "height": 500
+          },
+          "state": "zoom",
+          "svg": {
+            "x": 41,
+            "y": 82,
+            "width": 1318,
+            "height": 377
+          },
+          "stage": {
+            "x": 25,
+            "y": 66,
+            "width": 1350,
+            "height": 409
+          },
+          "viewBox": "239.998 19.874 333.005 95.253",
+          "natural": [
+            "813",
+            "135"
+          ],
+          "file": "after-wide-500-zoom.png",
+          "sha256": "88a44f13c9f51a8d5fe0dadc0025a162d6040703a9a771992c0e396e3e7810aa"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "pathBase": "run-dir",
+  "generatedAt": "2026-11-17T10:29:47.675Z",
+  "runId": "2026-11-17-viewer-stage",
+  "package": {
+    "name": "dsh-pele-mermaid",
+    "version": "0.2.0"
+  },
+  "evidenceFiles": {
+    "after-tall-900-zoom.png": {
+      "bytes": 31452,
+      "sha256": "23888282bfc82bcde4a791dfa297dcbfcc2938ea3a41cfc30918865e45efaeb5"
+    },
+    "after-wide-500-zoom.png": {
+      "bytes": 58298,
+      "sha256": "88a44f13c9f51a8d5fe0dadc0025a162d6040703a9a771992c0e396e3e7810aa"
+    },
+    "before-tall-900-zoom.png": {
+      "bytes": 19185,
+      "sha256": "7d63a6cb300aae7015b68b8a52463602ee60b2753687b1157b4bbeb63506267f"
+    },
+    "before-wide-500-zoom.png": {
+      "bytes": 30027,
+      "sha256": "a5380be8c0766e80a1d0669be13859a9f639bf9aa0a47ce58fcd963e3b18df74"
+    },
+    "verification.json": {
+      "bytes": 23462,
+      "sha256": "51714a738b338e6d9010cf17f581c856fb508c0723f7750ae6b8b99e6b77ca96"
+    }
+  }
+}

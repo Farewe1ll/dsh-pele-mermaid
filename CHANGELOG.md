@@ -5,6 +5,21 @@ All notable changes to this project are documented here. The format follows
 semantic versioning. This project has not published to a registry; versions are
 repository working builds unless a GitHub Release says otherwise.
 
+## [Unreleased]
+
+### Changed
+
+- The diagram viewer now fills the stage content area with an equally
+  proportioned viewBox. Wide diagrams can use vertical space when zoomed, and
+  tall diagrams can use horizontal space, without stretching. Fit centers the
+  entire diagram; smaller axes stay centered and larger axes pan within bounds.
+  Window resize preserves relative-to-fit zoom and the diagram-space center
+  where bounds allow, ending an active drag and releasing pointer capture.
+- Viewer verification covers full-stage geometry, pointer anchors, per-axis
+  bounds, invalid measurements and resize, plus 1400×900 / 1400×500 browser
+  cases. Visual output stays in a new staging run; historical evidence is kept.
+  Temporary Chrome profile cleanup retries transient directory-write races.
+
 ## [0.2.0] — 2026-11-17
 
 ### Added

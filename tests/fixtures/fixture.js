@@ -378,6 +378,23 @@
     return Number.isFinite(value) ? value : null
   }
 
+  function rectOf(node) {
+    if (!node) return null
+    const { x, y, width, height } = node.getBoundingClientRect()
+    return { x, y, width, height }
+  }
+
+  function contentRectOf(node) {
+    if (!node) return null
+    const rect = rectOf(node)
+    const css = getComputedStyle(node)
+    const left = parseFloat(css.paddingLeft) + parseFloat(css.borderLeftWidth)
+    const right = parseFloat(css.paddingRight) + parseFloat(css.borderRightWidth)
+    const top = parseFloat(css.paddingTop) + parseFloat(css.borderTopWidth)
+    const bottom = parseFloat(css.paddingBottom) + parseFloat(css.borderBottomWidth)
+    return { x: rect.x + left, y: rect.y + top, width: rect.width - left - right, height: rect.height - top - bottom }
+  }
+
   function collectReport() {
     const blocks = $$('.md-code-block')
     const containers = $$('.dsh-pele-mermaid-diagram')
@@ -393,6 +410,7 @@
     const viewerDialogs = $$('.dsh-pele-mermaid-viewer-dialog[role="dialog"][aria-modal="true"]')
     const viewerToolbarButtons = $$('.dsh-pele-mermaid-viewer-toolbar button')
     const viewerSvg = $('.dsh-pele-mermaid-viewer-svg')
+    const viewerStage = $('.dsh-pele-mermaid-viewer-stage')
     const perDiagramButtons = containers.map((container) => $$('.dsh-pele-mermaid-toolbar button', container))
 
     const svgClasses = diagramSvgs.map((svg) => svg.getAttribute('class') || '')
@@ -439,6 +457,10 @@
         viewerDialogs: viewerDialogs.length,
         viewerToolbarButtons: viewerToolbarButtons.length,
         viewerViewBox: viewerSvg ? viewerSvg.getAttribute('viewBox') : null,
+        viewerSvgRect: rectOf(viewerSvg),
+        viewerStageRect: rectOf(viewerStage),
+        viewerContentRect: contentRectOf(viewerStage),
+        viewerNaturalSize: viewerSvg ? { width: numberAttribute(viewerSvg, 'width'), height: numberAttribute(viewerSvg, 'height') } : null,
         viewerFocusRestored: state.viewerTrigger ? document.activeElement === state.viewerTrigger : null,
         errorNotes: errors.length,
         errorTexts: errors.map((node) => node.textContent),

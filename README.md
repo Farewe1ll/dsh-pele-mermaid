@@ -11,6 +11,8 @@ Render Mermaid diagrams in the DeepSeek Harness (DSH) Web chat with
 > `mermaid` (or explicit `mermaidjs` / `mmd`) code fences become
 > interactive Pele diagrams.
 
+The unreleased viewer-stage update has a separate [verification record](docs/VERIFICATION.md#0-current-viewer-stage-update--2026-11-17): 147 tests pass, plus desktop/short-window browser checks. Earlier dated bundle sizes and test counts below remain historical.
+
 ## Why Pele
 
 - **Synchronous, zero runtime dependencies** — bundled into one browser script,
@@ -123,7 +125,11 @@ Explicit fence languages (case-insensitive, first token only):
   unsafe style/`url()` values are removed; `https`/`mailto`/`tel`/`#` links are
   kept. The button is disabled until a diagram renders.
 - **Fullscreen** opens a reusable overlay dialog at the inline zoom factor with
-  zoom out / zoom in / fit / close controls. Ctrl/Cmd + wheel zooms at the
+  zoom out / zoom in / fit / close controls. Its SVG viewport fills the stage
+  content area: fit centers the complete diagram, while zoom uses the whole
+  viewport without stretching the diagram. Smaller axes stay centered; larger
+  axes can pan to their bounds. Resize preserves relative-to-fit zoom and the
+  diagram-space center where bounds allow. Plain wheel is ignored. Ctrl/Cmd + wheel zooms at the
   pointer; dragging pans within the diagram bounds; Escape closes; Tab focus is
   trapped and returns to the trigger; background scrolling is locked and the
   previous scroll position restored; `prefers-reduced-motion` is respected. The

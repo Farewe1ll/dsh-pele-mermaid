@@ -20,6 +20,8 @@ const WIDE = { width: 1400, height: 2400, deviceScaleFactor: 1, mobile: false }
  * groups wrap onto new rows and the CJK/label cases are exercised in a chat-
  * like narrow column. 760px would *not* cross it (content column ~642px).
  */
+const DESKTOP = { width: 1400, height: 900, deviceScaleFactor: 1, mobile: false }
+const SHORT = { width: 1400, height: 500, deviceScaleFactor: 1, mobile: false }
 const NARROW = { width: 720, height: 2200, deviceScaleFactor: 1, mobile: false }
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex')
@@ -620,6 +622,26 @@ async function main() {
   assert.equal(relight.theme, 'light')
   assert.equal(relight.remounts, evidence.light.remounts, 'second colour flip re-renders nothing')
 
+  function closeNumber(actual, expected, label, epsilon = 0.03) {
+    assert.ok(Number.isFinite(actual) && Math.abs(actual - expected) <= epsilon,
+      `${label}: ${actual} ≈ ${expected}`)
+  }
+  function assertViewerGeometry(report, label, fit = false) {
+    const { viewerSvgRect: svg, viewerStageRect: stage, viewerContentRect: area, viewerNaturalSize: content } = report.dom
+    assert.ok(svg && stage && area && area.width > 0 && area.height > 0, `${label}: measurable stage`)
+    for (const field of ['x', 'y', 'width', 'height']) closeNumber(svg[field], area[field], `${label}: SVG fills content ${field}`)
+    const [x, y, width, height] = report.dom.viewerViewBox.split(/\s+/).map(Number)
+    // Compare in screen pixels to allow viewBox's 0.001-unit serialization.
+    const unit = area.width / width
+    closeNumber(height * unit, area.height, `${label}: equal aspect ratio`, 0.1)
+    for (const [origin, extent, natural] of [[x, width, content.width], [y, height, content.height]]) {
+      if (fit || extent >= natural) closeNumber(origin, (natural - extent) / 2, `${label}: centered axis`, 0.002)
+      else assert.ok(origin >= -0.002 && origin + extent <= natural + 0.002, `${label}: clamped axis`)
+      if (fit) assert.ok(extent + 0.002 >= natural, `${label}: fit shows entire diagram`)
+    }
+    if (fit) assert.ok(Math.abs(width - content.width) <= 0.002 || Math.abs(height - content.height) <= 0.002, `${label}: fit touches an axis`)
+  }
+
   /* --------------------------- fullscreen viewer -------------------------- */
   assert.equal(await evaluate('window.__fixture.openViewer(0)'), true)
   await until(() => evaluate('window.__fixture.report().dom.viewerOpen === true'), 'fullscreen overlay')
@@ -627,19 +649,20 @@ async function main() {
   assert.equal(viewerReport.dom.viewerOverlays, 1, 'exactly one overlay')
   assert.equal(viewerReport.dom.viewerDialogs, 1, 'exactly one role=dialog')
   assert.equal(viewerReport.dom.viewerToolbarButtons, 4)
-  assert.match(String(viewerReport.dom.viewerViewBox), /^0 0 [\d.]+ [\d.]+$/, 'viewer svg has a natural-size viewBox')
+  assertViewerGeometry(viewerReport, 'initial fit', true)
   assert.equal(await evaluate("document.querySelectorAll('[data-dsh-pele-mermaid-viewer]').length"), 1)
   assert.equal(await evaluate("(() => { const d = document.querySelector('.dsh-pele-mermaid-viewer-dialog'); return !!d && d.getAttribute('role') === 'dialog' && d.getAttribute('aria-modal') === 'true' })()"), true)
   assert.equal(await evaluate("!!document.querySelector('.dsh-pele-mermaid-viewer-svg[viewBox]')"), true)
   assert.equal(await evaluate('document.body.style.overflow'), 'hidden', 'viewer locks background scroll')
-  const baseViewBox = viewerReport.dom.viewerViewBox
+  const baseViewBox = viewerReport.dom.viewerViewBox.split(/\s+/).map(Number)
   assert.equal(await evaluate("(() => { const buttons = document.querySelectorAll('.dsh-pele-mermaid-viewer-toolbar button'); if (!buttons[1]) return false; buttons[1].click(); return true })()"), true)
   await sleep(100)
   const zoomedViewBox = await evaluate("document.querySelector('.dsh-pele-mermaid-viewer-svg').getAttribute('viewBox')")
-  assert.notEqual(zoomedViewBox, baseViewBox, 'zoom in crops the viewBox')
+  assert.ok(Number(zoomedViewBox.split(/\s+/)[2]) < baseViewBox[2], 'zoom reduces the visible width')
   await evaluate("(() => { const buttons = document.querySelectorAll('.dsh-pele-mermaid-viewer-toolbar button'); if (buttons[2]) buttons[2].click() })()")
   await sleep(100)
-  assert.equal(await evaluate("document.querySelector('.dsh-pele-mermaid-viewer-svg').getAttribute('viewBox')"), baseViewBox, 'fit restores the whole diagram')
+  const restoredBox = (await evaluate("document.querySelector('.dsh-pele-mermaid-viewer-svg').getAttribute('viewBox')")).split(/\s+/).map(Number)
+  restoredBox.forEach((value, index) => closeNumber(value, baseViewBox[index], 'fit restores the whole diagram', 0.001))
   /* -------------- viewer stays theme-live while open (P5 fix) ------------- */
   const viewerTheme = (label) => evaluate(`(() => {
     const svg = document.querySelector('.dsh-pele-mermaid-viewer-svg');
@@ -702,6 +725,62 @@ async function main() {
   assert.equal(viewerReclosed.dom.viewerOverlays, 0, 'no duplicate overlay after repeated open/close')
   assert.equal(viewerReclosed.dom.viewerFocusRestored, true, 'focus returns to the trigger after close()')
   evidence.viewerReclosed = viewerReclosed
+
+  // Wide, tall and ordinary diagrams in desktop and short windows. Geometry
+  // checks are independent of which axis limits fit; repeat after zoom/pan/resize.
+  evidence.viewerGeometry = []
+  for (const viewport of [DESKTOP, SHORT]) {
+    await send('Emulation.setDeviceMetricsOverride', viewport)
+    await sleep(250)
+    for (const [name, index] of [['wide', 0], ['tall', 7], ['ordinary', 2]]) {
+      assert.equal(await evaluate(`window.__fixture.openViewer(${index})`), true)
+      const fitReport = await evaluate('window.__fixture.report()')
+      assertViewerGeometry(fitReport, `${name} ${viewport.height} fit`, true)
+      const fitBox = fitReport.dom.viewerViewBox.split(/\s+/).map(Number)
+      await evaluate(`(() => {
+        const stage = document.querySelector('.dsh-pele-mermaid-viewer-stage');
+        for (const [type, x, y] of [['pointerdown', 100, 100], ['pointermove', 180, 140], ['pointerup', 180, 140]])
+          stage.dispatchEvent(new PointerEvent(type, { bubbles: true, pointerId: 1, button: 0, clientX: x, clientY: y }));
+      })()`)
+      const fittedAfterPan = (await evaluate('window.__fixture.report()')).dom.viewerViewBox.split(/\s+/).map(Number)
+      fittedAfterPan.forEach((v, i) => closeNumber(v, fitBox[i], 'fit drag no-op', 0.001))
+      await evaluate(`(() => {const b = document.querySelectorAll('.dsh-pele-mermaid-viewer-toolbar button')[1]; for (let i = 0; i < 4; i++) b.click()})()`)
+      const zoomReport = await evaluate('window.__fixture.report()')
+      assertViewerGeometry(zoomReport, `${name} ${viewport.height} zoom`)
+      if (name !== 'ordinary') await capture(`viewer-${name}-${viewport.height}-zoom`)
+      const rect = zoomReport.dom.viewerSvgRect
+      // Real coordinate input exercises pointer capture and the full viewport.
+      const start = { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }
+      await send('Input.dispatchMouseEvent', { type: 'mousePressed', ...start, button: 'left', clickCount: 1 })
+      await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: start.x + 80, y: start.y + 40, button: 'left', buttons: 1 })
+      await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: start.x + 80, y: start.y + 40, button: 'left', clickCount: 1 })
+      const panReport = await evaluate('window.__fixture.report()')
+      assertViewerGeometry(panReport, `${name} ${viewport.height} pan`)
+      const before = panReport.dom.viewerViewBox.split(/\s+/).map(Number)
+      const zoomBox = zoomReport.dom.viewerViewBox.split(/\s+/).map(Number)
+      assert.ok(before.some((value, index) => Math.abs(value - zoomBox[index]) > 0.001), `${name}: real drag moves the zoomed diagram`)
+      const resized = { ...viewport, height: viewport.height + 100 }
+      await send('Emulation.setDeviceMetricsOverride', resized)
+      await sleep(150)
+      const resizeReport = await evaluate('window.__fixture.report()')
+      assertViewerGeometry(resizeReport, `${name} ${viewport.height} resize`)
+      const after = resizeReport.dom.viewerViewBox.split(/\s+/).map(Number)
+      for (const axis of [0, 1]) {
+        const content = [resizeReport.dom.viewerNaturalSize.width, resizeReport.dom.viewerNaturalSize.height][axis]
+        const extent = after[axis + 2]
+        const desired = before[axis] + before[axis + 2] / 2 - extent / 2
+        const origin = extent >= content ? (content - extent) / 2 : Math.max(0, Math.min(content - extent, desired))
+        closeNumber(after[axis], origin, `${name}: resize center`, 0.002)
+      }
+      const area = resizeReport.dom.viewerContentRect, natural = resizeReport.dom.viewerNaturalSize
+      const fitUnits = Math.min(area.width / natural.width, area.height / natural.height)
+      closeNumber((area.width / after[2]) / fitUnits, 1.25 ** 4, `${name}: resize retains zoom`, 0.001)
+      evidence.viewerGeometry.push({ name, viewport, fit: fitReport.dom, zoom: zoomReport.dom, pan: panReport.dom, resize: resizeReport.dom })
+      await evaluate('window.__fixture.closeViewer()')
+      await send('Emulation.setDeviceMetricsOverride', viewport)
+      await sleep(100)
+    }
+  }
 
   /* --------------------- narrow column: P1 layout claims ------------------ */
   await send('Emulation.setDeviceMetricsOverride', NARROW)
@@ -779,13 +858,14 @@ async function main() {
   await writeVisualOutputFile(output, 'visual-evidence.json', JSON.stringify(evidence, null, 2) + '\n', {
     root: ROOT,
   })
-  console.log(JSON.stringify({ status: 'PASS', runId, outputDir: output, browser: browser.Browser, bundleSha256: evidence.bundleSha256, viewport: WIDE, narrowViewport: NARROW, consoleErrors: evidence.console.errors, screenshots: evidence.screenshots }, null, 2))
+  console.log(JSON.stringify({ status: 'PASS', runId, outputDir: output, browser: browser.Browser, bundleSha256: evidence.bundleSha256, viewport: WIDE, narrowViewport: NARROW, viewerViewports: [DESKTOP, SHORT], consoleErrors: evidence.console.errors, screenshots: evidence.screenshots }, null, 2))
   } finally {
     ws?.close()
     for (const promise of pending.values()) clearTimeout(promise.timer)
     await stop(chrome)
     await stop(server)
-    await rm(profile, { recursive: true, force: true })
+    // Chrome helpers may finish writing shortly after the parent exits.
+    await rm(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
   }
 }
 

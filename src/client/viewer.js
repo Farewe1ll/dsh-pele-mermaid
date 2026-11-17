@@ -5,7 +5,8 @@
  * the engine (it never re-runs Pele and never reparents the inline DOM):
  *
  *  - opens at the inline zoom factor, then supports wheel/button zoom and drag
- *    panning inside a fixed-aspect stage (viewBox cropping keeps vectors crisp);
+ *    panning across the full stage content area with an equally proportioned
+ *    viewBox (diagram geometry stays undistorted);
  *  - locks background scrolling, traps Tab focus, closes on Escape/backdrop and
  *    restores focus + scroll position;
  *  - removes every listener, observer-owned node and scroll lock on close and on
@@ -85,16 +86,37 @@ function clamp(value, min, max) {
 }
 
 /**
- * Contain one aspect ratio inside a box (letterboxing).
+ * One geometry model for layout, zoom and pan. The anchor is a fraction of the
+ * viewport, and point is the diagram coordinate to keep under that anchor.
+ * Unmeasurable stages keep the natural viewBox until layout becomes available.
  * @param {number} width
  * @param {number} height
- * @param {number} maxWidth
- * @param {number} maxHeight
- * @returns {{ width: number, height: number }}
+ * @param {{ width: number, height: number }} box stage content box, excluding padding
+ * @param {number} scale zoom relative to fit
+ * @param {{ x: number, y: number }} point
+ * @param {{ x: number, y: number }} anchor
  */
-function contain(width, height, maxWidth, maxHeight) {
-  const scale = Math.min(maxWidth / width, maxHeight / height)
-  return { width: width * scale, height: height * scale }
+function computeView(width, height, box, scale, point, anchor) {
+  if (!(positive(box.width) && positive(box.height))) {
+    return { x: 0, y: 0, width, height }
+  }
+  const ratio = box.width / box.height
+  const viewWidth = Math.max(width, height * ratio) / scale
+  const viewHeight = viewWidth / ratio
+  const pixelsPerUnit = box.width / viewWidth
+  const origin = (content, extent, desired) => {
+    // Only absorb floating-point noise, measured in screen pixels; no snapping.
+    if (extent >= content || Math.abs(extent - content) * pixelsPerUnit < 1e-7) {
+      return (content - extent) / 2
+    }
+    return clamp(desired, 0, content - extent)
+  }
+  return {
+    x: origin(width, viewWidth, point.x - anchor.x * viewWidth),
+    y: origin(height, viewHeight, point.y - anchor.y * viewHeight),
+    width: viewWidth,
+    height: viewHeight,
+  }
 }
 
 /** @param {number} value */
@@ -206,39 +228,40 @@ export function createViewer(options = {}) {
     }
   }
 
-  /** Recompute the displayed box for the current stage size. */
-  function layout() {
-    if (!state) return
-    const available = measureStage(state.stage)
-    let box
-    if (available.width > 0 && available.height > 0) {
-      box = contain(state.width, state.height, available.width, available.height)
-    } else {
-      box = { width: state.width, height: state.height }
-    }
-    state.box = box
-    try {
-      if (state.canvas) {
-        state.canvas.style.width = cssPixels(box.width)
-        state.canvas.style.height = cssPixels(box.height)
-      }
-      state.svg.style.width = cssPixels(box.width)
-      state.svg.style.height = cssPixels(box.height)
-    } catch {
-      /* inline sizing is an optimization only */
-    }
-    applyScale()
+  /** Shared view calculation; a zero anchor interprets point as an origin. */
+  function currentView(point = { x: state.x, y: state.y }, anchor = { x: 0, y: 0 }) {
+    return computeView(state.width, state.height, state.box, state.scale, point, anchor)
   }
 
-  /** Write the cropped viewBox and refresh button states. */
-  function applyScale() {
+  /** Fill the content box, preserving the old diagram-space viewport center. */
+  function layout() {
     if (!state) return
-    const viewWidth = state.width / state.scale
-    const viewHeight = state.height / state.scale
-    state.x = clamp(state.x, 0, Math.max(0, state.width - viewWidth))
-    state.y = clamp(state.y, 0, Math.max(0, state.height - viewHeight))
+    const previous = currentView()
+    const center = { x: previous.x + previous.width / 2, y: previous.y + previous.height / 2 }
+    const available = measureStage(state.stage)
+    const valid = positive(available?.width) && positive(available?.height)
+    state.box = valid ? { width: available.width, height: available.height } : { width: 0, height: 0 }
+    if (valid) {
+      try {
+        state.canvas.style.width = cssPixels(state.box.width)
+        state.canvas.style.height = cssPixels(state.box.height)
+        state.svg.style.width = cssPixels(state.box.width)
+        state.svg.style.height = cssPixels(state.box.height)
+      } catch {
+        /* inline sizing is an optimization only */
+      }
+    }
+    applyScale(center, { x: 0.5, y: 0.5 })
+  }
+
+  /** Apply the shared centering/clamping rules and refresh button states. */
+  function applyScale(point, anchor) {
+    if (!state) return
+    const next = currentView(point, anchor)
+    state.x = next.x
+    state.y = next.y
     try {
-      state.svg.setAttribute('viewBox', `${svgNumber(state.x)} ${svgNumber(state.y)} ${svgNumber(viewWidth)} ${svgNumber(viewHeight)}`)
+      state.svg.setAttribute('viewBox', `${svgNumber(next.x)} ${svgNumber(next.y)} ${svgNumber(next.width)} ${svgNumber(next.height)}`)
     } catch {
       /* ignore */
     }
@@ -254,24 +277,17 @@ export function createViewer(options = {}) {
    */
   function setScale(nextScale, anchor) {
     if (!state) return
-    const scale = clamp(nextScale, MIN_SCALE, maxScale)
-    if (state.box.width <= 0 || state.box.height <= 0) {
-      state.scale = scale
-      applyScale()
-      return
+    const previous = currentView()
+    const fraction = {
+      x: anchor && state.box.width > 0 ? clamp(anchor.px / state.box.width, 0, 1) : 0.5,
+      y: anchor && state.box.height > 0 ? clamp(anchor.py / state.box.height, 0, 1) : 0.5,
     }
-    const oldViewWidth = state.width / state.scale
-    const oldViewHeight = state.height / state.scale
-    const px = anchor ? clamp(anchor.px, 0, state.box.width) : state.box.width / 2
-    const py = anchor ? clamp(anchor.py, 0, state.box.height) : state.box.height / 2
-    const pointX = state.x + (px / state.box.width) * oldViewWidth
-    const pointY = state.y + (py / state.box.height) * oldViewHeight
-    state.scale = scale
-    const nextViewWidth = state.width / scale
-    const nextViewHeight = state.height / scale
-    state.x = pointX - (px / state.box.width) * nextViewWidth
-    state.y = pointY - (py / state.box.height) * nextViewHeight
-    applyScale()
+    const point = {
+      x: previous.x + fraction.x * previous.width,
+      y: previous.y + fraction.y * previous.height,
+    }
+    state.scale = clamp(nextScale, MIN_SCALE, maxScale)
+    applyScale(point, fraction)
   }
 
   /**
@@ -314,8 +330,7 @@ export function createViewer(options = {}) {
   /** @param {number} dx @param {number} dy screen-pixel delta */
   function panBy(dx, dy) {
     if (!state || state.box.width <= 0 || state.box.height <= 0) return
-    const viewWidth = state.width / state.scale
-    const viewHeight = state.height / state.scale
+    const { width: viewWidth, height: viewHeight } = currentView()
     state.x -= (dx * viewWidth) / state.box.width
     state.y -= (dy * viewHeight) / state.box.height
     applyScale()
@@ -334,9 +349,7 @@ export function createViewer(options = {}) {
   function fit() {
     if (!state) return
     state.scale = MIN_SCALE
-    state.x = 0
-    state.y = 0
-    applyScale()
+    applyScale({ x: state.width / 2, y: state.height / 2 }, { x: 0.5, y: 0.5 })
   }
 
   /** @param {KeyboardEvent} event */
@@ -438,8 +451,7 @@ export function createViewer(options = {}) {
     if (!state || !state.panning) return
     if ((event.pointerId ?? 0) !== state.panning.id) return
     if (state.box.width <= 0 || state.box.height <= 0) return
-    const viewWidth = state.width / state.scale
-    const viewHeight = state.height / state.scale
+    const { width: viewWidth, height: viewHeight } = currentView()
     const dx = (event.clientX ?? 0) - state.panning.x
     const dy = (event.clientY ?? 0) - state.panning.y
     state.x = state.panning.startX - (dx * viewWidth) / state.box.width
@@ -447,10 +459,11 @@ export function createViewer(options = {}) {
     applyScale()
   }
 
-  /** @param {PointerEvent} event */
+  /** @param {PointerEvent} [event] */
   function endPan(event) {
     if (!state || !state.panning) return
     if (event && (event.pointerId ?? 0) !== state.panning.id && event.type !== 'pointercancel') return
+    const pointerId = state.panning.id
     state.panning = null
     try {
       state.stage.removeAttribute('data-panning')
@@ -458,7 +471,7 @@ export function createViewer(options = {}) {
       /* ignore */
     }
     try {
-      state.stage.releasePointerCapture?.(event?.pointerId)
+      state.stage.releasePointerCapture?.(pointerId)
     } catch {
       /* optional */
     }
@@ -480,6 +493,7 @@ export function createViewer(options = {}) {
 
   function onViewportResize() {
     if (!state) return
+    endPan()
     layout()
   }
 
@@ -581,6 +595,7 @@ export function createViewer(options = {}) {
       svg = /** @type {SVGElement} */ (doc.importNode(sourceRoot, true))
       svg.setAttribute('width', String(width))
       svg.setAttribute('height', String(height))
+      svg.setAttribute('preserveAspectRatio', 'xMidYMid meet')
       svg.setAttribute('viewBox', `0 0 ${width} ${height}`)
       const existing = String(svg.getAttribute('class') || '').trim()
       svg.setAttribute('class', existing === '' ? CLASS.viewerSvg : `${existing} ${CLASS.viewerSvg}`)
@@ -664,7 +679,7 @@ export function createViewer(options = {}) {
       svg,
       width,
       height,
-      scale: 1,
+      scale: clamp(positive(params.zoomFactor) ?? MIN_SCALE, MIN_SCALE, maxScale),
       x: 0,
       y: 0,
       box: { width: 0, height: 0 },
@@ -694,11 +709,6 @@ export function createViewer(options = {}) {
     }
 
     layout()
-    const factor = positive(params.zoomFactor) ?? MIN_SCALE
-    state.scale = clamp(factor, MIN_SCALE, maxScale)
-    state.x = (width - width / state.scale) / 2
-    state.y = (height - height / state.scale) / 2
-    applyScale()
     try {
       closeButton?.focus()
     } catch {
