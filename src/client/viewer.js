@@ -181,6 +181,7 @@ export function createViewer(options = {}) {
    * @type {null | {
    *   root: Element, backdrop: Element, dialog: Element, stage: Element, canvas: Element, svg: SVGElement,
    *   width: number, height: number, scale: number, x: number, y: number,
+   *   suspendedCenter: null | { x: number, y: number },
    *   box: { width: number, height: number }, panning: null | { id: number, x: number, y: number, startX: number, startY: number },
    *   buttons: { zoomOut: HTMLButtonElement, zoomIn: HTMLButtonElement, fit: HTMLButtonElement, close: HTMLButtonElement },
    *   saved: { focus: Element | null, bodyOverflow: string, htmlOverflow: string | null, scrollX: number, scrollY: number },
@@ -237,14 +238,18 @@ export function createViewer(options = {}) {
   function layout() {
     if (!state) return
     const previous = currentView()
-    const center = { x: previous.x + previous.width / 2, y: previous.y + previous.height / 2 }
+    const center = state.suspendedCenter ?? { x: previous.x + previous.width / 2, y: previous.y + previous.height / 2 }
     const available = measureStage(state.stage)
     const valid = positive(available?.width) && positive(available?.height)
+    // Keep the last meaningful center across any number of invalid measurements.
+    state.suspendedCenter = valid ? null : center
     state.box = valid ? { width: available.width, height: available.height } : { width: 0, height: 0 }
     if (valid) {
       try {
-        state.canvas.style.width = cssPixels(state.box.width)
-        state.canvas.style.height = cssPixels(state.box.height)
+        if (state.canvas) {
+          state.canvas.style.width = cssPixels(state.box.width)
+          state.canvas.style.height = cssPixels(state.box.height)
+        }
         state.svg.style.width = cssPixels(state.box.width)
         state.svg.style.height = cssPixels(state.box.height)
       } catch {
@@ -349,6 +354,7 @@ export function createViewer(options = {}) {
   function fit() {
     if (!state) return
     state.scale = MIN_SCALE
+    if (state.suspendedCenter) state.suspendedCenter = { x: state.width / 2, y: state.height / 2 }
     applyScale({ x: state.width / 2, y: state.height / 2 }, { x: 0.5, y: 0.5 })
   }
 
@@ -683,6 +689,7 @@ export function createViewer(options = {}) {
       x: 0,
       y: 0,
       box: { width: 0, height: 0 },
+      suspendedCenter: null,
       panning: null,
       buttons,
       saved: {

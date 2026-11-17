@@ -14,9 +14,25 @@ Their old counts, hashes and screenshots do not describe the `0.2.0` build.
 Current evidence is under [`evidence/2026-11-17/`](evidence/2026-11-17/) and
 [`screenshots/`](../tests/fixtures/screenshots/).
 
-## 0. Current viewer-stage update — 2026-11-17
+## 0. Viewer-stage updates — 2026-11-17
 
-The current unreleased working bundle is **739,631 bytes**, SHA-256
+### Recovery follow-up (current working tree)
+
+Based on commit `28ccd1b`, the follow-up restores the optional canvas guard and
+preserves the last valid diagram-space center through invalid measurements.
+Recovery uses current zoom and bounds; explicit fit resets the saved center.
+The rebuilt bundle is **739,776 bytes**, SHA-256
+`1862b3d0363c068f940fe660569cdafb23e5b608200477ab61f5215ef41379cb`.
+`npm test` exits 0: **148/148**, including **25 viewer tests**. `npm run verify`
+exits 0 (fresh build and 7 bundle smoke tests). The new regression covers repeated
+invalid measurements, zoom while unmeasurable, recovery at the same or a changed
+aspect ratio, subsequent interruptions, explicit fit and reopening. Visual
+verification was not repeated for this follow-up; the browser evidence below
+belongs to the earlier committed bundle, not this artifact.
+
+### Committed full-stage implementation (`28ccd1b`)
+
+The verified full-stage bundle is **739,631 bytes**, SHA-256
 `48fb4f4f019e8107ef3a0f4db55edc36997ef66599c31de16d6c2af1c2e2c74f`.
 `npm test` passes **147/147**, including **24 viewer tests**; `npm run verify`
 passes before/after capture. Chrome/157.0.8103.79 visual verification exits 0,

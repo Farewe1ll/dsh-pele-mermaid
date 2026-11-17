@@ -352,6 +352,9 @@ Rules:
   retain relative-to-fit zoom, then recenter and apply the per-axis bounds.
   Resize ends an active drag and releases capture. Invalid/zero measurements
   skip CSS sizing and use the natural viewBox until a valid resize arrives.
+  The last valid diagram-space center survives repeated invalid measurements;
+  recovery uses the current zoom and reapplies bounds. An explicit fit resets
+  that saved center to the diagram center, including while unmeasurable.
   The SVG → stage → measured-box coordinate fallback remains available in jsdom.
 - Keyboard: `Escape` closes, `Tab`/`Shift+Tab` trap focus among enabled
   controls, `+`/`=` and `-`/`_` zoom, `0` fits. Focus moves to the close

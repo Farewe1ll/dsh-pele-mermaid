@@ -476,3 +476,52 @@ test('resize ends an active drag and releases its pointer capture', () => {
   assert.deepEqual(releases, [0])
   env.viewer.destroy()
 })
+
+
+test('invalid measurement intervals preserve the panned center, including zoom and a changed recovery size', () => {
+  for (const recovery of [STAGE, { width: 200, height: 1000 }]) {
+    let box = STAGE
+    const env = makeEnv({ measureStage: () => box })
+    open(env, { zoomFactor: 4 })
+    key(env, env.document, 'ArrowRight')
+    key(env, env.document, 'ArrowDown')
+    const original = viewBox(env)
+    const center = [original[0] + original[2] / 2, original[1] + original[3] / 2]
+    for (const invalid of [{ width: 0, height: 0 }, { width: NaN, height: 600 }, { width: 800, height: Infinity }]) {
+      box = invalid
+      env.window.dispatchEvent(new env.window.Event('resize'))
+      assertView(env, [0, 0, 400, 200])
+      key(env, env.document, 'ArrowLeft') // no meaningful pixel scale while hidden
+    }
+    env.viewer.zoomIn()
+    box = recovery
+    env.window.dispatchEvent(new env.window.Event('resize'))
+    const size = extents(400, 200, box, 5)
+    const origin = size.map((extent, axis) => {
+      const content = [400, 200][axis]
+      return extent >= content ? (content - extent) / 2
+        : Math.max(0, Math.min(content - extent, center[axis] - extent / 2))
+    })
+    assertView(env, [...origin, ...size])
+    assert.equal(env.viewer.scale, 5)
+    // A second interruption must preserve the newly clamped center.
+    const restored = viewBox(env)
+    box = { width: 0, height: 0 }
+    env.window.dispatchEvent(new env.window.Event('resize'))
+    box = recovery
+    env.window.dispatchEvent(new env.window.Event('resize'))
+    assertView(env, restored)
+    // An explicit fit while unmeasurable overrides the saved pan position.
+    box = { width: 0, height: 0 }
+    env.window.dispatchEvent(new env.window.Event('resize'))
+    env.viewer.fit()
+    env.viewer.zoomIn()
+    box = recovery
+    env.window.dispatchEvent(new env.window.Event('resize'))
+    assertView(env, centered(400, 200, recovery, 1.25))
+    env.viewer.close()
+    open(env, { zoomFactor: 2 })
+    assertView(env, centered(400, 200, recovery, 2))
+    env.viewer.destroy()
+  }
+})

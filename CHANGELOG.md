@@ -7,6 +7,13 @@ repository working builds unless a GitHub Release says otherwise.
 
 ## [Unreleased]
 
+### Fixed
+
+- Preserve the panned diagram center across repeated invalid stage measurements,
+  restoring it at the current zoom subject to bounds when layout recovers. An
+  explicit fit resets the saved center. Restore the optional canvas sizing guard
+  so a missing canvas does not prevent SVG sizing.
+
 ### Changed
 
 - The diagram viewer now fills the stage content area with an equally

@@ -11,7 +11,7 @@ Render Mermaid diagrams in the DeepSeek Harness (DSH) Web chat with
 > `mermaid` (or explicit `mermaidjs` / `mmd`) code fences become
 > interactive Pele diagrams.
 
-The unreleased viewer-stage update has a separate [verification record](docs/VERIFICATION.md#0-current-viewer-stage-update--2026-11-17): 147 tests pass, plus desktop/short-window browser checks. Earlier dated bundle sizes and test counts below remain historical.
+The unreleased viewer-stage update has a separate [verification record](docs/VERIFICATION.md#0-viewer-stage-updates--2026-11-17): 148 tests pass for the recovery follow-up; desktop/short-window browser evidence identifies the preceding committed bundle. Earlier dated bundle sizes and test counts below remain historical.
 
 ## Why Pele
 
