@@ -1,15 +1,17 @@
 # dsh-pele-mermaid — Roadmap
 
-Status: draft
-Last updated: 2026-11-10
+Status: 0.2.0 implementation complete; P0 live verification and the release
+steps remain open.
+Last updated: 2026-11-17
 Target release: 0.2.0
-Current release: 0.1.1
+Current release: 0.2.0 working build (verified compatibility baseline: 0.1.1)
 Owner: repository maintainer
 
 This document is the delivery plan for the next release. It records the current
 baseline, the order of work, per-phase exit criteria, and the decisions that must
 be made before a compatibility or performance claim is published. It is not a
-commitment to dates; estimates are indicative.
+commitment to dates; estimates are indicative. Phase status and evidence
+were marked on 2026-11-17; the plan's scope and phase ordering are unchanged.
 
 ## 1. Purpose
 
@@ -49,6 +51,25 @@ The host-probe failure is a harness/binding mismatch, not evidence that the
 plugin is broken. It is also not evidence that the plugin is compatible: the
 probe and a real chat exercise different paths.
 
+### 0.2.0 iteration result (2026-11-17)
+
+| Item | Value |
+| --- | --- |
+| Package | `dsh-pele-mermaid@0.2.0` working build; no registry publication |
+| Client bundle | `lib/client.js`, 738,710 bytes, SHA-256 `3259e916…913c82`; 11,290 bytes headroom under the 750,000-byte raw budget |
+| Pele | `1.9.0`, exact pin, bundled inline (P6 no-go) |
+| Automated tests | `npm test`: **120/120 pass**, 0 fail/skip/todo; `npm run verify`: PASS; `npm run verify:host`: PASS on `0.2.2-rc.3`; `npm run verify:visual`: PASS (8 screenshots) |
+| Compatibility claim | Unchanged: only `0.1.1` / `0.2.1-rc.2` is verified. `0.2.2` rows are pending (P0). |
+| P0 live 0.2.2 | **Not recorded**; blocked/deferred (DG1 unresolved) |
+| P6 decision | **NO-GO**; keep Pele bundled inline |
+| Release | P7 partial: version + `CHANGELOG.md` + final tarball install/served-route/disable-uninstall verified; live regression and GitHub Release pending |
+
+The plan was drafted against DSH `0.2.2-rc.1`; by this iteration the installed
+desktop runtime is `0.2.2-rc.3`, so the status records and matrix below use
+`0.2.2-rc.3`. Evidence for the result above is in
+[`evidence/2026-11-17/`](evidence/2026-11-17/) and
+[VERIFICATION.md](VERIFICATION.md).
+
 ### Compatibility matrix
 
 Compatibility claims are scoped to a tuple of plugin version, host version, and
@@ -56,27 +77,29 @@ artifact hash. P0's `0.1.1` result does not transfer to `0.2.0`.
 
 | Plugin | Host | Evidence | Status |
 | --- | --- | --- | --- |
-| 0.1.1 | 0.2.1-rc.2 | [VERIFICATION.md](VERIFICATION.md): 84 tests, host probe, isolated install, visual fixture | Verified (recorded 2026-10-19) |
-| 0.1.1 | 0.2.2-rc.1 | P0 | Pending |
-| 0.2.0 | 0.2.2-rc.1 | P7: final `.tgz`, served-route suffix check, live session | Pending |
-| 0.2.0 | 0.2.1-rc.2 | Not tested | Unknown |
+| 0.1.1 | 0.2.1-rc.2 | [VERIFICATION.md](VERIFICATION.md) Appendix A: 84 tests, host probe, isolated install, visual fixture | Verified (recorded 2026-10-19) |
+| 0.1.1 | 0.2.2-rc.3 | P0 — no controlled live session evidence (screenshot consent not granted) | Pending (blocked) |
+| 0.2.0 | 0.2.1-rc.2 | Bundle/component tests only; no live session | Unknown |
+| 0.2.0 | 0.2.2-rc.3 | P2 host probe PASS (fixture adapters); final `.tgz` and live regression pending | Pending |
 
 ### Pre-work already measured
 
-In a throwaway copy, upgrading only `pele` to 1.9.0 produced:
+**Historical pre-work (2026-11-09).** In a throwaway copy, upgrading only
+`pele` to 1.9.0 produced:
 
 - `lib/client.js` 718,094 bytes (+24,036 bytes, +3.46%);
 - 84/84 automated tests passing;
 - `npm run verify` passing.
 
-This is build-level evidence, not visual acceptance. The upgrade is planned in
-P1, not assumed to be already shipped.
+This was build-level evidence, not visual acceptance; P1 confirmed the upgrade.
+The final `0.2.0` bundle is 738,710 bytes after P3/P4/P5, still inside the
+750,000-byte whole-inline budget (11,290 bytes headroom).
 
 ## 3. Principles
 
 1. **Verify before claiming.** A compatibility statement in README requires a
    recorded check against that host version. Keep 0.2.1-rc.2 as the verified
-   baseline until P0 passes on 0.2.2-rc.1.
+   baseline until P0 passes on 0.2.2.
 2. **Keep the safety boundary.** `images: false`, `textContent` for untrusted
    strings, Pele limits, and "disabled means exactly the shipped host" stay in
    place. New features must not add automatic external requests.
@@ -97,17 +120,19 @@ P1, not assumed to be already shipped.
 
 | Phase | Goal | Estimate | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| P0 | Real-session verification on DSH 0.2.2-rc.1 | 0.5 day | — | Planned |
-| P1 | Pele 1.6.0 → 1.9.0 with visual checks | 1 day | P0 | Planned |
-| P2 | Host probe v2 for 0.2.2-rc.1 | 1–2 days | P0, P1 | Planned |
-| P3 | Explicit `mermaidjs` / `mmd` aliases | 0.25 day | P0 | Planned |
-| P4 | Standalone SVG export | 1 day | P1 | Planned |
-| P5 | Fullscreen viewer | 1.5–2 days | P4 | Planned |
-| P6 | Lazy runtime — decision gate | 1–2 days | P0, P1 | Decision |
-| P7 | Packaging, docs, 0.2.0 release | 0.5 day | all | Planned |
+| P0 | Real-session verification on DSH 0.2.2-rc.3 (planned as rc.1) | 0.5 day | — | **Blocked/deferred** — no live evidence, DG1 unresolved |
+| P1 | Pele 1.6.0 → 1.9.0 with visual checks | 1 day | P0 | **Done** (visual checks recorded 2026-11-17) |
+| P2 | Host probe v2 for 0.2.2-rc.3 | 1–2 days | P0, P1 | **Done** — PASS, DG4 accepted |
+| P3 | Explicit `mermaidjs` / `mmd` aliases | 0.25 day | P0 | **Done** — tests + READMEs |
+| P4 | Standalone SVG export | 1 day | P1 | **Done** — automated + browser fixture |
+| P5 | Fullscreen viewer | 1.5–2 days | P4 | **Done** — automated + browser fixture; live-session check pending P0 |
+| P6 | Lazy runtime — decision gate | 1–2 days | P0, P1 | **Decision: NO-GO** recorded |
+| P7 | Packaging, docs, 0.2.0 release | 0.5 day | all | **Partially done** — packaging verified from the final tarball; live regression + GitHub Release pending |
 
 Indicative sequence: P0 → P1 → P3 → P2/P4 → P5 → P6 decision → P7. P3 can run in
-parallel with P1/P2; P2 is not a blocker for starting P4.
+parallel with P1/P2; P2 is not a blocker for starting P4. In practice P1–P6 were
+implemented and evidenced before P0 could run; the compatibility consequences of
+that deviation are recorded under P0, DG1, and the Definition of Done.
 
 [MAINTENANCE.md](MAINTENANCE.md) defines evidence handling, documentation
 ownership, and structural cleanup alongside these phases. Evidence repair and
@@ -115,9 +140,26 @@ documentation work can proceed alongside P0 using fixed test inputs.
 
 ## 5. Phase details
 
-### P0 — Real-session verification on DSH 0.2.2-rc.1
+### P0 — Real-session verification on DSH 0.2.2-rc.3 (planned as rc.1)
 
-**Goal:** establish whether 0.1.1 works in the installed 0.2.2-rc.1 app before
+**Status (2026-11-17): Blocked/deferred — not completed.** A sample diagram
+message was posted to a running session, but desktop screenshot consent was not
+granted, so no controlled live-chat evidence (screenshots, recording, console,
+DOM checks) was captured. DG1 stays unresolved and no `0.2.2` compatibility row
+is claimed. The installed Desktop profile still runs plugin `0.1.1` and was not
+replaced in this iteration.
+
+**Follow-up (required before any 0.2.2 claim):**
+
+1. Reproduce the preconditions below on the installed Desktop app.
+2. Run the full 10-case matrix on `0.1.1`, capturing screenshots/recording,
+   console output, boot graph, frontend asset hash, bundle hash, and DOM checks.
+3. Write `docs/VERIFICATION-0.2.2.md` with per-case results and link it from
+   `docs/VERIFICATION.md`; then update the compatibility matrix/README.
+4. Repeat on the final `0.2.0` tarball in P7 before adding a `0.2.0` / `0.2.2`
+   row.
+
+**Goal:** establish whether 0.1.1 works in the installed 0.2.2 app before
 changing code or compatibility text.
 
 **Preconditions**
@@ -164,13 +206,29 @@ this evidence covers `0.1.1`; the final `0.2.0` tarball is rechecked in P7.
 - Distinguish a host regression from documented behavior: raw Pele error text
   and Pele's own limit rejection are current behavior, not P0 failures.
 - README compatibility text is updated only after a pass. A failure keeps the
-  0.2.1-rc.2 statement and adds a "0.2.2-rc.1: failing case" note.
+  0.2.1-rc.2 statement and adds a "0.2.2: failing case" note.
 
 **If it fails:** stop P1/P3 and treat the failure as the top priority. The
 private-Fiber dependency (L1) and host DOM changes (L6) are the likely causes;
-record the exact host shape before changing detection.
+record the exact host shape before changing detection. This phase is currently
+deferred, so the failure path has not been exercised; the P2 probe passes and
+does not contradict a future P0 result (P0 wins if they disagree).
 
 ### P1 — Pele 1.6.0 → 1.9.0
+
+**Status (2026-11-17): Done.** `pele` is pinned to exact `1.9.0` in
+`package.json#devDependencies` and the lockfile was refreshed; the bundle was
+rebuilt and version references updated. Pele 1.9.0 alone measured 718,094 bytes;
+the final `0.2.0` bundle with P3/P4/P5 is 738,710 bytes, inside the
+750,000-byte whole-inline budget. The extended fixture (10 cards / 9 diagram
+cases / 8 rendered diagrams) and `npm run verify:visual` PASS assert the P1
+benefits: CJK labels wrap between characters with closing punctuation retained,
+class groups sit on one row wide / three rows narrow, `List<T>`/`Map<K,V>` text
+survives, and `<sub>`/`<sup>`/`<code>`/`<kbd>`/`<samp>` labels render. Evidence:
+[`visual.log`](evidence/2026-11-17/visual.log) and the eight screenshots under
+`tests/fixtures/screenshots/`. The old 1.6.0 captures were historical and have
+since been overwritten, so "match or improve on 1.6.0" is supported by asserted
+layout facts, not a pixel diff.
 
 **Goal:** take the renderer fixes that matter in a narrow chat column without
 regressing existing behavior.
@@ -216,8 +274,23 @@ class-diagram groups, `List<T>`/`Map<K,V>`, or rich-text labels. A green
 
 ### P2 — Host probe v2
 
-**Goal:** make the installed-host probe meaningful on 0.2.2-rc.1 instead of
-failing with a raw minified-identifier error.
+**Status (2026-11-17): Done — DG4 pass.** Bindings are versioned by installed
+frontend version: the audited `0.2.1-rc.2` map is retained and a `0.2.2-rc.3`
+adapter added. `npm run verify:host` PASSES on the installed `0.2.2-rc.3` host
+(frontend asset `index-Ciz7DZxv.js`, 1,093,870 bytes, SHA-256 `65411dab…92d308b`;
+component `99afefb4…4b09839`; React 18.3.1; six checks) and records the
+version/hash. An unknown version fails with the typed `UnsupportedHostError`
+(code `unsupported-host`) and an actionable message instead of a raw
+`ReferenceError`; `tests/host-bindings.test.mjs` covers that path. Evidence:
+[`host-probe.log`](evidence/2026-11-17/host-probe.log),
+[`host-probe.json`](evidence/2026-11-17/host-probe.json). The optional one-off
+live CDP probe from approach step 2 was not performed — the controlled live
+session remains P0's job and its result wins if they disagree. The
+`0.2.1-rc.2` map is unit-tested but no longer render-verified because that host
+bundle is not installed (tracked as L9).
+
+**Goal:** make the installed-host probe meaningful on 0.2.2 instead of failing
+with a raw minified-identifier error.
 
 **Context:** 0.2.2 renamed the minified React/JSX bindings used by the extracted
 CodeBlock. `k` is only the first missing symbol; the function also references
@@ -240,8 +313,8 @@ CodeBlock. `k` is only the first missing symbol; the function also references
 
 **Exit criteria**
 
-- `npm run verify:host` passes on 0.2.2-rc.1, or exits with the typed
-  "unsupported host" diagnostic and records the limitation.
+- `npm run verify:host` passes on the installed `0.2.2` host, or exits with
+  the typed "unsupported host" diagnostic and records the limitation.
 - The probe records the frontend version and asset hash.
 - Its conclusion does not contradict P0; if they disagree, P0 wins.
 
@@ -250,6 +323,14 @@ CodeBlock. `k` is only the first missing symbol; the function also references
 from the fixture probe alone.
 
 ### P3 — Explicit aliases
+
+**Status (2026-11-17): Done.** `mermaid`, `mermaidjs`, and `mmd` render through
+the existing committed-React-props-first / explicit-banner-fallback path via
+`MERMAID_LANGS` / `isMermaidLanguage`; no source heuristics or
+`language-*` sniffing were added and near-miss languages stay native. Detection,
+lifecycle, and non-mermaid regression tests cover the aliases, and both READMEs
+list the three accepted languages. Evidence: `tests/blocks.test.mjs` and the
+README behavior tables.
 
 **Goal:** accept `mermaid`, `mermaidjs`, and `mmd` fences without widening
 detection beyond explicit language metadata.
@@ -280,6 +361,18 @@ P3's required dependency remains P0.
 - No class-based detection branch and no source-keyword check is added.
 
 ### P4 — Standalone SVG export
+
+**Status (2026-11-17): Done (automated + real-browser fixture).** New
+`src/client/export.js` and a localized icon control export the pristine
+natural-size SVG (never the zoom/pan-mutated inline view), restore
+width/height/`viewBox`, write the resolved `--pele-*` theme variables, sanitize
+scripts/foreignObject/frames/objects/media/`on*`/`src`/unsafe style, keep
+`https`/`mailto`/`tel`/`#` links, use the
+`pele-<type>-YYYYMMDD-HHmmss.svg` name, and revoke the object URL.
+`tests/export.test.mjs` has 7 tests; the browser fixture captures the control.
+The exit criterion "opens in a vector tool" was **not independently verified**
+— exported output is asserted to be well-formed XML with the expected geometry
+via DOMParser/XMLSerializer only.
 
 **Goal:** let a reader save a diagram that opens correctly outside DSH.
 
@@ -313,6 +406,18 @@ P3's required dependency remains P0.
 
 ### P5 — Fullscreen viewer
 
+**Status (2026-11-17): Done (automated + real-browser fixture).** New
+`src/client/viewer.js` provides one reusable overlay dialog
+(`role="dialog"`, `aria-modal="true"`) with zoom out/in/fit/close, opens at the
+inline zoom factor, Ctrl/Cmd + wheel zoom at the pointer, bounded drag pan,
+Escape close, Tab focus trap, focus restore, scroll lock + restore,
+`prefers-reduced-motion` support, and full teardown. It reuses the sanitized SVG
+and never re-renders Pele. `tests/viewer.test.mjs` has 13 tests; the browser
+fixture asserts viewer open/zoom/fit/Escape/focus and captures
+`fixture-viewer.png`. The exit criterion "live check on the `0.2.0` build with
+the P0 fixture set" is **pending with P0/P7** because no live chat evidence
+exists.
+
 **Goal:** make wide diagrams usable without changing the inline source DOM.
 
 **Changes**
@@ -341,6 +446,21 @@ P3's required dependency remains P0.
   the loading path, repeat this check on the final artifact.
 
 ### P6 — Lazy runtime — decision gate
+
+**Status (2026-11-17): NO-GO recorded.** Final bundle 738,710 raw / 275,784
+`gzip -9` / 223,454 brotli bytes; whole-inline budget met with 11,290 bytes
+headroom. On a local plain-HTTP route (no `Content-Encoding`,
+`cache-control: no-cache`) bundle request+eval completed by ~40 ms cold, and the
+first diagram was ready in ~411 ms cold / ~368 ms warm — dominated by the fixed
+150 ms scan debounce + 180 ms settle window, not bundle size. Installed-route
+`Content-Encoding`/`encodedBodySize`/cache metrics and a split-prototype
+first-diagram regression were not measured, so the adopt rule cannot be
+satisfied; the default no stands. The reference split table below is historical
+comparison data from another implementation, not this plugin's measurement.
+Evidence: [`p6-measurement.json`](evidence/2026-11-17/p6-measurement.json);
+decision recorded in [ARCH.md](ARCH.md#lazy-runtime-decision-p6-no-go-for-020).
+Revisit only with authenticated installed-route `PerformanceResourceTiming` and
+a split prototype.
 
 **Goal:** decide whether to split Pele out of the client bundle, based on
 measurements rather than bundle aesthetics.
@@ -405,6 +525,23 @@ is a startup optimization, not a universal download reduction.
 
 ### P7 — Packaging, docs, 0.2.0 release
 
+**Status (2026-11-17): Partially done — packaging verified, release steps
+pending.** Completed: version bumped to `0.2.0`; `CHANGELOG.md` created and
+listed in `package.json#files`; both READMEs updated with the installation matrix
+(desktop uses the app's bundled `dsh`, standalone CLI cannot manage desktop;
+uninitialized vs lock distinction; restart/refresh) and the pending compatibility
+wording; `scripts/verify-install.mjs` gained `--source=<tarball>` for the final
+check. The final tarball `dsh-pele-mermaid-0.2.0.tgz` (295,928 bytes, SHA-256
+`309aa03f…ebc96d`) was installed into an isolated `DSH_HOME` web profile:
+the boot graph contains the plugin entry, the served route is 200 with 738,783
+bytes = the full 738,710-byte bundle plus a 73-byte loader source-map suffix, and
+disable/uninstall restores the baseline structurally (rev-normalized). Evidence:
+[`docs/evidence/2026-11-17/install.json`](evidence/2026-11-17/install.json)
+and `install.log`; `package-dry-run.json` records the packed file list.
+**Pending:** live chat regression on that installed tarball (blocked with P0),
+the `0.2.0` / `0.2.2` compatibility row, GitHub Release, and tag. No
+npm/GitHub Packages publication in 0.2.0.
+
 **Goal:** make installation instructions match real CLI behavior and produce a
 reproducible 0.2.0 artifact.
 
@@ -419,9 +556,9 @@ reproducible 0.2.0 artifact.
     retry. Do not use the uninitialized-profile recipe for a lock.
   - Otherwise: restart or refresh after install.
 - Compatibility matrix: keep the `0.1.1` / `0.2.1-rc.2` row; add the `0.1.1` /
-  `0.2.2-rc.1` row after P0; add the `0.2.0` / `0.2.2-rc.1` row only after the
-  final tarball passes the live regression. Do not promote a `0.2.0` claim from
-  P0's `0.1.1` evidence.
+  `0.2.2` row after P0; add the `0.2.0` / `0.2.2` row only after the final
+  tarball passes the live regression. Do not promote a `0.2.0` claim from P0's
+  `0.1.1` evidence.
 - Create `CHANGELOG.md` with the 0.2.0 entry and add it to `package.json#files`
   so the tarball ships it.
 - Publish a **GitHub Release with the packed tarball** and release notes that
@@ -456,19 +593,19 @@ reproducible 0.2.0 artifact.
 
 - Install, disable, and uninstall are reproducible from the final tarball.
 - Package contents, hashes, tests, and compatibility text agree.
-- The `0.2.0` / `0.2.2-rc.1` row is backed by a live regression on the final
+- The `0.2.0` / `0.2.2` row is backed by a live regression on the final
   artifact.
 - 0.2.0 is tagged; the GitHub Release carries the tarball and links to the
   evidence.
 
 ## 6. Decision gates
 
-| Gate | Question | Rule |
-| --- | --- | --- |
-| DG1 | Does 0.1.1 work on 0.2.2-rc.1? | P0 pass required before any 0.2.2 compatibility claim. |
-| DG2 | Is Pele 1.9 visually acceptable? | P1 pass; otherwise revert and document. |
-| DG3 | Should Pele be lazy-loaded? | P6 thresholds; default is no. |
-| DG4 | Is the host probe updated? | Pass or explicitly accepted limitation; never infer compatibility from the fixture probe. |
+| Gate | Question | Rule | Result (2026-11-17) |
+| --- | --- | --- | --- |
+| DG1 | Does 0.1.1 work on 0.2.2? | P0 pass required before any 0.2.2 compatibility claim. | **Unresolved** — P0 blocked/deferred; no live evidence |
+| DG2 | Is Pele 1.9 visually acceptable? | P1 pass; otherwise revert and document. | **Accepted** — P1 visual facts pass in the real-browser fixture |
+| DG3 | Should Pele be lazy-loaded? | P6 thresholds; default is no. | **No-go** — keep Pele bundled inline |
+| DG4 | Is the host probe updated? | Pass or explicitly accepted limitation; never infer compatibility from the fixture probe. | **Pass** — `verify:host` PASS on `0.2.2-rc.3`; probe scope limitation documented (L9) |
 
 ## 7. Risks
 
@@ -485,22 +622,35 @@ reproducible 0.2.0 artifact.
 
 ## 8. Definition of done for 0.2.0
 
-- [ ] P0 live verification recorded for the `0.1.1` / `0.2.2-rc.1` tuple.
-- [ ] Automated tests meet the [behavior-based gate](MAINTENANCE.md#6-behavior-based-test-gate),
-      actual results are recorded, and `npm run verify` passes.
-- [ ] Host probe passes on 0.2.2-rc.1, or its limitation is accepted in writing.
-- [ ] Pele 1.9 visual checks recorded; bundle hash updated.
-- [ ] Explicit aliases covered by tests and README.
-- [ ] SVG export and fullscreen viewer have automated + live checks.
-- [ ] P6 adopt/no-go decision recorded with raw, encoded, and timing measurements.
-- [ ] README/ARCH/KNOWN-LIMITATIONS/VERIFICATION agree.
-- [ ] Final `.tgz` installed in an isolated profile; served route contains the
+- [ ] P0 live verification recorded for the `0.1.1` / `0.2.2` tuple.
+- [x] Automated tests meet the [behavior-based gate](MAINTENANCE.md#6-behavior-based-test-gate),
+      actual results are recorded (120/120 pass, 0 fail/skip/todo), and
+      `npm run verify` passes.
+- [x] Host probe passes on 0.2.2-rc.3, or its limitation is accepted in writing
+      (PASS with fixture-adapter scope accepted; DG4).
+- [x] Pele 1.9 visual checks recorded; bundle hash updated (738,710 bytes,
+      `3259e916…913c82`).
+- [x] Explicit aliases covered by tests and README.
+- [x] SVG export and fullscreen viewer have automated + real-browser checks
+      (the live-session check remains part of P0/P7).
+- [x] P6 adopt/no-go decision recorded with raw, encoded, and timing measurements
+      (NO-GO).
+- [x] README/ARCH/KNOWN-LIMITATIONS/VERIFICATION agree.
+- [x] Final `.tgz` installed in an isolated profile; served route contains the
       full tarball bundle plus only the loader source-map suffix; artifact and
-      response hashes recorded separately; disable/uninstall restore the baseline.
-- [ ] `0.2.0` / `0.2.2-rc.1` row backed by a live regression on the final tarball.
-- [ ] `npm pack --dry-run` contents and bundle SHA recorded.
-- [ ] `CHANGELOG.md` added and included in the tarball.
+      response hashes recorded separately; disable/uninstall restore the baseline
+      (tarball SHA-256 `309aa03f…ebc96d`, bundle SHA-256 `3259e916…913c82`,
+      route 738,783 bytes; evidence `docs/evidence/2026-11-17/install.json`).
+- [ ] `0.2.0` / `0.2.2` row backed by a live regression on the final tarball.
+- [x] `npm pack --dry-run` contents and bundle SHA recorded
+      (`docs/evidence/2026-11-17/package-dry-run.json`, 9 files, 295,928-byte
+      tarball).
+- [x] `CHANGELOG.md` added and included in the tarball (verified in the packed
+      file list).
 - [ ] GitHub Release published with the tarball and evidence links.
+
+0.2.0 is not released while the unchecked items above remain open (P0 live
+verification, the live tarball row, and the GitHub Release).
 
 ## 9. Decisions
 
@@ -515,15 +665,34 @@ Recorded 2026-11-09:
 | Aliases | `mermaidjs` and `mmd` in 0.2.0 | P3 is in scope. |
 | Lazy runtime | P6 decision gate | Default is no; adopt only if measurements support it. |
 
+Recorded 2026-11-17:
+
+| Decision | Choice | Consequence |
+| --- | --- | --- |
+| P1 renderer | Pele 1.9.0, exact pin | Label/layout fixes shipped; bundle rebuilt and recorded |
+| P4/P5 scope | Ship export + fullscreen viewer in 0.2.0 | Two new browser-half modules, 20 new tests, browser evidence |
+| Alias set | `mermaid`, `mermaidjs`, `mmd` | P3 done; no heuristics added |
+| P2 probe | Versioned binding map with `0.2.2-rc.3` adapter + typed `unsupported-host` error | DG4 accepted; probe stays a component check, not compatibility proof |
+| P6 | NO-GO; keep Pele bundled inline | No host route/cache layer in 0.2.0 |
+| P0 ordering | P1–P6 implemented/evidenced before P0 | DG1 unresolved; no `0.2.2` compatibility row; P0 remains required |
+| Release | P7 partial: docs/version + tarball packaging verified; live regression and publication pending | 0.2.0 not announced/released yet |
+
 ## 10. Open items
 
-These do not block P0/P1 but should be settled before P6/P7:
+These remain open after the 2026-11-17 iteration:
 
-1. **P6 thresholds.** Confirm the cold-start and first-diagram numbers that
-   count as a win on the maintainer's reference machine. The provisional rule is
-   ≥200 ms or ≥200 KB `encodedBodySize` cold-start improvement, with ≤150 ms
-   first-diagram regression.
-2. **Registry publication after 0.2.0.** Revisit npm or GitHub Packages only
+1. **P0 live verification (highest priority).** No controlled live chat run on
+   DSH `0.2.2-rc.3` exists; desktop screenshot consent was not granted for the
+   sample that was posted. Run the 10-case matrix, record
+   `docs/VERIFICATION-0.2.2.md`, then repeat on the final `0.2.0` tarball.
+2. **P6 threshold evidence.** The no-go stands for 0.2.0. Reconsider only with
+   authenticated installed-route `PerformanceResourceTiming`/`Content-Encoding`/
+   cache data and a split prototype measuring first-diagram regression.
+3. **P7 release steps.** Packaging is verified from the final `.tgz`
+   (`docs/evidence/2026-11-17/install.json`). Remaining: the live chat
+   regression on that installed tarball (blocked with P0), then the GitHub
+   Release with the tarball and evidence links, and the `0.2.0` tag.
+4. **Registry publication after 0.2.0.** Revisit npm or GitHub Packages only
    after the GitHub Release/tarball install path is stable; 0.2.0 does not
    publish to a registry.
 
@@ -535,5 +704,6 @@ These do not block P0/P1 but should be settled before P6/P7:
 - [VERIFICATION.md](VERIFICATION.md) — current evidence and reproduction steps.
 - [VERIFICATION-HISTORY.md](VERIFICATION-HISTORY.md) — historical records.
 - [KNOWN-LIMITATIONS.md](KNOWN-LIMITATIONS.md) — tracked risks and follow-ups.
+- [CHANGELOG.md](../CHANGELOG.md) — 0.2.0 changes and remaining release steps.
 - [README.md](../README.md) / [README.zh.md](../README.zh.md) — install and
   behavior documentation.

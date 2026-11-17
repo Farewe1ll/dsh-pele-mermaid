@@ -75,6 +75,67 @@
       ].join('\n'),
     },
     {
+      // P1 (Pele 1.9): CJK labels wrap between characters instead of
+      // stretching the diagram, and a label that ends in closing punctuation
+      // keeps the punctuation attached to its preceding character. One label
+      // mixes a Latin token + code identifier into the CJK run.
+      kind: 'flowchart (CJK wrapping)',
+      source: [
+        'flowchart TD',
+        '  Submit[用户提交一条较长的中文需求描述，其中包含 English token 和 code 标识符，需要在中文字符之间换行而不是把图表撑宽。] --> Settled{是否已经完成流式输出？}',
+        '  Settled -- 是 --> Mount[等待 fence 稳定后再挂载图表。]',
+        '  Settled -- 否 --> Stream[继续读取 stream 内容，保留原始 source 文本。]',
+        '  Mount --> Punct[检查长标签的收尾标点（含句号）。]',
+        '  Stream --> Punct',
+      ].join('\n'),
+    },
+    {
+      // P1: a class diagram asks for a left-to-right row. In the wide fixture
+      // column the three class groups share one row; in the narrow column
+      // Pele's autoDirection wraps each separate group onto its own row.
+      kind: 'classDiagram (group wrapping)',
+      source: [
+        'classDiagram',
+        '  direction LR',
+        '  class RenderPipeline {',
+        '    +scanMermaidFences()',
+        '    +mountDiagram(source)',
+        '  }',
+        '  class ToolbarState {',
+        '    +diagramVisible: boolean',
+        '    +sourceVisible: boolean',
+        '  }',
+        '  class ViewerState {',
+        '    +open(svg: string)',
+        '    +close()',
+        '  }',
+        '  RenderPipeline --> ToolbarState : mounts',
+        '  ToolbarState --> ViewerState : opens',
+      ].join('\n'),
+    },
+    {
+      // P1: generic/angle-bracket label text must survive as literal text.
+      kind: 'flowchart (generic labels)',
+      source: [
+        'flowchart LR',
+        '  List[List<Diagram>] --> Map[Map<String, Diagram>]',
+        '  Map --> Set[Set<Diagram>]',
+      ].join('\n'),
+    },
+    {
+      // P1: Pele 1.9 rich label markup: <sub>, <sup>, <code>, <kbd>, <samp>.
+      // Labels are quoted so parentheses in the method name cannot be mistaken
+      // for edge syntax; no scripts or event handlers are involved.
+      kind: 'flowchart (rich labels)',
+      source: [
+        'flowchart TD',
+        '  Water["H<sub>2</sub>O"] --> Energy["E = mc<sup>2</sup>"]',
+        '  Energy --> Call["<code>mountDiagram()</code>"]',
+        '  Call --> Escape["Press <kbd>Esc</kbd>"]',
+        '  Escape --> Sample["<samp>svg.pele</samp>"]',
+      ].join('\n'),
+    },
+    {
       kind: 'mermaid (invalid)',
       invalid: true,
       source: 'definitely not a mermaid diagram -> should fall back to source',
@@ -106,8 +167,10 @@
     mountEvents: [],
     themeEvents: [],
     copyClicks: 0,
+    // Fullscreen trigger for the viewer focus-restore check (set by openViewer).
+    viewerTrigger: null,
     errors: [],
-    expectedDiagrams: 4,
+    expectedDiagrams: 8,
     fontSnapshot: {
       fontSizes: { code: 13, ui: 14 },
       fontFamilies: { code: 'monospace', ui: 'system-ui' },
@@ -240,7 +303,7 @@
     }
 
     const heading = document.createElement('h3')
-    heading.textContent = 'Fence 6: javascript (must stay untouched)'
+    heading.textContent = `Fence ${DIAGRAMS.length + 1}: javascript (must stay untouched)`
     markdown.appendChild(heading)
     markdown.appendChild(makeCodeBlock({ lang: 'javascript', source: JS_SOURCE }))
   }
@@ -308,6 +371,13 @@
     }
   }
 
+  /** Number attribute, or null when absent/not finite. */
+  function numberAttribute(node, name) {
+    if (!node) return null
+    const value = Number(node.getAttribute(name))
+    return Number.isFinite(value) ? value : null
+  }
+
   function collectReport() {
     const blocks = $$('.md-code-block')
     const containers = $$('.dsh-pele-mermaid-diagram')
@@ -319,6 +389,11 @@
     const errors = $$('.dsh-pele-mermaid-error')
     const styles = $$('style[data-dsh-pele-mermaid]')
     const sourceView = $$('.dsh-pele-mermaid-source')
+    const viewerRoots = $$('[data-dsh-pele-mermaid-viewer]')
+    const viewerDialogs = $$('.dsh-pele-mermaid-viewer-dialog[role="dialog"][aria-modal="true"]')
+    const viewerToolbarButtons = $$('.dsh-pele-mermaid-viewer-toolbar button')
+    const viewerSvg = $('.dsh-pele-mermaid-viewer-svg')
+    const perDiagramButtons = containers.map((container) => $$('.dsh-pele-mermaid-toolbar button', container))
 
     const svgClasses = diagramSvgs.map((svg) => svg.getAttribute('class') || '')
     const types = svgClasses.map((cls) => {
@@ -351,6 +426,20 @@
         toolbarButtons: buttons.length,
         ariaPressed: buttons.map((button) => button.getAttribute('aria-pressed')),
         toolbarLabels: buttons.map((button) => button.textContent),
+        toolbarButtonsPerDiagram: perDiagramButtons.map((list) => list.length),
+        iconButtons: buttons.filter((button) => button.hasAttribute('aria-label')).length,
+        downloadButtons: perDiagramButtons.filter((list) => list[2] && list[2].hasAttribute('aria-label')).length,
+        fullscreenButtons: perDiagramButtons.filter((list) => list[3] && list[3].hasAttribute('aria-label')).length,
+        disabledToolbarButtons: buttons.filter((button) => button.disabled === true).length,
+        diagramWidths: diagramSvgs.map((svg) => numberAttribute(svg, 'width')),
+        diagramHeights: diagramSvgs.map((svg) => numberAttribute(svg, 'height')),
+        hostWidths: hosts.map((host) => host.clientWidth),
+        viewerOpen: viewerRoots.length > 0,
+        viewerOverlays: viewerRoots.length,
+        viewerDialogs: viewerDialogs.length,
+        viewerToolbarButtons: viewerToolbarButtons.length,
+        viewerViewBox: viewerSvg ? viewerSvg.getAttribute('viewBox') : null,
+        viewerFocusRestored: state.viewerTrigger ? document.activeElement === state.viewerTrigger : null,
         errorNotes: errors.length,
         errorTexts: errors.map((node) => node.textContent),
         styleElements: styles.length,
@@ -358,6 +447,9 @@
         nonMermaidPre: $('.md-code-block:last-of-type pre') ? true : false,
         bannerTexts: $$('.md-code-block-infostring').map((node) => node.textContent),
       },
+      expectedDiagrams: state.expectedDiagrams,
+      diagramKinds: DIAGRAMS.map((diagram) => diagram.kind),
+      invalidSources: DIAGRAMS.filter((diagram) => diagram.invalid === true).length,
       remounts: state.remounts,
       teardown: {
         tornDown: state.tornDown === true,
@@ -367,6 +459,94 @@
       themeEvents: state.themeEvents.slice(-8),
       errors: state.errors.slice(-8),
       pele: readPeleVars(),
+    }
+  }
+
+  /**
+   * P1 visual facts, measured from the live rendered SVG (not from the source
+   * text): these are what the screenshots must be able to prove.
+   *
+   * Index mapping follows DIAGRAMS order: 4 = CJK flowchart, 5 = classDiagram,
+   * 6 = generic labels, 7 = rich labels.
+   */
+  function diagramFacts() {
+    const containers = $$('.dsh-pele-mermaid-diagram')
+    const svgAt = (index) => (containers[index] ? $('svg.pele', containers[index]) : null)
+    const textsOf = (svg) => (svg ? $$('text', svg).map((node) => node.textContent) : [])
+    const hostWidth = (index) => {
+      const hosts = containers[index] ? $$('[data-dsh-pele-mermaid-host]', containers[index]) : []
+      return hosts[0] ? hosts[0].clientWidth : null
+    }
+
+    const cjkSvg = svgAt(4)
+    const cjkLabels = cjkSvg
+      ? $$('text', cjkSvg).map((text) => {
+          const lines = $$('tspan', text)
+          return {
+            text: text.textContent,
+            lines: lines.length,
+            lastLine: lines.length ? lines[lines.length - 1].textContent : text.textContent,
+          }
+        })
+      : []
+    const cjkWrapped = cjkLabels.filter((entry) => entry.lines > 1)
+    const cjkPunctuation = cjkWrapped.find((entry) => /。$/.test(entry.text)) || null
+
+    const classSvg = svgAt(5)
+    const classNodes = classSvg ? $$('g.pele-node', classSvg) : []
+    const classRowTops = new Set(
+      classNodes.map((node) => {
+        const match = /translate\(\s*[-\d.]+[, ]+([-\d.]+)/.exec(node.getAttribute('transform') || '')
+        return match ? Math.round(Number(match[1])) : 0
+      }),
+    )
+
+    const genericSvg = svgAt(6)
+    const genericTexts = textsOf(genericSvg)
+
+    const richSvg = svgAt(7)
+    const richSpans = richSvg ? $$('tspan', richSvg) : []
+    const richMono = richSvg
+      ? $$('text, tspan', richSvg).filter((node) =>
+          String(node.getAttribute('font-family') || '').includes('--_fm'),
+        )
+      : []
+
+    return {
+      cjk: {
+        width: numberAttribute(cjkSvg, 'width'),
+        height: numberAttribute(cjkSvg, 'height'),
+        hostWidth: hostWidth(4),
+        wrappedLabels: cjkWrapped.length,
+        maxLines: cjkLabels.reduce((max, entry) => Math.max(max, entry.lines), 0),
+        punctuationKept: cjkPunctuation ? /。[\s]*$/.test(cjkPunctuation.lastLine) : null,
+        labels: cjkLabels.map((entry) => entry.text),
+      },
+      class: {
+        width: numberAttribute(classSvg, 'width'),
+        height: numberAttribute(classSvg, 'height'),
+        hostWidth: hostWidth(5),
+        classNodes: classNodes.length,
+        rows: classRowTops.size,
+      },
+      generic: {
+        width: numberAttribute(genericSvg, 'width'),
+        height: numberAttribute(genericSvg, 'height'),
+        hostWidth: hostWidth(6),
+        labels: genericTexts.filter((text) => text.trim() !== ''),
+        angleBracketsIntact:
+          genericTexts.some((text) => text.includes('List<Diagram>')) &&
+          genericTexts.some((text) => text.includes('Map<String, Diagram>')),
+      },
+      rich: {
+        width: numberAttribute(richSvg, 'width'),
+        height: numberAttribute(richSvg, 'height'),
+        hostWidth: hostWidth(7),
+        sub: richSpans.filter((span) => span.getAttribute('baseline-shift') === 'sub').length,
+        sup: richSpans.filter((span) => span.getAttribute('baseline-shift') === 'super').length,
+        mono: richMono.length,
+        labels: textsOf(richSvg).filter((text) => text.trim() !== ''),
+      },
     }
   }
 
@@ -382,8 +562,11 @@
       `dom           blocks=${report.dom.blocks} diagrams=${report.dom.mountedContainers} svg.pele=${report.dom.diagramSvgs}`,
       `              types=[${report.dom.svgTypes.join(', ')}] zoomIcons=${report.dom.zoomIconSvgs} toolbars=${report.dom.toolbars} buttons=${report.dom.toolbarButtons}`,
       `              aria-pressed=[${report.dom.ariaPressed.join(', ')}] labels=[${report.dom.toolbarLabels.join(', ')}]`,
+      `              perDiagramButtons=[${report.dom.toolbarButtonsPerDiagram.join(', ')}] icons=${report.dom.iconButtons} download=${report.dom.downloadButtons} fullscreen=${report.dom.fullscreenButtons} disabled=${report.dom.disabledToolbarButtons}`,
+      `              widths=[${report.dom.diagramWidths.join(', ')}] hosts=[${report.dom.hostWidths.join(', ')}]`,
+      `              viewer open=${report.dom.viewerOpen} overlays=${report.dom.viewerOverlays} dialogs=${report.dom.viewerDialogs} viewerButtons=${report.dom.viewerToolbarButtons} viewBox=${report.dom.viewerViewBox} focusRestored=${report.dom.viewerFocusRestored}`,
       `              errorNotes=${report.dom.errorNotes} styleElements=${report.dom.styleElements}`,
-      `remounts      ${report.remounts} total svg.pele additions (initial mount only until a font change)`,
+      `remounts      ${report.remounts} total svg.pele additions (${report.expectedDiagrams} expected initially; a font change re-adds that many)`,
       `theme changes ${report.themeEvents.length}`,
       `mount events  ${JSON.stringify(report.mountEvents.map((event) => event.count))}`,
       `teardown      tornDown=${report.teardown.tornDown} restoredThreadByteIdentical=${report.teardown.restored}`,
@@ -583,6 +766,42 @@
       if (buttons[0]) buttons[0].click()
       updateReport()
     },
+    /**
+     * Open the fullscreen viewer for one diagram through its toolbar button.
+     * Focus is moved to the trigger first so the viewer's saved-focus and
+     * focus-restore path is exercised even when the click is synthetic.
+     */
+    openViewer(index = 0) {
+      const container = $$('.dsh-pele-mermaid-diagram')[index]
+      const buttons = container ? $$('.dsh-pele-mermaid-toolbar button', container) : []
+      const trigger = buttons[3]
+      if (!trigger) return false
+      trigger.focus()
+      trigger.click()
+      state.viewerTrigger = trigger
+      updateReport()
+      return true
+    },
+    /** Close the overlay through its own close control (Escape is tested separately). */
+    closeViewer() {
+      const buttons = $$('.dsh-pele-mermaid-viewer-toolbar button')
+      const close = buttons[3]
+      if (!close) return false
+      close.click()
+      updateReport()
+      return true
+    },
+    /** Scroll one diagram card into view (used for the narrow-column capture). */
+    scrollToDiagram(index = 0) {
+      const container = $$('.dsh-pele-mermaid-diagram')[index]
+      if (!container) return false
+      const top = container.getBoundingClientRect().top + (window.scrollY || 0) - 72
+      window.scrollTo(0, Math.max(0, top))
+      return true
+    },
+    diagramFacts,
+    /** Anchors for assertions in scripts/verify-visual.mjs. */
+    EXPECTED_DIAGRAMS: state.expectedDiagrams,
     emitTheme(change) {
       const snapshot = JSON.parse(JSON.stringify(state.fontSnapshot))
       if (change === 'font') {

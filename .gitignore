@@ -6,5 +6,8 @@ node_modules/
 !docs/evidence/host-probe.log
 !docs/evidence/tests.log
 !docs/evidence/visual.log
+!docs/evidence/**/*.log
 .DS_Store
 coverage/
+# Locally packed release artifacts (hashes recorded in docs/evidence/).
+dist/

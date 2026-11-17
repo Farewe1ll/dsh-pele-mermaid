@@ -1,0 +1,82 @@
+{
+  "status": "NO-GO (0.2.0)",
+  "date": "2026-11-17T03:51:50.313Z",
+  "phase": "P6 lazy runtime decision gate",
+  "decision": "Keep Pele bundled inline; do not split a lazy runtime in 0.2.0.",
+  "rule": "Adopt only if cold-start improvement is material (roadmap example: >=200 ms or >=200 KB encodedBodySize) AND first-diagram latency regression is acceptable (roadmap example: <=150 ms locally). One metric consistently on both sides. Default is no.",
+  "measurements": {
+    "artifact": "lib/client.js",
+    "rawBytes": 738710,
+    "gzip9Bytes": 275784,
+    "brotliBytes": 223454,
+    "route": "local plain-HTTP server, no content-encoding, cache-control: no-cache, one HTML + bundle.js request",
+    "routeCaveat": "Local plain-HTTP fixture route, NOT the installed DSH /plugins route: no Content-Encoding and no cache headers beyond no-cache. DSH's real encoding/caching was not measurable without an authenticated installed-host route run.",
+    "cold": {
+      "bundle": {
+        "name": "http://127.0.0.1:64301/bundle.js",
+        "transferSize": 739010,
+        "encodedBodySize": 738710,
+        "decodedBodySize": 738710,
+        "duration": 9.600000000558794,
+        "nextHopProtocol": "http/1.1",
+        "renderBlockingStatus": "non-blocking"
+      },
+      "responseHeaders": {
+        "cache-control": "no-cache",
+        "content-length": "738710",
+        "Keep-Alive": "timeout=5",
+        "Date": "Tue, 17 Nov 2026 03:51:37 GMT",
+        "content-type": "text/javascript; charset=utf-8",
+        "Connection": "keep-alive"
+      },
+      "registrationMsAfterNavigation": 40.40000000037253,
+      "firstDiagramReadyMsAfterNavigation": 410.79999999981374,
+      "observed": "bundle request+eval completes by ~40 ms after navigation; first diagram ready at ~411 ms (dominated by 150 ms scan debounce + 180 ms settle window, plus mount)"
+    },
+    "warmReload": {
+      "bundle": {
+        "name": "http://127.0.0.1:64301/bundle.js",
+        "transferSize": 739010,
+        "encodedBodySize": 738710,
+        "decodedBodySize": 738710,
+        "duration": 3,
+        "nextHopProtocol": "http/1.1",
+        "renderBlockingStatus": "non-blocking"
+      },
+      "responseHeaders": {
+        "cache-control": "no-cache",
+        "content-length": "738710",
+        "Keep-Alive": "timeout=5",
+        "Date": "Tue, 17 Nov 2026 03:51:37 GMT",
+        "content-type": "text/javascript; charset=utf-8",
+        "Connection": "keep-alive"
+      },
+      "registrationMsAfterNavigation": 18.600000000558794,
+      "firstDiagramReadyMsAfterNavigation": 367.5
+    },
+    "browser": "Chrome 157.0.8103.79 (headless=new), Node 26, local loopback",
+    "artifactSha256": "3259e916e0017a66090781493376b982ef2ab373be062bbb8795ec54cd913c82"
+  },
+  "referenceSplitFromRoadmap": {
+    "note": "Historical reference numbers from a comparable implementation, not measurements of this plugin.",
+    "inlineRaw": 694058,
+    "inlineGzip9": 256652,
+    "splitClientRaw": 65390,
+    "splitClientGzip9": 20990,
+    "splitRuntimeRaw": 706153,
+    "splitRuntimeGzip9": 262309,
+    "splitFirstDiagramRaw": 771543,
+    "splitFirstDiagramGzip9": 283299,
+    "deltaFirstDiagramRaw": 77485,
+    "deltaFirstDiagramGzip9": 26647,
+    "deltaNoDiagramRaw": -628668,
+    "deltaNoDiagramGzip9": -235662
+  },
+  "rationale": [
+    "Measured local bundle cost (request + parse/eval) is ~12-20 ms; first-diagram latency is ~368-411 ms and is dominated by the fixed 150 ms scan debounce + 180 ms settle window, not by bundle size. Splitting Pele therefore cannot produce a >=200 ms cold-start *time* improvement on this evidence.",
+    "The byte side looks material in principle (gzip -9 275,784 B / brotli 223,454 B for the final 738,710 B inline bundle), but the installed DSH route's real Content-Encoding, cache behavior and encodedBodySize are unmeasured; the roadmap decision rule requires route-level metrics before a byte-based claim.",
+    "A split adds a host half (same-origin route, webServer injection, cache-busting ?v=<hash>, immutable caching, failure fallback) plus a client loader path and tests. That is a new architecture surface, and the roadmap's default for 0.2.0 is no unless measurements support the change; no split prototype was built to measure the first-diagram regression the rule requires.",
+    "The whole inline bundle budget (750,000 B raw) is met at 738,710 B, so keeping the inline build does not breach the 0.2.0 budget."
+  ],
+  "revisitWhen": "Run PerformanceResourceTiming (encodedBodySize/transferSize/decodedBodySize), Cache-Status and Content-Encoding against the installed DSH plugin route, build a split prototype, and re-evaluate with cold-start time and first-diagram regression numbers on the same metric."
+}

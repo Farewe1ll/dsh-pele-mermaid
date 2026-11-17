@@ -1,25 +1,37 @@
-# Known limitations — 0.1.1 working build
+# Known limitations — 0.2.0 working build (2026-11-17)
 
 Owner for the follow-ups below: repository maintainer. These are tracked risks,
 not claims that every scenario has been reproduced in a full DSH session.
-Current validation and its exact scope are in [VERIFICATION.md](VERIFICATION.md).
+Current validation and its exact scope are in [VERIFICATION.md](VERIFICATION.md);
+the release plan and decision gates are in [ROADMAP.md](ROADMAP.md).
+
+Compatibility is still claimed only for the verified `0.1.1` / `0.2.1-rc.2`
+tuple. The installed-host probe passes on `0.2.2-rc.3`, but that is a
+fixture-adapter probe of the installed CodeBlock, not a live chat session (L10).
 
 | ID | Trigger / impact | Current handling / next task |
 | --- | --- | --- |
-| L1 — private Fiber | A host/React upgrade changes private fields, ancestor shape, or exceeds traversal bounds. Generic-banner Mermaid may stay as source. | Target DSH 0.2.1-rc.2 / React 18.3.1; validate committed-root membership and fall back to explicit DOM language. Unknown language stays native. Run `verify:host` and lifecycle tests on every host upgrade; seek a public language/source hook. |
+| L1 — private Fiber | A host/React upgrade changes private fields, ancestor shape, or exceeds traversal bounds. Generic-banner Mermaid may stay as source. | Verified target remains DSH `0.2.1-rc.2` / React `18.3.1`; the versioned probe also covers `0.2.2-rc.3`. Validate committed-root membership and fall back to the explicit DOM banner. Unknown language stays native. Re-run `verify:host` and the React lifecycle tests on every host upgrade; seek a public language/source hook. |
 | L2 — scan cost | Many blocks or continuous streaming cause repeated full-page scans; pending records each schedule a settle callback. Fiber validation also walks ancestor/sibling links. | Existing mutation debounce plus one new 1 s props audit; no performance bound claimed. Profile large histories, then consolidate settle scheduling and narrow scans. |
 | L3 — props-only update latency | Language changes without a banner/source DOM change cannot trigger the body observer. | The 1 s audit detects this, including transitions to/from Mermaid. Background timer throttling can extend the delay; replace polling if a stable host subscription becomes available. |
 | L4 — refresh scheduling race | DOM mutations and font events share a debounced timer; a later scan may replace a scheduled font refresh. | Color changes still use CSS. Track an independent pending-refresh flag or separate scheduling in a follow-up, with a race reproduction test. |
 | L5 — font size | Appearance font size changes request rebuilding but are not passed as Pele's `fontSize` option. | Pele retains its default 16 px; do not claim full Appearance font-size support. Add an explicit size mapping and measurement/layout coverage before making that claim. |
-| L6 — host DOM evolution | React replaces content or a new CodeBlock shape lacks the expected banner/pre hooks. A diagram can disappear until the next scan, or stay native. | Preserve host source parents; remove only plugin nodes/visibility markers. Plain, streamed and nested static-pre replacement paths are tested with real React. Re-audit selectors/ownership after host changes. |
-| L7 — resource-policy scope | Future Pele features may introduce other automatic resource references; filtered links can navigate when clicked. | Image embeds are disabled and three URL forms are tested. Browser network evidence covers fixture samples only. Audit new resource-emitting features on Pele upgrades; do not treat the renderer as a complete security sandbox. |
+| L6 — host DOM evolution | React replaces content or a new CodeBlock shape lacks the expected banner/pre hooks. A diagram can disappear until the next scan, or stay native. | Preserve host source parents; remove only plugin nodes/visibility markers. Plain, streamed and nested static-pre replacement paths are tested with real React. The `0.2.2-rc.3` probe still finds both stable data hooks, but re-audit selectors/ownership after every host change. |
+| L7 — resource-policy scope | Future Pele features may introduce other automatic resource references; filtered links can navigate when clicked; exported SVG keeps http(s)/mailto/tel links. | Image embeds are disabled and three URL forms are tested. Browser network evidence covers fixture samples only. Export sanitizes active content but intentionally keeps ordinary links. Audit new resource-emitting features on Pele upgrades; do not treat the renderer or the exporter as a complete security sandbox. |
 | L8 — settle window | Streaming pauses for more than 180 ms before a fence is complete. | Partial source may render or show an error; later source changes retry. A host completion signal would be needed for a strict “only after completion” guarantee. |
+| L9 — versioned host probe | The extracted CodeBlock closes over minified identifiers that are specific to one installed frontend build. A host upgrade can change names, extraction boundaries, or the DOM hooks the probe asserts. | Bindings are keyed by frontend version (`0.2.1-rc.2` retained, `0.2.2-rc.3` added). Unknown versions fail with a typed `unsupported-host` error instead of a `ReferenceError`; a known version with stale identifiers raises a stale-map diagnostic. The `0.2.1-rc.2` map is unit-tested but no longer render-verified because that bundle is not installed. The probe uses fixture adapters for styling/toolbar/tokenization and never proves a live session. |
+| L10 — missing live `0.2.2` verification (P0) | No controlled live chat run on DSH `0.2.2-rc.3` is recorded for `0.1.1` or `0.2.0`. The installed Desktop profile still runs plugin `0.1.1`; no `0.2.2` compatibility row is claimed. A sample was posted to a running session, but desktop screenshot consent was not granted and no evidence was captured. | Do not promote `0.2.2` compatibility from the component probe. Follow-up: reproduce the P0 preconditions (Desktop profile, bundled `dsh` CLI, restart/refresh, fixed run directory), run the 10-case matrix, and record `docs/VERIFICATION-0.2.2.md` with host/frontend/bundle hashes and screenshots. Then repeat on the final `0.2.0` tarball (P7). |
+| L11 — export limitations | Export never re-renders Pele and always writes natural size, so an inline zoom/pan state is not exported. Files capture the resolved theme variables at download time (no later theme tracking), keep `https`/`mailto`/`tel` links, and drop any content the sanitizer does not understand (for example `foreignObject`-based labels). The filename uses the client's local time. | Automated tests cover sanitization, sizing, theming, filenames, and object-URL revocation; browser/fixture evidence captures the control and viewer path. Opening the file in a vector editor was not separately verified in this iteration. Keep the sanitizer conservative; re-audit if Pele starts emitting new elements. |
+| L12 — viewer limitations | The viewer is mouse/keyboard oriented: no pinch gesture, wheel zoom requires Ctrl/Cmd, drag panning uses pointer events, and zoom/pan state is not persisted across close. One overlay exists per page, so two diagrams cannot be compared side by side. Keyboard panning moves in fixed 48 px steps. | Automated tests cover open/close, zoom/fit bounds, wheel at pointer, drag clamp, Escape, focus trap/restore, scroll lock/restore, repeated open, and teardown. The real-browser fixture covers the same flow with real Escape key events. Add pinch/persisted-zoom only if requested, with tests. |
+| L13 — P6 no-go leaves the renderer inline | Pele stays in the client bundle; every page load still downloads the whole inline bundle. Route-level `Content-Encoding`, `encodedBodySize`, and cache behavior on the installed DSH route were not measured, and no split prototype was built, so the lazy-loading decision cannot be revisited from current evidence. | Recorded no-go in `docs/evidence/2026-11-17/p6-measurement.json` and `docs/ARCH.md`. Revisit only with authenticated installed-route `PerformanceResourceTiming` plus a split prototype measuring first-diagram regression. |
 
 The former detached-source ownership problem and stale alternate-props reading
-are addressed by the current change. Passing the component harnesses does not
+are addressed by the current code. Passing the component harnesses does not
 establish failure frequency, performance, or compatibility for every live DSH
 conversation. The installed-host probe executes the real CodeBlock body with
 fixture adapters for its external styling/toolbar/tokenization helpers.
 
-Version remains the working tree's `0.1.1`; this task does not publish a package.
-Release numbering should be decided against the actually published baseline.
+Version is `0.2.0` in the working tree; no package has been published to a
+registry. The final `.tgz` install, served-route check, live regression, and
+GitHub Release are pending release steps (P7), so the compatibility matrix keeps
+the `0.1.1` / `0.2.1-rc.2` row as its only verified entry.

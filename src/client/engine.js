@@ -19,11 +19,21 @@
  *  - `destroy()` is idempotent: it tears down Pele's observers/controls and
  *    clears the container exactly once.
  *
+ * @typedef {Object} DiagramSnapshot
+ * @property {string} svg          pristine natural-size SVG markup
+ * @property {number} width        natural width
+ * @property {number} height       natural height
+ * @property {string} type         diagram type (filename hint)
+ */
+
+/**
  * @typedef {Object} DiagramHandle
  * @property {boolean} ok          false when the source could not be drawn.
  * @property {string | null} error plain-text error message, null when ok.
  * @property {() => void} refresh  re-layout in place (fonts/width changed).
  * @property {() => void} destroy  stop observers, clear the container.
+ * @property {() => DiagramSnapshot | null} snapshot pristine export/viewer source
+ * @property {() => { scale: number, fit: number, factor: number }} zoom inline zoom state
  */
 
 import { mount } from 'pele'
@@ -133,6 +143,12 @@ function failedHandle(error) {
       // we still own. A no-op here also means a stale failed handle can never
       // clear a diagram a later call mounted into the same container.
     },
+    snapshot() {
+      return null
+    },
+    zoom() {
+      return { scale: 1, fit: 1, factor: 1 }
+    },
   }
 }
 
@@ -233,6 +249,37 @@ export function mountDiagram(container, source) {
         // teardown must stay idempotent and quiet.
       }
       clearContainer(container)
+    },
+
+    /**
+     * Pristine render result for export/viewer. Pele's zoom/pan mutates the
+     * inline SVG viewBox, so callers must use this snapshot — never the live
+     * DOM — to get the complete natural-size diagram.
+     * @returns {DiagramSnapshot | null}
+     */
+    snapshot() {
+      if (disposed) return null
+      try {
+        const result = active.result
+        if (!result || typeof result.svg !== 'string' || result.svg === '') return null
+        return { svg: result.svg, width: result.width, height: result.height, type: result.type }
+      } catch {
+        return null
+      }
+    },
+
+    /** Inline zoom state; `factor` is relative to the fit-to-column scale. */
+    zoom() {
+      try {
+        const zoom = active.zoom
+        if (!zoom) return { scale: 1, fit: 1, factor: 1 }
+        const scale = Number.isFinite(zoom.scale) ? /** @type {number} */ (zoom.scale) : 1
+        const fit = Number.isFinite(zoom.fit) && zoom.fit > 0 ? /** @type {number} */ (zoom.fit) : 1
+        const factor = scale / fit
+        return { scale, fit, factor: Number.isFinite(factor) && factor > 0 ? factor : 1 }
+      } catch {
+        return { scale: 1, fit: 1, factor: 1 }
+      }
     },
   }
 }

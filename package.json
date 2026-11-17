@@ -1,6 +1,6 @@
 {
   "name": "dsh-pele-mermaid",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "DeepSeek Harness web client plugin: render explicit Mermaid fences with Pele — synchronous, dependency-free, with automatic image loading disabled and CSS-variable theming. Disabled or absent, DSH behaves exactly as shipped.",
   "license": "MIT",
   "type": "module",
@@ -16,6 +16,7 @@
     "lib/client.js",
     "README.md",
     "README.zh.md",
+    "CHANGELOG.md",
     "LICENSE",
     "docs/KNOWN-LIMITATIONS.md"
   ],
@@ -49,7 +50,7 @@
   "devDependencies": {
     "esbuild": "^0.28.2",
     "jsdom": "^29.1.1",
-    "pele": "^1.6.0",
+    "pele": "1.9.0",
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },

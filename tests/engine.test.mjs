@@ -134,11 +134,28 @@ test('mounts a flowchart synchronously with Pele despite jsdom lacking canvas 2d
   handle.destroy()
 })
 
-test('handle exposes exactly { ok, error, refresh, destroy }', () => {
+test('handle exposes the documented adapter surface', () => {
   const container = makeContainer()
   const handle = mountDiagram(container, 'flowchart TD\n X-->Y')
-  assert.deepEqual(Object.keys(handle).sort(), ['destroy', 'error', 'ok', 'refresh'])
+  assert.deepEqual(Object.keys(handle).sort(), ['destroy', 'error', 'ok', 'refresh', 'snapshot', 'zoom'])
+
+  // Pristine result for export/viewer: full natural-size SVG, not a crop.
+  const snapshot = handle.snapshot()
+  assert.equal(typeof snapshot.svg, 'string')
+  assert.match(snapshot.svg, /^<svg[\s>]/)
+  assert.match(snapshot.svg, /viewBox="0 0 /)
+  assert.ok(snapshot.width > 0)
+  assert.ok(snapshot.height > 0)
+  assert.equal(snapshot.type, 'flowchart')
+
+  const zoom = handle.zoom()
+  assert.deepEqual(Object.keys(zoom).sort(), ['factor', 'fit', 'scale'])
+  assert.ok(zoom.factor >= 1, 'unzoomed inline diagram reports factor 1')
+  assert.ok(zoom.scale > 0 && zoom.fit > 0)
+
   handle.destroy()
+  assert.equal(handle.snapshot(), null, 'a destroyed handle has no exportable render')
+  assert.equal(handle.zoom().factor, 1, 'zoom is safe after destroy')
 })
 
 test('syntax error: ok:false, plain-text message, container left empty', () => {

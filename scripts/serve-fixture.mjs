@@ -133,6 +133,14 @@ const server = createServer(async (request, response) => {
       return
     }
 
+    // Browsers request /favicon.ico implicitly; answer 204 so the fixture
+    // console stays clean (error-level 404s would look like page failures).
+    if (requestUrl === '/favicon.ico') {
+      response.writeHead(204, { 'cache-control': 'no-store' })
+      response.end()
+      return
+    }
+
     const file = await resolveFile(requestUrl)
     if (file === null) {
       response.writeHead(404, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' })

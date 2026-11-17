@@ -1,0 +1,56 @@
+
+> dsh-pele-mermaid@0.2.0 verify:visual
+> node scripts/verify-visual.mjs
+
+{
+  "status": "PASS",
+  "browser": "Chrome/157.0.8103.79",
+  "bundleSha256": "3259e916e0017a66090781493376b982ef2ab373be062bbb8795ec54cd913c82",
+  "viewport": {
+    "width": 1400,
+    "height": 2400,
+    "deviceScaleFactor": 1,
+    "mobile": false
+  },
+  "narrowViewport": {
+    "width": 720,
+    "height": 2200,
+    "deviceScaleFactor": 1,
+    "mobile": false
+  },
+  "consoleErrors": [],
+  "screenshots": {
+    "fixture-light.png": {
+      "bytes": 403650,
+      "sha256": "1bed9a0524b00340c03a75ae0e0343de840d848b0733ff5399252bedecb350b1"
+    },
+    "fixture-wide-p1.png": {
+      "bytes": 401022,
+      "sha256": "0d720c0ed4d8e5933c04102a3d28ebacefb2b24a1d0c91a795a409cabd3d3b80"
+    },
+    "fixture-dark.png": {
+      "bytes": 409746,
+      "sha256": "45a047528b2438717940c510304a70270477d4fec73cd8017b4a3aa470af35eb"
+    },
+    "fixture-source-view.png": {
+      "bytes": 408878,
+      "sha256": "700b8651d331e5427f7b15efc5756f1fae6881725b83ea8e5e5f44d3e7f4153b"
+    },
+    "fixture-viewer.png": {
+      "bytes": 52355,
+      "sha256": "00fa6f58989e116ff1e5d7bf3cfadd14af22a6c8c241d66f0ec3be6dbb4fb23b"
+    },
+    "fixture-narrow.png": {
+      "bytes": 153277,
+      "sha256": "c099a8fbb8e7b8326790dcfdb1f4982816efbff89656e89583b65b7b308d260c"
+    },
+    "fixture-font-refresh.png": {
+      "bytes": 401666,
+      "sha256": "8d753c1ee9f11a3fc4d7072c64f9ef8579fa9b37b7786f179cabdb1ffb04819c"
+    },
+    "fixture-teardown.png": {
+      "bytes": 361006,
+      "sha256": "0795a6925024e90d5ccb09f05d338f85196cb590c52141d0195bdc017dd5d0ca"
+    }
+  }
+}

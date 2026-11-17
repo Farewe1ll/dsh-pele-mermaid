@@ -14,7 +14,9 @@ import { SOURCE_HIDDEN_ATTR } from '../src/client/theme-css.js'
 
 import {
   MERMAID_LANG,
+  MERMAID_LANGS,
   createBlockManager,
+  isMermaidLanguage,
   readFenceLanguage,
   readFenceSource,
 } from '../src/client/blocks.js'
@@ -152,7 +154,13 @@ function makeClock() {
  * success; returns `ok:false` (or throws) when configured.
  */
 function makeMount(config = {}) {
-  const { ok = true, error = null, throwError = null } = config
+  const {
+    ok = true,
+    error = null,
+    throwError = null,
+    snapshot = null,
+    zoom = { scale: 1, fit: 1, factor: 1 },
+  } = config
   const calls = []
   const destroyed = []
   let alive = 0
@@ -168,6 +176,12 @@ function makeMount(config = {}) {
         destroy() {
           alive -= 1
           destroyed.push(source)
+        },
+        snapshot() {
+          return null
+        },
+        zoom() {
+          return { scale: 1, fit: 1, factor: 1 }
         },
       }
     }
@@ -185,6 +199,12 @@ function makeMount(config = {}) {
         alive -= 1
         destroyed.push(source)
         container.replaceChildren()
+      },
+      snapshot() {
+        return snapshot
+      },
+      zoom() {
+        return zoom
       },
     }
   }
@@ -989,5 +1009,240 @@ test('explicit non-mermaid languages with drawable diagram source stay native', 
   manager.scan()
   clock.advance(300)
   assert.equal(mountDiagram.calls.length, 0)
+  manager.destroy()
+})
+
+/* -------------------------------------------------------------------------- */
+/* Explicit aliases (P3)                                                      */
+/* -------------------------------------------------------------------------- */
+
+test('MERMAID_LANGS / isMermaidLanguage accept exactly the explicit aliases', () => {
+  assert.deepEqual([...MERMAID_LANGS], ['mermaid', 'mermaidjs', 'mmd'])
+  assert.equal(MERMAID_LANG, 'mermaid')
+  for (const lang of ['mermaid', 'mermaidjs', 'mmd']) {
+    assert.equal(isMermaidLanguage(lang), true, lang)
+  }
+  for (const lang of ['Mermaid', ' mmd', 'mmdx', 'mermaid.js', 'mermaid-js', 'javascript', '', null, undefined, 42]) {
+    assert.equal(isMermaidLanguage(lang), false, String(lang))
+  }
+})
+
+test('mermaidjs and mmd fences render through the same explicit banner path', () => {
+  const { doc, clock, mountDiagram, manager } = setup()
+  const cases = [
+    ['mermaid', 'flowchart LR\n A-->B'],
+    ['mermaidjs', 'sequenceDiagram\n A->>B: hi'],
+    ['mmd', 'pie\n "a": 1'],
+  ]
+  for (const [language, source] of cases) addBlock(doc, { language, source })
+
+  manager.scan()
+  clock.advance(300)
+
+  assert.equal(mountDiagram.calls.length, 3)
+  assert.deepEqual(mountDiagram.calls.map((call) => call.source), cases.map(([, source]) => source))
+  assert.equal(manager.count, 3)
+  assert.equal(doc.querySelectorAll(`.${CLASS.toolbar}`).length, 3)
+  manager.destroy()
+})
+
+test('aliases under the generic banner come from committed React props', () => {
+  const { doc, clock, mountDiagram, manager } = setup()
+  for (const lang of ['mermaidjs', 'mmd']) {
+    const source = `flowchart LR\n ${lang}-->B`
+    const { block } = addBlock(doc, { language: '代码块', source: 'rendered pre fallback' })
+    attachCodeBlockFiber(block, { code: source, lang })
+  }
+
+  manager.scan()
+  clock.advance(300)
+
+  assert.equal(mountDiagram.calls.length, 2)
+  assert.ok(mountDiagram.calls.every((call) => call.source.startsWith('flowchart LR')))
+  manager.destroy()
+})
+
+test('near-miss languages are not widened into the alias set', () => {
+  const { doc, clock, mountDiagram, manager } = setup()
+  for (const language of ['mmdx', 'mermaid.js', 'mermaid-js', 'mermaidjsx']) {
+    addBlock(doc, { language, source: BASE_SOURCE })
+  }
+
+  manager.scan()
+  clock.advance(300)
+
+  assert.equal(mountDiagram.calls.length, 0)
+  assert.equal(manager.count, 0)
+  manager.destroy()
+})
+
+/* -------------------------------------------------------------------------- */
+/* Export / fullscreen viewer wiring (P4 / P5)                                */
+/* -------------------------------------------------------------------------- */
+
+const PRISTINE = Object.freeze({
+  svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 5" width="10" height="5"><g/></svg>',
+  width: 10,
+  height: 5,
+  type: 'flowchart',
+})
+
+test('toolbar exposes localized icon controls, disabled without a pristine render', () => {
+  const { doc, clock, manager } = setup()
+  const { block } = addBlock(doc)
+  manager.scan()
+  clock.advance(300)
+
+  const buttons = buttonsOf(block)
+  assert.equal(buttons.length, 4, 'Diagram, Source, Download SVG, Fullscreen')
+  const [diagram, source, download, viewer] = buttons
+  assert.equal(download.getAttribute('aria-label'), 'Download SVG')
+  assert.equal(download.title, 'Download SVG')
+  assert.equal(viewer.getAttribute('aria-label'), 'Fullscreen')
+  assert.equal(viewer.title, 'Fullscreen')
+  assert.ok(download.querySelector('svg[aria-hidden="true"]'), 'the download icon is decorative')
+  assert.ok(viewer.querySelector('svg[aria-hidden="true"]'), 'the fullscreen icon is decorative')
+  assert.equal(download.disabled, true, 'no pristine render => export disabled')
+  assert.equal(viewer.disabled, true, 'no pristine render => viewer disabled')
+  assert.equal(diagram.getAttribute('aria-pressed'), 'true')
+  assert.equal(source.getAttribute('aria-pressed'), 'false')
+  assert.equal(download.getAttribute('aria-pressed'), null, 'icon actions are not view toggles')
+  manager.destroy()
+})
+
+test('zh locale localizes the export and viewer controls', () => {
+  const { doc, clock, manager } = setup({ manager: { locale: 'zh' } })
+  const { block } = addBlock(doc)
+  manager.scan()
+  clock.advance(300)
+
+  const buttons = buttonsOf(block)
+  assert.equal(buttons[0].textContent, '图表')
+  assert.equal(buttons[1].textContent, '源码')
+  assert.equal(buttons[2].getAttribute('aria-label'), '下载 SVG')
+  assert.equal(buttons[3].getAttribute('aria-label'), '全屏查看')
+  manager.destroy()
+})
+
+test('download action exports the pristine snapshot and saves it with the standard name', () => {
+  const mountDiagram = makeMount({ snapshot: PRISTINE, zoom: { scale: 2, fit: 1, factor: 2 } })
+  const exported = []
+  const downloads = []
+  const { doc, clock, manager } = setup({
+    mountDiagram,
+    manager: {
+      exportSvg(snapshot, context) {
+        exported.push({ snapshot, context })
+        return '<svg data-exported="1"/>'
+      },
+      downloadSvg(text, filename) {
+        downloads.push({ text, filename })
+        return true
+      },
+    },
+  })
+  const { block } = addBlock(doc)
+  manager.scan()
+  clock.advance(300)
+
+  const download = buttonsOf(block)[2]
+  assert.equal(download.disabled, false, 'a real snapshot enables export')
+  download.click()
+
+  assert.equal(exported.length, 1)
+  assert.equal(exported[0].snapshot, PRISTINE, 'the pristine result is handed to the exporter, never the zoomed DOM')
+  assert.equal(exported[0].context.container, containerOf(block), 'theme variables resolve against the inline card')
+  assert.equal(downloads.length, 1)
+  assert.equal(downloads[0].text, '<svg data-exported="1"/>')
+  assert.match(downloads[0].filename, /^pele-flowchart-\d{8}-\d{6}\.svg$/)
+  manager.destroy()
+})
+
+test('fullscreen action opens the viewer with the pristine snapshot and inline zoom', () => {
+  const mountDiagram = makeMount({ snapshot: PRISTINE, zoom: { scale: 2, fit: 1, factor: 2 } })
+  const fakeViewer = {
+    opens: [],
+    closed: 0,
+    destroyed: 0,
+    open(params) {
+      this.opens.push(params)
+      return true
+    },
+    close() {
+      this.closed += 1
+    },
+    destroy() {
+      this.destroyed += 1
+    },
+  }
+  const { doc, clock, manager } = setup({
+    mountDiagram,
+    manager: {
+      exportSvg: () => '<svg data-exported="1"/>',
+      createViewer: () => fakeViewer,
+    },
+  })
+  const { block, content } = addBlock(doc)
+  manager.scan()
+  clock.advance(300)
+
+  const viewerButton = buttonsOf(block)[3]
+  assert.equal(viewerButton.disabled, false)
+  viewerButton.click()
+
+  assert.equal(fakeViewer.opens.length, 1)
+  const params = fakeViewer.opens[0]
+  assert.equal(params.svg, '<svg data-exported="1"/>')
+  assert.equal(params.width, PRISTINE.width)
+  assert.equal(params.height, PRISTINE.height)
+  assert.equal(params.type, PRISTINE.type)
+  assert.equal(params.zoomFactor, 2, 'the viewer opens at the inline zoom factor')
+  assert.equal(typeof params.onClose, 'function')
+
+  // A source change rebuilds the diagram and must close the now-stale viewer.
+  content.querySelector('code').textContent = 'flowchart LR\n X-->Y'
+  manager.scan()
+  clock.advance(300)
+  assert.ok(fakeViewer.closed >= 1, 'a stale viewer is closed before the rebuild')
+
+  const refreshed = buttonsOf(block)[3]
+  refreshed.click()
+  manager.destroy()
+  assert.ok(fakeViewer.destroyed >= 1, 'plugin teardown destroys the viewer')
+  assert.equal(manager.count, 0)
+  assert.equal(doc.querySelector('[data-dsh-pele-mermaid-viewer]'), null)
+})
+
+test('export and viewer actions are inert when no pristine render is available', () => {
+  const fakeViewer = {
+    opens: 0,
+    open() {
+      this.opens += 1
+      return true
+    },
+    close() {},
+    destroy() {},
+  }
+  const downloads = []
+  const { doc, clock, manager } = setup({
+    manager: {
+      createViewer: () => fakeViewer,
+      downloadSvg(text, filename) {
+        downloads.push({ text, filename })
+        return true
+      },
+    },
+  })
+  const { block } = addBlock(doc)
+  manager.scan()
+  clock.advance(300)
+
+  const [, , download, viewer] = buttonsOf(block)
+  assert.equal(download.disabled, true)
+  assert.equal(viewer.disabled, true)
+  download.click()
+  viewer.click()
+  assert.equal(downloads.length, 0)
+  assert.equal(fakeViewer.opens, 0)
   manager.destroy()
 })

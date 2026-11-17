@@ -21,9 +21,29 @@
 
 import { CLASS as THEME_CLASS, SOURCE_HIDDEN_ATTR } from './theme-css.js'
 import { mountDiagram as engineMountDiagram } from './engine.js'
+import { buildExportSvg, downloadSvg, exportFilename } from './export.js'
+import { createViewer } from './viewer.js'
+import { createIcon } from './icons.js'
 
-/** Language tag of the fenced blocks this plugin owns. */
+/** Primary language tag of the fenced blocks this plugin owns. */
 export const MERMAID_LANG = 'mermaid'
+
+/**
+ * Explicit fence languages rendered by Pele. This stays an explicit-language
+ * allow-list: there is no source sniffing and no class-based detection.
+ * @type {readonly string[]}
+ */
+export const MERMAID_LANGS = Object.freeze(['mermaid', 'mermaidjs', 'mmd'])
+
+/**
+ * Whether an already-normalized (lowercased, first-token) fence language is one
+ * of the explicit aliases.
+ * @param {unknown} lang
+ * @returns {boolean}
+ */
+export function isMermaidLanguage(lang) {
+  return typeof lang === 'string' && MERMAID_LANGS.includes(lang)
+}
 
 /** Stable DSH hooks (hashed CSS-module classes are never used). */
 const BLOCK_SELECTOR = '.md-code-block'
@@ -65,8 +85,20 @@ const DEFAULT_CLASS = THEME_CLASS
 
 /** Toolbar labels per supported locale. */
 const TOOLBAR_LABELS = Object.freeze({
-  zh: Object.freeze({ group: '图表操作', diagram: '图表', source: '源码' }),
-  en: Object.freeze({ group: 'Diagram controls', diagram: 'Diagram', source: 'Source' }),
+  zh: Object.freeze({
+    group: '图表操作',
+    diagram: '图表',
+    source: '源码',
+    download: '下载 SVG',
+    fullscreen: '全屏查看',
+  }),
+  en: Object.freeze({
+    group: 'Diagram controls',
+    diagram: 'Diagram',
+    source: 'Source',
+    download: 'Download SVG',
+    fullscreen: 'Fullscreen',
+  }),
 })
 
 /* -------------------------------------------------------------------------- */
@@ -392,7 +424,12 @@ export function readFenceSource(block) {
  * @property {Element | null} container
  * @property {Element | null} host      Pele mount target (sibling of the toolbar)
  * @property {Element | null} toolbar
- * @property {{ diagram: HTMLButtonElement, source: HTMLButtonElement } | null} buttons
+ * @property {{
+ *   diagram: HTMLButtonElement,
+ *   source: HTMLButtonElement,
+ *   download: HTMLButtonElement,
+ *   viewer: HTMLButtonElement,
+ * } | null} buttons
  * @property {boolean} hidingSource
  * @property {string | null} previousHiddenAttribute
  * @property {Element | null} errorNote
@@ -412,6 +449,14 @@ export function readFenceSource(block) {
  * @param {string} [options.errorPrefix] default `'Pele: '`
  * @param {Partial<Record<'diagram' | 'toolbar' | 'error' | 'source' | 'active', string>>} [options.classes]
  *   test seam; defaults to the theme-css `CLASS` map
+ * @param {(snapshot: Object, context: Object) => string | null} [options.exportSvg]
+ *   export builder seam; defaults to `buildExportSvg`
+ * @param {(text: string, filename: string) => boolean} [options.downloadSvg]
+ *   download seam; defaults to the browser download helper
+ * @param {(options: Object) => { open: Function, close: Function, destroy?: Function }} [options.createViewer]
+ *   viewer factory seam; defaults to `createViewer`
+ * @param {{ open: Function, close: Function, destroy?: Function }} [options.viewer]
+ *   pre-built viewer instance (alternative to `createViewer`)
  */
 export function createBlockManager(options = {}) {
   const opts = options ?? {}
@@ -432,10 +477,27 @@ export function createBlockManager(options = {}) {
       ? opts.schedule
       : /** @param {() => void} fn @param {number} ms */ (fn, ms) => setTimeout(fn, ms)
   const now = typeof opts.now === 'function' ? opts.now : () => Date.now()
+  const renderExport = typeof opts.exportSvg === 'function' ? opts.exportSvg : buildExportSvg
+  const saveDownload =
+    typeof opts.downloadSvg === 'function'
+      ? opts.downloadSvg
+      : (text, filename, context) => downloadSvg(text, filename, context)
+  const viewerFactory = typeof opts.createViewer === 'function' ? opts.createViewer : createViewer
+  const view = (() => {
+    try {
+      return doc && doc.defaultView ? doc.defaultView : null
+    } catch {
+      return null
+    }
+  })()
 
   /** @type {Map<Element, BlockRecord>} */
   const records = new Map()
   let destroyed = false
+  /** @type {ReturnType<typeof createViewer> | null} */
+  let viewerInstance = opts.viewer && typeof opts.viewer.open === 'function' ? opts.viewer : null
+  /** @type {BlockRecord | null} record whose snapshot is open in the viewer */
+  let viewerRecord = null
 
   /* ------------------------------ records ------------------------------- */
 
@@ -510,6 +572,7 @@ export function createBlockManager(options = {}) {
 
   /** Remove only our DOM and restore only the source attribute we changed. */
   function destroyDiagramDom(record) {
+    closeViewerFor(record)
     setSourceHidden(record, false)
     const handle = record.handle
     record.handle = null
@@ -561,8 +624,33 @@ export function createBlockManager(options = {}) {
   }
 
   /**
+   * Icon-only control. The localized label lives in `aria-label` + `title`, so
+   * the icon itself stays decorative (`aria-hidden`).
+   *
+   * @param {string} label
+   * @param {string} iconName
+   * @param {() => void} onActivate
+   * @returns {HTMLButtonElement}
+   */
+  function makeIconButton(label, iconName, onActivate) {
+    const button = makeButton('', onActivate)
+    button.setAttribute('aria-label', label)
+    button.title = label
+    button.appendChild(createIcon(doc, iconName))
+    return button
+  }
+
+  /**
    * @param {BlockRecord} record
-   * @returns {{ toolbar: Element, buttons: { diagram: HTMLButtonElement, source: HTMLButtonElement } }}
+   * @returns {{
+   *   toolbar: Element,
+   *   buttons: {
+   *     diagram: HTMLButtonElement,
+   *     source: HTMLButtonElement,
+   *     download: HTMLButtonElement,
+   *     viewer: HTMLButtonElement,
+   *   },
+   * }}
    */
   function buildToolbar(record) {
     const toolbar = doc.createElement('div')
@@ -571,9 +659,28 @@ export function createBlockManager(options = {}) {
     toolbar.setAttribute('aria-label', labels.group)
     const diagramButton = makeButton(labels.diagram, () => showDiagram(record))
     const sourceButton = makeButton(labels.source, () => showSource(record))
+    const downloadButton = makeIconButton(labels.download, 'download', () => {
+      downloadRecordDiagram(record)
+    })
+    const viewerButton = makeIconButton(labels.fullscreen, 'fullscreen', () => {
+      openRecordViewer(record)
+    })
+    // Both actions need a pristine render result; disabled until mount succeeds.
+    downloadButton.disabled = true
+    viewerButton.disabled = true
     toolbar.appendChild(diagramButton)
     toolbar.appendChild(sourceButton)
-    return { toolbar, buttons: { diagram: diagramButton, source: sourceButton } }
+    toolbar.appendChild(downloadButton)
+    toolbar.appendChild(viewerButton)
+    return {
+      toolbar,
+      buttons: {
+        diagram: diagramButton,
+        source: sourceButton,
+        download: downloadButton,
+        viewer: viewerButton,
+      },
+    }
   }
 
   /**
@@ -638,6 +745,153 @@ export function createBlockManager(options = {}) {
     record.host.hidden = false
     record.view = 'diagram'
     updateToolbar(record)
+  }
+
+  /* ------------------------- export / viewer ---------------------------- */
+
+  /**
+   * Pristine natural-size render result, or null when the engine cannot expose
+   * one (fake handles in tests, failed mounts). Export/viewer never read the
+   * live, zoom-mutated inline SVG.
+   *
+   * @param {BlockRecord} record
+   * @returns {{ svg: string, width: number, height: number, type: string } | null}
+   */
+  function readSnapshot(record) {
+    try {
+      const handle = record && record.handle
+      if (!handle || typeof handle.snapshot !== 'function') return null
+      const snapshot = handle.snapshot()
+      if (!snapshot || typeof snapshot.svg !== 'string' || snapshot.svg === '') return null
+      return snapshot
+    } catch {
+      return null
+    }
+  }
+
+  /**
+   * @param {BlockRecord} record
+   * @returns {{ scale: number, fit: number, factor: number }}
+   */
+  function readZoom(record) {
+    const fallback = { scale: 1, fit: 1, factor: 1 }
+    try {
+      const zoom = record && record.handle && typeof record.handle.zoom === 'function'
+        ? record.handle.zoom()
+        : null
+      if (!zoom || typeof zoom !== 'object') return fallback
+      const factor = Number(zoom.factor)
+      return {
+        scale: Number(zoom.scale) || 1,
+        fit: Number(zoom.fit) || 1,
+        factor: Number.isFinite(factor) && factor > 0 ? factor : 1,
+      }
+    } catch {
+      return fallback
+    }
+  }
+
+  /**
+   * Sanitized SVG text for export/viewer, with theme variables resolved from
+   * the inline card.
+   *
+   * @param {BlockRecord} record
+   * @param {{ svg: string, width: number, height: number, type: string }} snapshot
+   * @returns {string | null}
+   */
+  function renderExportText(record, snapshot) {
+    try {
+      const text = renderExport(snapshot, { document: doc, view, container: record.container })
+      return typeof text === 'string' && text !== '' ? text : null
+    } catch {
+      return null
+    }
+  }
+
+  /**
+   * Download the whole diagram as a standalone SVG file.
+   * @param {BlockRecord} record
+   * @returns {boolean}
+   */
+  function downloadRecordDiagram(record) {
+    if (destroyed || !record || record.status !== 'mounted') return false
+    const snapshot = readSnapshot(record)
+    if (!snapshot) return false
+    const svgText = renderExportText(record, snapshot)
+    if (svgText === null) return false
+    let filename
+    try {
+      filename = exportFilename(snapshot.type)
+    } catch {
+      filename = 'pele-diagram.svg'
+    }
+    try {
+      return saveDownload(svgText, filename, { document: doc, view }) === true
+    } catch {
+      return false
+    }
+  }
+
+  /** Lazily create the one page-level viewer. */
+  function getViewer() {
+    if (viewerInstance) return viewerInstance
+    try {
+      viewerInstance = viewerFactory({ document: doc, locale, view })
+      return viewerInstance
+    } catch {
+      return null
+    }
+  }
+
+  /** Close the viewer (if any) and forget which record owned it. */
+  function closeViewer() {
+    viewerRecord = null
+    if (!viewerInstance) return
+    try {
+      viewerInstance.close()
+    } catch {
+      /* viewer teardown is best effort */
+    }
+  }
+
+  /** @param {BlockRecord | null} record */
+  function closeViewerFor(record) {
+    if (record !== null && viewerRecord === record) closeViewer()
+  }
+
+  /**
+   * Open the fullscreen viewer on the pristine render result.
+   * @param {BlockRecord} record
+   * @returns {boolean}
+   */
+  function openRecordViewer(record) {
+    if (destroyed || !record || record.status !== 'mounted') return false
+    const snapshot = readSnapshot(record)
+    if (!snapshot) return false
+    const svgText = renderExportText(record, snapshot)
+    if (svgText === null) return false
+    const viewer = getViewer()
+    if (!viewer) return false
+    if (viewerRecord !== null && viewerRecord !== record) closeViewer()
+    viewerRecord = record
+    let opened = false
+    try {
+      opened =
+        viewer.open({
+          svg: svgText,
+          width: snapshot.width,
+          height: snapshot.height,
+          type: snapshot.type,
+          zoomFactor: readZoom(record).factor,
+          onClose: () => {
+            if (viewerRecord === record) viewerRecord = null
+          },
+        }) === true
+    } catch {
+      opened = false
+    }
+    if (!opened) viewerRecord = null
+    return opened
   }
 
   /* -------------------------------- mount ------------------------------- */
@@ -741,6 +995,11 @@ export function createBlockManager(options = {}) {
 
     record.handle = /** @type {DiagramHandle} */ (handle)
     record.status = 'mounted'
+    if (record.buttons) {
+      // Export/viewer are only possible with a pristine render result.
+      record.buttons.download.disabled = readSnapshot(record) === null
+      record.buttons.viewer.disabled = record.buttons.download.disabled
+    }
     setSourceHidden(record, true)
     record.view = 'diagram'
     record.errorNote = null
@@ -888,7 +1147,8 @@ export function createBlockManager(options = {}) {
     const source = facts.source
     // Explicit committed React language wins; an explicit DOM banner is the
     // fallback. Unknown language stays native, regardless of parseable source.
-    if (!content || !pre || !facts.hasBanner || facts.lang !== MERMAID_LANG || source === null || source.trim() === '') {
+    // Only the explicit aliases render: no source/class heuristics.
+    if (!content || !pre || !facts.hasBanner || !isMermaidLanguage(facts.lang) || source === null || source.trim() === '') {
       if (record) { cleanupRecord(record); records.delete(block) }
       return
     }
@@ -975,6 +1235,15 @@ export function createBlockManager(options = {}) {
   function destroy() {
     if (destroyed) return
     destroyed = true
+    closeViewer()
+    if (viewerInstance && typeof viewerInstance.destroy === 'function') {
+      try {
+        viewerInstance.destroy()
+      } catch {
+        /* viewer teardown is best effort */
+      }
+    }
+    viewerInstance = null
     for (const record of Array.from(records.values())) {
       try {
         cleanupRecord(record)

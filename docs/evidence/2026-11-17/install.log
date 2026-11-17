@@ -1,0 +1,196 @@
+# note: ephemeral isolated-server auth cookie names are redacted in this published log.
+dsh-pele-mermaid — real-profile install / disable verification
+workspace: /Users/farewe1ll/Objects/dsh-pele-mermaid
+dsh:       dsh
+node:      v26.13.1
+
+--- 0. preflight (isolated temp home, bundle identity) ---
+       install.source: dist/dsh-pele-mermaid-0.2.0.tgz
+       install.source.kind: tarball
+       install.source.sha256: 309aa03f57234182e7e5aa624005e70364f77e6f5c5951a10ca9b2dc84ebc96d
+       bundle.path: lib/client.js
+       bundle.bytes: 738710
+       bundle.sha256: 3259e916e0017a66090781493376b982ef2ab373be062bbb8795ec54cd913c82
+       temp.root: /var/folders/sw/5hpt8bss3fg9rb4b9791kt7r0000gn/T/dsh-pele-verify-install-FkO1VN
+       temp.dsh_home: /var/folders/sw/5hpt8bss3fg9rb4b9791kt7r0000gn/T/dsh-pele-verify-install-FkO1VN/home
+[PASS] isolated temp DSH_HOME created (real ~/.dsh profiles untouched)
+       dsh.version: 0.2.2-rc.3
+
+--- 1. install the plugin into a throwaway web profile ---
+$ dsh plugin --profile web add /Users/farewe1ll/Objects/dsh-pele-mermaid/dist/dsh-pele-mermaid-0.2.0.tgz   # install from packed tarball
+    [WARN] The store at /Users/farewe1ll/Library/pnpm/store/v11 is not used because packages cannot be hard linked from it into this project. Using the store at /private/var/folders/sw/5hpt8bss3fg9rb4b9791kt7r0000gn/T/.pnpm-store/v11 instead. Set storeDir to choose the store.
+    Progress: resolved 0, reused 1, downloaded 0, added 0
+    Packages: +1
+    +
+    Packages are cloned from the content-addressable store to the virtual store.
+      Content-addressable store is at: /private/var/folders/sw/5hpt8bss3fg9rb4b9791kt7r0000gn/T/.pnpm-store/v11
+      Virtual store is at:             node_modules/.pnpm
+    Progress: resolved 1, reused 1, downloaded 0, added 1, done
+    
+    dependencies:
+    + dsh-pele-mermaid 0.2.0
+    
+    Done in 234ms using pnpm v11.28.5
+    dsh: initialized profile web at /var/folders/sw/5hpt8bss3fg9rb4b9791kt7r0000gn/T/dsh-pele-verify-install-FkO1VN/home/profiles/web
+       install.profile.dependency: file:/Users/farewe1ll/Objects/dsh-pele-mermaid/dist/dsh-pele-mermaid-0.2.0.tgz
+       install.profile.bundles: ["@deepseek-ai/dsh-base","@deepseek-ai/dsh-web-app","dsh-pele-mermaid"]
+[PASS] plugin installed as a bundle layer in the throwaway web profile
+
+--- 2. composed config contains the Loader row (active) ---
+$ dsh --profile web --dump-config
+                  toolName: subagent_fork
+              - id: workflow-ptc
+                name: '@deepseek-ai/dsh-workflow-ptc'
+                config:
+                  provider: spawn
+              - id: tool-workflow
+                name: '@deepseek-ai/dsh-tool-workflow'
+          - id: tool-ask-user
+            name: '@deepseek-ai/dsh-tool-ask-user'
+          - id: tool-todo
+            name: '@deepseek-ai/dsh-tool-todo'
+            config:
+              allowParallelInProgress: true
+          - id: tool-web
+            name: '@deepseek-ai/dsh-tool-web'
+            config:
+              fetch: true
+              searchTimeoutMs: 60000
+          - id: tool-cordis
+            name: '@deepseek-ai/dsh-tool-cordis'
+          - id: skill-filesystem
+            name: '@deepseek-ai/dsh-skill-filesystem'
+            config:
+              customSkillDirs:
+                - !!js >-
+                  process.getBuiltinModule('node:path').join(process.getBuiltinModule('node:path').dirname(process.getBuiltinModule('node:module').createRequire(baseUrl).resolve('@deepseek-ai/dsh-agent-preset/package.json')),
+                  'skills')
+          - id: tool-skill
+            name: '@deepseek-ai/dsh-tool-skill'
+          - id: present
+            name: '@deepseek-ai/dsh-tool-present'
+          - id: tool-plugin-manager
+            name: '@deepseek-ai/dsh-plugin-manager/tools'
+            disabled: !!js '!ctx.get(''profileContext'')'
+          - id: tool-plugin-market
+            name: '@deepseek-ai/dsh-plugin-market/tools'
+            disabled: !!js '!ctx.get(''profileContext'')'
+    # == dsh-pele-mermaid
+    - id: dsh-pele-mermaid
+      name: dsh-pele-mermaid
+       dump-config.active.section: - id: dsh-pele-mermaid |   name: dsh-pele-mermaid
+[PASS] composed config contains an active dsh-pele-mermaid Loader row
+
+--- 3. active boot graph: entry with id dsh-pele-mermaid + bundle route ---
+$ dsh web --no-open --port 65257   # web-active, DSH_HOME=/var/folders/sw/5hpt8bss3fg9rb4b9791kt7r0000gn/T/dsh-pele-verify-install-FkO1VN/home
+    authenticated (cookie name dsh-auth-<redacted>, token redacted)
+       active.index.bytes: 41348
+       active.boot.entry: {"id":"dsh-pele-mermaid","url":"plugins/??dsh-pele-mermaid/client.js&rev=5df0e3c75c86","rev":"5df0e3c75c86","inject":["@deepseek-ai/dsh-client-ui-theme"]}
+       active.boot.entries: 76
+       active.boot.batches: 3
+       active.boot.release: {"version":"0.2.2-rc.3","commit":"6b729fe"}
+       active.html.pluginOccurrences: 5
+$ curl (authenticated) http://127.0.0.1:65257/plugins/??dsh-pele-mermaid/client.js&rev=<rev>
+       active.route.status: 200
+       active.route.contentType: text/javascript; charset=utf-8
+       active.route.bytes: 738783
+       active.route.servedOverCommittedBytes: 73
+       active.route.suffix: ;\n//# sourceMappingURL=??dsh-pele-mermaid/client.js.map&rev=5df0e3c75c86\n
+       active.route.hasWrapper: true
+[PASS] active boot graph entry present and its bundle route serves the wrapped built bundle
+[PASS] active web server stopped
+
+--- 4. DISABLED: patch the row off and prove it leaves the boot graph ---
+       disabled.patch.file: /var/folders/sw/5hpt8bss3fg9rb4b9791kt7r0000gn/T/dsh-pele-verify-install-FkO1VN/home/profiles/web/cordis.patch.yml
+       disabled.patch.content: # Verification: keep the package installed but disable its Loader row. | - id: dsh-pele-mermaid |   name: dsh-pele-mermaid |   disabled: true
+$ dsh --profile web --dump-config
+              - id: workflow-ptc
+                name: '@deepseek-ai/dsh-workflow-ptc'
+                config:
+                  provider: spawn
+              - id: tool-workflow
+                name: '@deepseek-ai/dsh-tool-workflow'
+          - id: tool-ask-user
+            name: '@deepseek-ai/dsh-tool-ask-user'
+          - id: tool-todo
+            name: '@deepseek-ai/dsh-tool-todo'
+            config:
+              allowParallelInProgress: true
+          - id: tool-web
+            name: '@deepseek-ai/dsh-tool-web'
+            config:
+              fetch: true
+              searchTimeoutMs: 60000
+          - id: tool-cordis
+            name: '@deepseek-ai/dsh-tool-cordis'
+          - id: skill-filesystem
+            name: '@deepseek-ai/dsh-skill-filesystem'
+            config:
+              customSkillDirs:
+                - !!js >-
+                  process.getBuiltinModule('node:path').join(process.getBuiltinModule('node:path').dirname(process.getBuiltinModule('node:module').createRequire(baseUrl).resolve('@deepseek-ai/dsh-agent-preset/package.json')),
+                  'skills')
+          - id: tool-skill
+            name: '@deepseek-ai/dsh-tool-skill'
+          - id: present
+            name: '@deepseek-ai/dsh-tool-present'
+          - id: tool-plugin-manager
+            name: '@deepseek-ai/dsh-plugin-manager/tools'
+            disabled: !!js '!ctx.get(''profileContext'')'
+          - id: tool-plugin-market
+            name: '@deepseek-ai/dsh-plugin-market/tools'
+            disabled: !!js '!ctx.get(''profileContext'')'
+    # == dsh-pele-mermaid, patched by /var/folders/sw/5hpt8bss3fg9rb4b9791kt7r0000gn/T/dsh-pele-verify-install-FkO1VN/home/profiles/web/cordis.patch.yml
+    - id: dsh-pele-mermaid
+      name: dsh-pele-mermaid
+      disabled: true
+       dump-config.disabled.section: , patched by /var/folders/sw/5hpt8bss3fg9rb4b9791kt7r0000gn/T/dsh-pele-verify-install-FkO1VN/home/profiles/web/cordis.patch.yml | - id: dsh-pele-mermaid |   name: dsh-pele-mermaid |   disabled: true
+[PASS] composed config shows the row as disabled (package still installed)
+$ dsh web --no-open --port 65260   # web-disabled, DSH_HOME=/var/folders/sw/5hpt8bss3fg9rb4b9791kt7r0000gn/T/dsh-pele-verify-install-FkO1VN/home
+    authenticated (cookie name dsh-auth-<redacted>, token redacted)
+       disabled.index.bytes: 41120
+       disabled.boot.entries: 75
+       disabled.boot.batches: 3
+       disabled.html.pluginOccurrences: 0
+       disabled.html.shrunkByBytes: 228
+       disabled.route.status: 404
+       disabled.route.bytes: 0
+[PASS] disabled boot graph omits the plugin entirely and its /plugins route 404s
+[PASS] disabled web server stopped
+
+--- 5. "DSH exactly normal": disabled boot graph == freshly uninstalled profile ---
+$ dsh plugin --profile web remove dsh-pele-mermaid   # uninstall completely
+    [WARN] The store at /Users/farewe1ll/Library/pnpm/store/v11 is not used because packages cannot be hard linked from it into this project. Using the store at /private/var/folders/sw/5hpt8bss3fg9rb4b9791kt7r0000gn/T/.pnpm-store/v11 instead. Set storeDir to choose the store.
+    ? Verifying lockfile against supply-chain policies (1 entry)...
+    ✓ Lockfile passes supply-chain policies (1 entry in 0ms)
+    Already up to date
+    
+    dependencies:
+    - dsh-pele-mermaid 0.2.0
+    
+    Done in 180ms using pnpm v11.28.5
+       removed.profile.bundles: ["@deepseek-ai/dsh-base","@deepseek-ai/dsh-web-app"]
+$ dsh web --no-open --port 65263   # web-removed, DSH_HOME=/var/folders/sw/5hpt8bss3fg9rb4b9791kt7r0000gn/T/dsh-pele-verify-install-FkO1VN/home
+    authenticated (cookie name dsh-auth-<redacted>, token redacted)
+       parity.disabledEqualsRemoved: true
+       parity.entries: 75
+       parity.batches: 3
+       parity.note: per-boot rev values normalized; entry ids/order/inject and batch structure compared exactly
+[PASS] disabled state is structurally identical to an uninstalled DSH profile
+[PASS] removed web server stopped
+
+--- 6. cleanup ---
+[PASS] temp DSH_HOME removed (/var/folders/sw/5hpt8bss3fg9rb4b9791kt7r0000gn/T/dsh-pele-verify-install-FkO1VN)
+       cleanup.tempRemoved: true
+
+=== verify-install: PASS ===
+elapsed: 3170 ms
+reproduce (all commands used DSH_HOME=<temp dir under os.tmpdir()>):
+  DSH_HOME=<tmp>/home dsh plugin --profile web add /Users/farewe1ll/Objects/dsh-pele-mermaid/dist/dsh-pele-mermaid-0.2.0.tgz
+  DSH_HOME=<tmp>/home dsh --profile web --dump-config
+  DSH_HOME=<tmp>/home dsh web --no-open --port <free port>
+  # fetch the printed ?token= URL, keep the dsh-auth cookie, then GET / and the boot-graph batch URL
+  active boot entry: {"id":"dsh-pele-mermaid","url":"plugins/??dsh-pele-mermaid/client.js&rev=5df0e3c75c86","inject":["@deepseek-ai/dsh-client-ui-theme"]}
+  served route: 200 738783 bytes (committed bundle + loader source-map suffix)
+  disabled: entry absent, 0 HTML occurrences, route 404
+  disabled boot graph == freshly uninstalled profile (rev-normalized): true

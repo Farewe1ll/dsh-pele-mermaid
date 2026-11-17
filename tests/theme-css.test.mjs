@@ -131,6 +131,14 @@ test('STYLE_ATTR and CLASS are the documented, namespaced contract', () => {
     error: 'dsh-pele-mermaid-error',
     source: 'dsh-pele-mermaid-source',
     active: 'dsh-pele-mermaid-active',
+    icon: 'dsh-pele-mermaid-icon',
+    viewer: 'dsh-pele-mermaid-viewer',
+    viewerBackdrop: 'dsh-pele-mermaid-viewer-backdrop',
+    viewerDialog: 'dsh-pele-mermaid-viewer-dialog',
+    viewerToolbar: 'dsh-pele-mermaid-viewer-toolbar',
+    viewerStage: 'dsh-pele-mermaid-viewer-stage',
+    viewerCanvas: 'dsh-pele-mermaid-viewer-canvas',
+    viewerSvg: 'dsh-pele-mermaid-viewer-svg',
   })
   assert.ok(Object.isFrozen(CLASS))
   for (const value of Object.values(CLASS)) {
@@ -234,6 +242,42 @@ test('card, toolbar, source and error chrome are styled with DSH tokens', () => 
 
   // The state hook is exported; it deliberately has no visual rules of its own.
   assert.ok(styles.includes(`.${CLASS.active}`))
+})
+
+test('fullscreen viewer chrome is themed, keyboard-visible and motion-safe', () => {
+  const styles = buildStyles()
+
+  const viewer = ruleBody(styles, `.${CLASS.viewer}`)
+  assert.match(viewer, /position:\s*fixed/)
+  assert.match(viewer, /z-index:\s*\d+/)
+
+  const backdrop = ruleBody(styles, `.${CLASS.viewerBackdrop}`)
+  assert.match(backdrop, /background:\s*var\(--dsw-alias-bg-mask-3\)/)
+
+  const dialog = ruleBody(styles, `.${CLASS.viewerDialog}`)
+  assert.match(dialog, /background:\s*var\(--dsw-alias-bg-layer-1\)/)
+  assert.match(dialog, /border-radius:\s*var\(--dsw-radius-lg\)/)
+
+  const stage = ruleBody(styles, `.${CLASS.viewerStage}`)
+  assert.match(stage, /overflow:\s*hidden/)
+  assert.match(stage, /cursor:\s*grab/)
+  assert.match(stage, /touch-action:\s*none/)
+
+  const stagePanned = ruleBody(styles, `.${CLASS.viewerStage}[data-panning]`)
+  assert.match(stagePanned, /cursor:\s*grabbing/)
+
+  const button = ruleBody(styles, `.${CLASS.viewerToolbar} button`)
+  assert.match(button, /width:\s*28px/)
+  assert.match(button, /height:\s*28px/)
+  const focus = ruleBody(styles, `.${CLASS.viewerToolbar} button:focus-visible`)
+  assert.match(focus, /var\(--dsw-alias-border-l2\)/)
+
+  const icon = ruleBody(styles, `.${CLASS.icon}`)
+  assert.match(icon, /width:\s*14px/)
+  assert.match(icon, /height:\s*14px/)
+
+  assert.match(styles, /@media \(prefers-reduced-motion: no-preference\)/)
+  assert.match(styles, /@keyframes dsh-pele-mermaid-viewer-in/)
 })
 
 test('installStyles installs exactly one stylesheet with the built text', () => {

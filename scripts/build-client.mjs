@@ -24,6 +24,9 @@ const OUT = path.join(ROOT, 'lib/client.js')
 const CHECK = process.argv.includes('--check')
 const TARGETS = ['chrome110', 'safari16']
 
+/** 0.2.0 raw-byte budget for the whole inline bundle (documented in docs/ARCH.md). */
+const MAX_BUNDLE_BYTES = 750_000
+
 /** CDN/network markers that must never appear in the bundled browser half. */
 const FORBIDDEN_MARKERS = ['cdn.jsdelivr.net', 'unpkg.com', 'fastly.jsdelivr.net', 'esm.sh', 'skypack']
 
@@ -68,6 +71,11 @@ async function main() {
   if (output.length > 4_000_000) throw new Error(`browser bundle is unexpectedly large: ${output.length} bytes`)
 
   const size = Buffer.byteLength(output, 'utf8')
+  if (size > MAX_BUNDLE_BYTES) {
+    throw new Error(
+      `browser bundle exceeds the 0.2.0 raw budget: ${size} > ${MAX_BUNDLE_BYTES} bytes`,
+    )
+  }
   const duration = Date.now() - startedAt
 
   if (CHECK) {

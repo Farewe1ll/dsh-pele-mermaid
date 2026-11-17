@@ -3,7 +3,8 @@
 > Screenshot paths were reused for new captures: the sizes/hashes and observations
 > below describe the old captures and do not identify the PNGs currently at those paths.
 > The no-user-profile statement below applies to sections 0–8 only; section 9
-> explicitly describes a different earlier Desktop verification scope.
+> explicitly describes a different earlier Desktop verification scope. Section 10
+> is a dated transition summary for the 2026-11-17 `0.2.0` working build.
 
 # dsh-pele-mermaid — Historical verification record
 
@@ -611,3 +612,34 @@ retained artifact before the language decision.
 - The installed Desktop copy
   (`~/.dsh/profiles/desktop/node_modules/dsh-pele-mermaid/lib/client.js`) was
   updated to the new build; the running app needs a restart to re-read it.
+
+---
+
+## 10. 2026-11-17 — the 0.2.0 working build supersedes the 0.1.1 current record
+
+Dated transition summary; it is not a new verification claim for the historical
+builds above.
+
+- The 2026-10-19 `0.1.1` record (84 tests, 694,058-byte bundle, isolated
+  `DSH_HOME` install) moved out of the top level of
+  [VERIFICATION.md](VERIFICATION.md) into its Appendix A. It remains the only
+  **verified** compatibility row (`0.1.1` / `0.2.1-rc.2`). Nothing in sections
+  0–9 above describes the `0.2.0` artifact.
+- The `0.2.0` iteration (Pele 1.9.0, export/viewer/aliases, host probe v2) is
+  recorded in [VERIFICATION.md](VERIFICATION.md) sections 1–8 with evidence under
+  [`evidence/2026-11-17/`](evidence/2026-11-17/): 120/120 tests, bundle
+  738,710 bytes / SHA-256 `3259e916…913c82`, `verify:host` PASS on DSH
+  `0.2.2-rc.3` (fixture adapters, not a live session), eight real-browser
+  screenshots, and a P6 **NO-GO** decision.
+- No controlled live DSH `0.2.2` conversation was recorded (P0 deferred: the
+  sample was posted but desktop screenshot consent was not granted). The
+  installed Desktop profile still ran plugin `0.1.1`; no host row was promoted.
+- The screenshot-path caveat at the top of this file still applies, and is now
+  stronger: the eight PNGs currently in
+  [`tests/fixtures/screenshots/`](../tests/fixtures/screenshots/) are the
+  2026-11-17 captures. The sizes/hashes quoted in sections 3 and 9 above, and in
+  VERIFICATION.md Appendix A, identify the older captures only.
+- The 2026-10-19 evidence manifest and
+  [`evidence/2026-10-19/PUBLICATION.md`](evidence/2026-10-19/PUBLICATION.md)
+  remain pinned to their historical snapshot; later documentation edits do not
+  change that record.

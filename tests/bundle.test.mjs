@@ -373,7 +373,8 @@ test('bundle wrapper: registers exactly id "dsh-pele-mermaid" and the factory ne
   assert.equal(PKG.exports?.['./client'], './lib/client.js', 'exports["./client"] must point at the built bundle')
 
   assert.ok(BUNDLE.length > 400_000, `bundle is unexpectedly small (${BUNDLE.length} bytes)`)
-  assert.ok(BUNDLE.length < 4_000_000, `bundle is unexpectedly large (${BUNDLE.length} bytes)`)
+  // 0.2.0 raw-byte budget for the whole inline bundle (scripts/build-client.mjs).
+  assert.ok(BUNDLE.length <= 750_000, `bundle exceeds the 0.2.0 raw budget (${BUNDLE.length} > 750000 bytes)`)
   assert.ok(
     BUNDLE.startsWith(WRAPPER_PREFIX),
     `bundle must start with the DSH module-loader wrapper for id "${BUNDLE_ID}"; got: ${JSON.stringify(BUNDLE.slice(0, 120))}`,
@@ -454,15 +455,26 @@ test('apply(): settled mermaid fences become Pele diagrams; banners, source and 
       assert.ok(toolbar, 'diagram must expose a toolbar')
       assert.equal(toolbar.getAttribute('role'), 'group')
       const buttons = Array.from(toolbar.querySelectorAll('button'))
+      assert.equal(buttons.length, 4, 'Diagram, Source, Download SVG, Fullscreen')
       assert.deepEqual(
-        buttons.map((button) => button.textContent),
+        buttons.slice(0, 2).map((button) => button.textContent),
         ['Diagram', 'Source'],
         'default (en) locale labels',
       )
       assert.deepEqual(
-        buttons.map((button) => button.getAttribute('aria-pressed')),
+        buttons.slice(0, 2).map((button) => button.getAttribute('aria-pressed')),
         ['true', 'false'],
         'Diagram must be pressed while the diagram is shown',
+      )
+      // Export/viewer are icon-only, localized, and enabled by a real render.
+      assert.deepEqual(
+        buttons.slice(2).map((button) => button.getAttribute('aria-label')),
+        ['Download SVG', 'Fullscreen'],
+      )
+      assert.deepEqual(
+        buttons.slice(2).map((button) => button.disabled),
+        [false, false],
+        'a mounted diagram exposes its pristine SVG to export and the viewer',
       )
     }
 
@@ -517,7 +529,7 @@ test('toolbar: Diagram/Source round-trips the original <pre> node and aria-press
     assert.equal(content.contains(originalPre), true, 'source stays in the code-block content')
     assert.equal(host.hidden, true, 'diagram host must be hidden while showing source')
     assert.deepEqual(
-      buttons.map((button) => button.getAttribute('aria-pressed')),
+      buttons.slice(0, 2).map((button) => button.getAttribute('aria-pressed')),
       ['false', 'true'],
       'aria-pressed must follow the Source view',
     )
@@ -529,7 +541,7 @@ test('toolbar: Diagram/Source round-trips the original <pre> node and aria-press
     assert.equal(content.querySelector('.dsh-pele-mermaid-source'), null, 'source wrapper must be removed')
     assert.equal(host.hidden, false, 'diagram host must be visible again')
     assert.deepEqual(
-      buttons.map((button) => button.getAttribute('aria-pressed')),
+      buttons.slice(0, 2).map((button) => button.getAttribute('aria-pressed')),
       ['true', 'false'],
       'aria-pressed must follow the Diagram view',
     )
@@ -649,7 +661,7 @@ test('MutationObserver: a mermaid fence appended after boot settles and renders'
     const container = late.querySelector('.dsh-pele-mermaid-diagram')
     assert.ok(container, 'the observed fence must be wrapped in the plugin container')
     assert.equal(late.querySelectorAll('[data-dsh-pele-mermaid-host] svg.pele').length, 1)
-    assert.equal(document.querySelectorAll('.dsh-pele-mermaid-toolbar button').length, 2)
+    assert.equal(document.querySelectorAll('.dsh-pele-mermaid-toolbar button').length, 4)
     assert.equal(styleElements(document).length, 1, 'the single stylesheet is reused, not stacked')
   } finally {
     plugin.cleanup()

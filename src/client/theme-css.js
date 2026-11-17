@@ -37,6 +37,14 @@ export const CLASS = Object.freeze({
   error: 'dsh-pele-mermaid-error',
   source: 'dsh-pele-mermaid-source',
   active: 'dsh-pele-mermaid-active',
+  icon: 'dsh-pele-mermaid-icon',
+  viewer: 'dsh-pele-mermaid-viewer',
+  viewerBackdrop: 'dsh-pele-mermaid-viewer-backdrop',
+  viewerDialog: 'dsh-pele-mermaid-viewer-dialog',
+  viewerToolbar: 'dsh-pele-mermaid-viewer-toolbar',
+  viewerStage: 'dsh-pele-mermaid-viewer-stage',
+  viewerCanvas: 'dsh-pele-mermaid-viewer-canvas',
+  viewerSvg: 'dsh-pele-mermaid-viewer-svg',
 })
 
 /**
@@ -45,7 +53,7 @@ export const CLASS = Object.freeze({
  *
  * @type {ReadonlyArray<readonly [string, string]>}
  */
-const PELE_VARIABLES = Object.freeze([
+export const PELE_VARIABLES = Object.freeze([
   ['--pele-bg', 'var(--dsw-alias-markdown-code-block)'],
   ['--pele-fg', 'var(--dsw-alias-label-primary)'],
   ['--pele-muted', 'var(--dsw-alias-label-tertiary)'],
@@ -60,6 +68,14 @@ const PELE_VARIABLES = Object.freeze([
   ['--pele-font-mono', 'var(--ds-font-family-code, ui-monospace, monospace)'],
   ['--pele-radius', 'var(--dsw-radius-md)'],
 ])
+
+/**
+ * The `--pele-*` custom-property names in {@link PELE_VARIABLES}, in mapping
+ * order. Export/viewer code reuses this list so a new variable is picked up
+ * everywhere at once.
+ * @type {readonly string[]}
+ */
+export const PELE_VARIABLE_NAMES = Object.freeze(PELE_VARIABLES.map(([name]) => name))
 
 const MAPPING_RULE = [
   `.${CLASS.diagram} {`,
@@ -166,6 +182,162 @@ ${MAPPING_RULE}
   line-height: 1.55;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+/* ---------------------------------------------------------------------------
+ * Toolbar icons (download / fullscreen). Decorative only: the owning button
+ * carries the localized aria-label and title.
+ * ------------------------------------------------------------------------- */
+.${CLASS.icon} {
+  display: block;
+  width: 14px;
+  height: 14px;
+  flex: none;
+  pointer-events: none;
+}
+
+.${CLASS.toolbar} button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.${CLASS.toolbar} button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.${CLASS.toolbar} button:disabled:hover {
+  background: transparent;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+/* ---------------------------------------------------------------------------
+ * Fullscreen viewer. A fixed overlay dialog with a themed backdrop, a compact
+ * icon toolbar and a stage that owns pointer/wheel zoom+pan. It reuses the
+ * already-rendered SVG (a clone), so opening it never re-runs Pele.
+ * ------------------------------------------------------------------------- */
+.${CLASS.viewer} {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: flex;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.${CLASS.viewerBackdrop} {
+  position: absolute;
+  inset: 0;
+  background: var(--dsw-alias-bg-mask-3);
+}
+
+.${CLASS.viewerDialog} {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsw-radius-lg);
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-primary);
+}
+
+.${CLASS.viewerToolbar} {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 2px;
+  margin: 0;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--dsw-alias-border-l2);
+}
+
+.${CLASS.viewerToolbar} button {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: calc(var(--dsw-radius-md, 8px) - 4px);
+  background: transparent;
+  color: var(--dsw-alias-label-tertiary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.${CLASS.viewerToolbar} .${CLASS.icon} {
+  width: 16px;
+  height: 16px;
+}
+
+.${CLASS.viewerToolbar} button:hover {
+  background: var(--dsw-alias-markdown-code-block-banner);
+  color: var(--dsw-alias-label-primary);
+}
+
+.${CLASS.viewerToolbar} button:focus-visible {
+  outline: 1px solid var(--dsw-alias-border-l2);
+  outline-offset: 1px;
+}
+
+.${CLASS.viewerToolbar} button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.${CLASS.viewerToolbar} button:disabled:hover {
+  background: transparent;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.${CLASS.viewerStage} {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  overflow: hidden;
+  padding: 16px;
+  cursor: grab;
+  touch-action: none;
+}
+
+.${CLASS.viewerStage}[data-panning] {
+  cursor: grabbing;
+}
+
+.${CLASS.viewerCanvas} {
+  position: relative;
+  flex: none;
+}
+
+.${CLASS.viewerSvg} {
+  display: block;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .${CLASS.viewerDialog} {
+    animation: dsh-pele-mermaid-viewer-in 160ms ease-out;
+  }
+}
+
+@keyframes dsh-pele-mermaid-viewer-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* .${CLASS.active} is a state hook (the block manager also mirrors aria-pressed

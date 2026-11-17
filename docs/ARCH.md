@@ -1,9 +1,12 @@
 # dsh-pele-mermaid — Architecture
 
-Scope: current 0.1.1 working build targeting DSH `0.2.1-rc.2` / React `18.3.1`. This file is the single
-source of truth for module boundaries, interfaces, DOM assumptions, and the
-constraints that keep the plugin decoupled from DSH. The recorded evidence for
-every acceptance claim lives in [`docs/VERIFICATION.md`](VERIFICATION.md).
+Scope: current `0.2.0` working build. The verified compatibility target remains
+DSH `0.2.1-rc.2` / React `18.3.1`; the installed-host component probe also
+supports and passes on DSH `0.2.2-rc.3`, but no live `0.2.2` chat session was
+recorded (P0). This file is the single source of truth for module boundaries,
+interfaces, DOM assumptions, and the constraints that keep the plugin decoupled
+from DSH. Evidence for every acceptance claim lives in
+[`docs/VERIFICATION.md`](VERIFICATION.md).
 
 ## Why this shape
 
@@ -20,47 +23,67 @@ plugin is an npm package with **two halves**:
 When the patch row is absent or `disabled: true`, the package never enters
 `window.__DSH_BOOT__`: no script is served, no style is added, no observer
 exists. DSH is exactly the shipped product. When the row is active, the browser
-half post-processes settled ` ```mermaid ` code blocks into Pele diagrams.
+half post-processes settled explicit `mermaid`, `mermaidjs`, or `mmd` code
+blocks into Pele diagrams.
 
 We intentionally do **not** patch, fork, require, or otherwise touch any
-`@deepseek-ai/*` package at runtime. Runtime integration uses the public
-Cordis service `theme` (`inject: ['theme']`), the rendered Markdown DOM, and
-private React Fiber fields for generic-banner language identification. No DSH
-package is imported, but framework-internal compatibility remains a dependency.
+`@deepseek-ai/*` package at runtime. Runtime integration uses the public Cordis
+service `theme` (`inject: ['theme']`), the rendered Markdown DOM, and private
+React Fiber fields for generic-banner language identification. No DSH package is
+imported, but framework-internal compatibility remains a dependency.
+
+`0.2.0` adds export and viewer modules **inside the same browser half**. The P6
+decision below keeps the renderer bundled inline, so there is still no host
+route, no lazy runtime, and no second half.
 
 ## Pele facts that drive the design
 
-Pele is **synchronous** and has **zero runtime dependencies**.
+Pele is **synchronous** and has **zero runtime dependencies**; `0.2.0` pins the
+exact version `1.9.0`.
 
 - Bundle `pele` into our single client bundle with esbuild. No CDN, no async
   load, no `pele/lazy`, no `mermaid` global. `images: false` prevents diagram
   image embeds; user-activated links keep Pele's filtering.
 - `mount(container, source, options)` renders synchronously and returns a
-  handle. It re-lays out on container resize and owns zoom/pan/keyboard.
+  handle. It re-lays out on container resize and owns inline zoom/pan/keyboard.
+  The handle also exposes the *pristine* render result (SVG text, natural width
+  and height, diagram type) plus the current zoom state; our adapter surfaces
+  those as `snapshot()` / `zoom()` without re-running the renderer.
 - Colors/fonts are CSS variables (`--pele-*`), and **color changes do not need a
   re-render**: theme switches are pure CSS. Source changes, host node replacement
-  and *text measurement inputs* (font family / font size events) can rebuild a diagram. Appearance
-  font size is not yet forwarded to Pele; see the limitations register.
+  and *text measurement inputs* (font family / font size events) can rebuild a
+  diagram. Appearance font size is not yet forwarded to Pele; see the
+  limitations register.
+- Pele 1.9 fixes the label layout this release targets: CJK wrapping between
+  characters, closing punctuation, class-diagram group wrapping, generic
+  `List<T>`/`Map<K,V>` labels, and rich `<sub>`/`<sup>`/`<code>`/`<kbd>`/`<samp>`
+  labels. The plugin adds no text shaping or heuristics of its own.
 - Built-in safety: escapes label text, filters links and styles, rejects
   oversized source/SVG/edge counts. We do not expose options or `config` to
-  diagram authors, and we never insert icons.
+  diagram authors, and we never insert icons. Export/viewer reuse a sanitized
+  clone of Pele's output and add no renderer input.
 
 ## Package layout
 
 ```
 dsh-pele-mermaid/
-├── package.json            # dsh.bundle.patch + dsh.client (platform web)
+├── package.json            # 0.2.0; dsh.bundle.patch + dsh.client (platform web)
 ├── cordis.patch.yml        # insert row `dsh-pele-mermaid`
 ├── index.js                # Host half: empty apply()
 ├── lib/client.js           # BUILT browser bundle (committed; `npm run build`)
+├── CHANGELOG.md            # 0.2.0 release notes; shipped via package.json#files
 ├── scripts/build-client.mjs
 ├── src/client/
 │   ├── index.js            # Cordis browser plugin: observer + theme policy
-│   ├── engine.js           # Pele adapter (mount / error / refresh / destroy)
-│   ├── theme-css.js        # --pele-* ← --dsw-* mapping + card CSS + installStyles
-│   └── blocks.js           # code-block detection, settle, mount, toggle, cleanup
+│   ├── engine.js           # Pele adapter (mount / error / refresh / snapshot / zoom / destroy)
+│   ├── theme-css.js        # --pele-* ← --dsw-* mapping, toolbar/viewer CSS, installStyles
+│   ├── blocks.js           # detection, settle, mount, toolbar, export/viewer wiring, cleanup
+│   ├── icons.js            # decorative inline SVG icons (no font/sprite/network)
+│   ├── export.js           # pristine SVG → sanitized standalone SVG download
+│   └── viewer.js           # reusable fullscreen overlay over the sanitized SVG
 ├── tests/                  # node:test + jsdom; no test runner beyond Node
-└── docs/ARCH.md
+├── docs/ARCH.md
+└── docs/evidence/          # per-run evidence records
 ```
 
 ## Browser-half contracts
@@ -69,11 +92,21 @@ dsh-pele-mermaid/
 
 ```js
 /**
+ * @typedef {Object} DiagramSnapshot
+ * @property {string} svg    // pristine natural-size SVG markup
+ * @property {number} width  // natural width
+ * @property {number} height // natural height
+ * @property {string} type   // diagram type (filename hint)
+ */
+
+/**
  * @typedef {Object} DiagramHandle
  * @property {boolean} ok          // false when the source could not be drawn
  * @property {string | null} error // plain-text error message, null when ok
  * @property {() => void} refresh  // re-layout in place (fonts/width changed)
  * @property {() => void} destroy  // stop observers, clear the container
+ * @property {() => DiagramSnapshot | null} snapshot // pristine export/viewer source
+ * @property {() => { scale: number, fit: number, factor: number }} zoom // inline zoom state
  */
 
 /**
@@ -101,6 +134,14 @@ Rules:
   `responsive: true`, and `images: false`. There are no
   `icons`/`sanitize`/author-driven options. User-activated links remain
   subject to Pele's link filtering; image resources are not embedded.
+- `snapshot()` returns Pele's pristine `result` (`result.svg`, `result.width`,
+  `result.height`, `result.type`) and `null` when the handle failed, was
+  disposed, or lost its result. It must never read the live inline SVG: Pele's
+  zoom/pan mutates `viewBox`, which would crop the exported file. A failed
+  handle exposes `snapshot() -> null` and neutral zoom.
+- `zoom()` reports `{ scale, fit, factor }` where `factor = scale / fit` is the
+  inline zoom relative to the fit-to-column view; invalid or missing values fall
+  back to `1`. The viewer uses `factor` to open at the inline zoom.
 - `destroy()` must be idempotent and must call Pele's `handle.destroy()` when
   present.
 - No `document`/`window` access at module import time; resolve at call time.
@@ -117,13 +158,26 @@ export function buildStyles(): string
 /** Attribute marking our installed <style> element (single owner, reused). */
 export const STYLE_ATTR
 
-/** Class names used by blocks.js / index.js. */
+/** Pele-variable ← DSH-token pairs (exported for tests/docs). */
+export const PELE_VARIABLES
+/** The `--pele-*` custom-property names in mapping order (used by export). */
+export const PELE_VARIABLE_NAMES
+
+/** Class names used by blocks.js / icons.js / viewer.js. */
 export const CLASS = {
   diagram: 'dsh-pele-mermaid-diagram',
   toolbar: 'dsh-pele-mermaid-toolbar',
   error: 'dsh-pele-mermaid-error',
   source: 'dsh-pele-mermaid-source',
   active: 'dsh-pele-mermaid-active',
+  icon: 'dsh-pele-mermaid-icon',
+  viewer: 'dsh-pele-mermaid-viewer',
+  viewerBackdrop: 'dsh-pele-mermaid-viewer-backdrop',
+  viewerDialog: 'dsh-pele-mermaid-viewer-dialog',
+  viewerToolbar: 'dsh-pele-mermaid-viewer-toolbar',
+  viewerStage: 'dsh-pele-mermaid-viewer-stage',
+  viewerCanvas: 'dsh-pele-mermaid-viewer-canvas',
+  viewerSvg: 'dsh-pele-mermaid-viewer-svg',
 }
 ```
 
@@ -137,8 +191,15 @@ Rules:
   `--pele-surface-alt`, `--pele-border`, `--pele-accent`, `--pele-critical`,
   `--pele-error`, `--pele-font`, `--pele-font-mono`, `--pele-radius`.
   Series colors stay Pele's defaults (documented; they are theme-neutral).
+  `PELE_VARIABLE_NAMES` is derived from the same list so export stays in sync.
 - Theme switching is **CSS only**. Do not listen to dark-mode DOM attributes
   here; the tokens flip under us.
+- Toolbar icon CSS sizes the decorative 14 px icons and gives disabled buttons a
+  token-based state. Viewer chrome is scoped to the viewer classes: fixed
+  overlay, backdrop mask, flex dialog, compact 28 px icon buttons, a stage with
+  `cursor: grab`, `touch-action: none`, and `[data-panning]` for drag state.
+- `prefers-reduced-motion` is respected with a `no-preference` media query
+  around the only animation (the dialog fade-in); nothing else animates.
 - `installStyles` is idempotent per document: remove a previous element with
   `STYLE_ATTR` before adding, return an idempotent disposer that only removes
   the element it installed.
@@ -149,6 +210,9 @@ Rules:
 
 ```js
 export const MERMAID_LANG = 'mermaid'
+/** Explicit fence languages rendered by Pele (no heuristics). */
+export const MERMAID_LANGS = Object.freeze(['mermaid', 'mermaidjs', 'mmd'])
+export function isMermaidLanguage(lang): boolean
 
 /** Read committed React language, falling back to the banner when unavailable. */
 export function readFenceLanguage(block): string | null
@@ -166,11 +230,15 @@ export function readFenceSource(block): string | null
  * @param {number} [options.settleMs]                               // default 180
  * @param {string} [options.locale]                                 // 'zh' | 'en'
  * @param {string} [options.errorPrefix]                            // default 'Pele: '
+ * @param {(snapshot, context) => string | null} [options.exportSvg] // export builder seam
+ * @param {(text, filename) => boolean} [options.downloadSvg]       // download seam
+ * @param {(options) => { open, close, destroy? }} [options.createViewer] // viewer factory seam
+ * @param {{ open, close, destroy? }} [options.viewer]              // pre-built viewer
  */
 export function createBlockManager(options)
 
 // manager surface:
-//   scan(): void          // sync pass; renders blocks whose source Settled
+//   scan(): void          // sync pass; renders blocks whose source settled
 //   refreshAll(): void    // rebuild mounted diagrams (font metrics changed)
 //   destroy(): void       // remove plugin additions, preserve latest host state
 //   get count(): number   // mounted diagram count (diagnostics/tests)
@@ -180,8 +248,10 @@ Behavior:
 
 1. `scan()` walks `document.querySelectorAll('.md-code-block')`.
 2. A candidate must have a banner, a host-owned `<pre>`,
-   `readFenceLanguage(block) === 'mermaid'`, and non-blank source. Unknown
-   language is never inferred from source text.
+   `isMermaidLanguage(readFenceLanguage(block))`, and non-blank source. Only the
+   three explicit aliases render; unknown language is never inferred from source
+   text and `language-*` classes are never sniffed. Near-miss names such as
+   `mmdx`, `mermaid.js`, `mermaid-js`, or `mermaidjsx` stay native.
 3. **Settle gate**: a block renders only after its source has been unchanged
    for `settleMs`. New/changed source records `{ source, since: now() }` and
    schedules another scan. A streaming pause longer than the settle window
@@ -193,8 +263,9 @@ Behavior:
    Source view removes that marker and hides the Pele host. The DSH banner and
    Copy handler therefore keep their original DOM lookup and trailing-newline
    behavior.
-5. **DOM shape** (shipped DSH `0.2.1-rc.2` CodeBlock; earlier live observation
-   is historical evidence, not a fresh end-to-end check of this build):
+5. **DOM shape** (shipped DSH `0.2.1-rc.2` CodeBlock; the `0.2.2-rc.3`
+   component keeps the same `[data-code-block-banner]` /
+   `[data-code-block-content]` hooks, verified by the host probe):
    ```html
    <div class="md-code-block ... _card_...">
      <div class="...">
@@ -214,36 +285,161 @@ Behavior:
 
    **Language resolution is explicit.** The reader first checks the committed
    React 18 fiber branch for the `CodeBlock` `lang`/`code` props. Only when
-   those props are unavailable does it read a non-generic banner language (`代码块` / `Code` means unknown). A generic or
-   missing language is left as a native code block, even when its source happens
-   to look like Mermaid. This avoids rendering arbitrary unlabeled code and
-   removes the failed-candidate cache. Root membership is checked through
-   parent child-lists and alternates against `root.current` (up to 512 root
-   ancestors); the CodeBlock search itself is bounded to 40 ancestors.
-   Committed props remain authoritative even when their language is empty.
-   With no usable props, source comes from the original `<pre>`.
+   those props are unavailable does it read a non-generic banner language
+   (`代码块` / `Code` means unknown). A generic or missing language is left as a
+   native code block, even when its source happens to look like Mermaid. Root
+   membership is checked through parent child-lists and alternates against
+   `root.current` (up to 512 root ancestors); the CodeBlock search itself is
+   bounded to 40 ancestors. Committed props remain authoritative even when their
+   language is empty. With no usable props, source comes from the original
+   `<pre>`. Banner-less `.md-code-block` nodes (other UI surfaces) are never
+   treated as fences.
+6. **Toolbar contract.** One `role="group"` toolbar with exactly four buttons,
+   in this order:
+   - `Diagram` / `Source` text buttons (localized; `aria-pressed` marks the
+     active view);
+   - two icon-only buttons, **`Download SVG` / `下载 SVG`** and
+     **`Fullscreen` / `全屏查看`**, each with a localized `aria-label` and
+     `title` and a decorative (`aria-hidden`) SVG icon from `icons.js`.
 
-   Banner-less `.md-code-block` nodes (other UI surfaces) are never treated as
-   fences, even when their text happens to look like Mermaid.
-6. Error handling: when `mountDiagram` returns `ok:false`, keep the source
+   The icon buttons are disabled from creation and enabled only when a mount
+   produced a pristine render result (`snapshot() !== null`); a failed or
+   stub handle keeps them disabled, and clicking a disabled button is inert.
+7. **Export operation.** `downloadRecordDiagram(record)` takes
+   `record.handle.snapshot()`, renders it through
+   `buildExportSvg(snapshot, { document, view, container })`, names it with
+   `exportFilename(snapshot.type)`, and calls `downloadSvg(text, filename)`.
+   Any missing snapshot, rejected export, or download failure is a silent no-op
+   (the controls are disabled, not error UI). The builder/downloader are
+   injectable seams for tests.
+8. **Viewer operation.** A single lazily created viewer instance per page opens
+   on the sanitized SVG text with the snapshot's natural size and
+   `zoom.factor`. Opening a different diagram closes the previous overlay; a
+   record rebuild/unmount closes the overlay owned by that record; manager
+   `destroy()` closes and destroys the viewer before releasing block DOM. The
+   viewer gets explicit parameters and owned nodes; it never touches the
+   manager's records.
+9. Error handling: when `mountDiagram` returns `ok:false`, keep the source
    `<pre>` visible exactly as DSH rendered it and append a small
    `.dsh-pele-mermaid-error` note whose text is assigned via `textContent`
-   (`errorPrefix + message`). The record stays so a later source edit retries.
-7. Re-render policy: source changed → destroy old diagram and re-settle.
-   Same source with healthy nodes → do nothing. Host node replacement can
-   rebuild unchanged source; `refreshAll()` also rebuilds for font-input events.
-   Theme color changes do not request rebuilds.
-8. `destroy()` removes only plugin containers, toolbars, error notes and the
-   temporary source marker, unmounts every Pele handle, and is idempotent. It
-   does not restore an old snapshot or move a host node. If React changed the
-   source or replaced a subtree during plugin lifetime, the latest host DOM is
-   preserved.
-9. React re-render self-healing: if a later React pass replaces our wrapper
-   (source changed or node recreated), the next `scan()` re-applies. We never
-   throw into React: all DOM work is wrapped defensively.
-10. Accessibility: toolbar is a `role="group"` with two `button`s using
-    `aria-pressed`; labels come from `locale` (`zh`: 图表/源码, `en`:
-    Diagram/Source). Focus style uses `--dsw-alias-border-l2`.
+   (`errorPrefix + message`). The record stays so a later source edit retries;
+   export/viewer stay disabled because no snapshot exists.
+10. Re-render policy: source changed → close any viewer owned by the record,
+    destroy old diagram and re-settle. Same source with healthy nodes → do
+    nothing. Host node replacement can rebuild unchanged source;
+    `refreshAll()` also rebuilds for font-input events. Theme color changes do
+    not request rebuilds.
+11. `destroy()` removes only plugin containers, toolbars, error notes and the
+    temporary source marker, closes/destroys the viewer, unmounts every Pele
+    handle, and is idempotent. It does not restore an old snapshot or move a
+    host node. If React changed the source or replaced a subtree during plugin
+    lifetime, the latest host DOM is preserved.
+12. React re-render self-healing: if a later React pass replaces our wrapper
+    (source changed or node recreated), the next `scan()` re-applies. We never
+    throw into React: all DOM work is wrapped defensively.
+13. Accessibility: labels come from `locale` — toolbar `zh`: 图表操作/图表/源码/
+    下载 SVG/全屏查看, `en`: Diagram controls/Diagram/Source/Download SVG/
+    Fullscreen. Focus style uses `--dsw-alias-border-l2`.
+
+### `src/client/icons.js`
+
+```js
+/** 24x24 stroke icons keyed by name: download, fullscreen, close, zoomIn, zoomOut, fit. */
+export const ICON_PATHS
+
+/** Build one decorative icon (`aria-hidden`, `focusable="false"`, `currentColor`). */
+export function createIcon(doc, name): SVGElement
+```
+
+Rules: inline SVG only — no icon font, sprite, data URL, or network request; the
+owning button carries the accessible name; a missing path name still returns a
+usable empty icon rather than throwing.
+
+### `src/client/export.js`
+
+```js
+/** Resolved `--pele-*` variables from the inline card (computed style, inline fallback). */
+export function collectThemeVariables(container, view): Record<string, string>
+
+/** Pristine snapshot → sanitized standalone SVG document string, or null. */
+export function buildExportSvg(snapshot, { document, view, container }): string | null
+
+/** `pele-<type>-YYYYMMDD-HHmmss.svg` (local time; type reduced to filename-safe chars). */
+export function exportFilename(type, date = new Date()): string
+
+/** Offer one SVG as a download and revoke the object URL afterwards. */
+export function downloadSvg(svgText, filename, { document, view, url }): boolean
+```
+
+Rules:
+
+- Input is only the engine snapshot. Parse with `DOMParser`; reject a parser
+  error, a non-`svg` root, missing dimensions, or oversized markup; fail closed
+  (`null`/`false`) instead of throwing.
+- Restore natural size: `width`/`height` and `viewBox="0 0 w h"` from the
+  snapshot (fallback to root attributes) always override the inline zoom/pan
+  state; the complete diagram is exported.
+- Sanitize every element: remove `script`, `foreignObject`, `iframe`,
+  `object`, `embed`, `image`, `audio`, `video`; remove `on*` attributes,
+  `src`, unsafe `style` (`expression(`, `javascript:`, `vbscript:`,
+  `@import`) and non-local `url()`; keep `href`/`xlink:href` only for
+  `#fragment`, `https?`, `mailto:`, `tel:` (`use` allows only fragments).
+- Write the resolved theme variables onto the root `style`, preserving Pele's
+  own declarations; reject values containing `;`, braces, angle brackets, or
+  external `url()`.
+- `downloadSvg` builds a `Blob` of type `image/svg+xml;charset=utf-8`, creates
+  a temporary hidden anchor, clicks it, removes it, and revokes the object URL
+  on the next tick. It returns `false` (no throw) when Blob/URL/anchor support
+  is missing.
+- No network access and no renderer re-run. Filename uses the client's local
+  time.
+
+### `src/client/viewer.js`
+
+```js
+/** One reusable overlay per page; DOM access happens only inside open(). */
+export function createViewer({ document, view, locale, measureStage, maxScale }): {
+  open(params: { svg, width, height, zoomFactor?, onClose? }): boolean
+  close(): void
+  destroy(): void
+  isOpen: boolean
+  scale: number
+  zoomIn(): void
+  zoomOut(): void
+  fit(): void
+}
+```
+
+Rules:
+
+- Structure: root `div[data-dsh-pele-mermaid-viewer]` with a backdrop and a
+  dialog (`role="dialog"`, `aria-modal="true"`, localized `aria-label`); a
+  `role="toolbar"` with exactly four icon buttons — zoom out, zoom in, fit,
+  close — then a stage containing the imported SVG. Exactly one overlay exists:
+  `open()` closes a previous instance before creating the next.
+- The SVG passed in is the already-sanitized export text; the viewer parses it,
+  sets natural `width`/`height` and the full `viewBox`, marks it with
+  `viewerSvg`, removes `tabindex`, and never re-renders Pele or reads inline
+  zoom/pan state.
+- Zoom: opens at `zoomFactor` clamped to `[1, 8]`; button steps are ×1.25;
+  fit resets to scale 1 and viewBox 0 0 w h; zoom is anchored at the pointer for
+  Ctrl/Cmd + wheel (plain wheel is left to the page); the viewBox is cropped and
+  clamped so blank space is never exposed.
+- Pan: pointer drag with capture (when available) moves within the diagram
+  bounds; arrow keys pan by 48 px; `data-panning` marks drag state.
+- Keyboard: `Escape` closes, `Tab`/`Shift+Tab` trap focus among enabled
+  controls, `+`/`=` and `-`/`_` zoom, `0` fits. Focus moves to the close
+  button on open and returns to the saved trigger on close.
+- Lifecycle: opening saves focus, body/html overflow and scroll position, locks
+  scrolling, and closes on backdrop click (not on clicks inside the dialog);
+  close removes the overlay, restores overflow/scroll/focus, removes every
+  listener, and is idempotent. `destroy()` closes and permanently disables the
+  instance (`open()` then returns `false`). Invalid SVG, bad dimensions, or a
+  missing body fail closed without touching the page.
+- Labels come from `locale` (`zh`/`en`, default `navigator.language`);
+  `prefers-reduced-motion` is handled by the stylesheet, not JS.
+- jsdom has no layout engine; `measureStage(stage)` is the documented test seam
+  returning the available inner box.
 
 ### `src/client/index.js`
 
@@ -261,12 +457,62 @@ Behavior:
   shared scan/refresh timer can lose a refresh during mutation bursts; this is
   tracked as a remaining limitation.
 - All resources are released through `ctx.effect()`: observer disconnected,
-  timers cleared, manager destroyed (preserving current host DOM), styles removed, theme
-  listener disposed. Disabling the plugin row only takes effect on the next
-  page load (boot graph), but unloading the fiber must still restore the page.
+  timers cleared, manager destroyed (which closes/destroys the viewer), styles
+  removed, theme listener disposed. Disabling the plugin row only takes effect
+  on the next page load (boot graph), but unloading the fiber must still restore
+  the page.
 - If `document.body` is unavailable at apply time, wait for
   `DOMContentLoaded` (real boot scripts can run before body children exist).
 - No `require()` of any DSH client package; Pele is bundled.
+
+## Installed-host bindings and version sensitivity (P2)
+
+`npm run verify:host` executes the **installed** CodeBlock function under pinned
+React. Its free identifiers are minified names baked into one frontend build, so
+the binding layer is versioned in `tests/helpers/react-code-block.mjs`:
+
+- `SUPPORTED_HOST_VERSIONS` currently lists `0.2.1-rc.2` (retained, audited map)
+  and `0.2.2-rc.3` (added for the installed host).
+- `resolveInstalledBindings({ version, jsxRuntime, onCopy, assetSha256 })` returns
+  the binding map and the extraction boundary matcher for that version.
+- An unknown version throws `UnsupportedHostError` (name
+  `UnsupportedHostError`, code `unsupported-host`, fields `version` and
+  `assetSha256`) whose message names the supported versions and tells the
+  maintainer to update the map in `tests/helpers/react-code-block.mjs` (see this
+  file). `scripts/verify-host.mjs` prints that diagnostic and exits with code 1
+  instead of surfacing a raw `ReferenceError`; a known-version extraction that
+  references an undeclared identifier raises `StaleBindingMapError`.
+- The probe records the installed frontend version and asset SHA-256, the
+  extracted component SHA-256, React version, and six checks. Scope: installed
+  CodeBlock function with fixture adapters for styling/toolbar/visibility/
+  tokenization; **not** a live DSH session. The `0.2.1-rc.2` map is unit-tested
+  but no longer render-verified because that host bundle is not installed.
+- `DG4` is accepted on this basis; it never implies host compatibility on its
+  own.
+
+## Lazy-runtime decision (P6): no-go for 0.2.0
+
+The decision gate proposed splitting Pele out of the client bundle only if
+measurements justified the added host route. **Decision: keep Pele bundled
+inline; do not split in 0.2.0.** Recorded in
+[`evidence/2026-11-17/p6-measurement.json`](evidence/2026-11-17/p6-measurement.json):
+
+- Final inline bundle: 738,710 raw, 275,784 `gzip -9`, 223,454 brotli bytes;
+  the whole-inline budget (750,000 raw) is met with 11,290 bytes headroom.
+- Local plain-HTTP route (no `Content-Encoding`, `cache-control: no-cache`):
+  bundle request+eval completes by ~40 ms cold / ~19 ms warm after navigation;
+  first diagram ready ~411 ms cold / ~368 ms warm, dominated by the fixed
+  150 ms scan debounce + 180 ms settle window, not by bundle size.
+- Installed DSH route `Content-Encoding`/`encodedBodySize`/cache metrics were not
+  measurable in this iteration, and no split prototype was built to measure the
+  first-diagram regression. With one metric required on both sides, the roadmap
+  adopt rule cannot be satisfied; the default no stands.
+
+If revisited: measure `PerformanceResourceTiming` + cache/encoding on the
+authenticated installed `/plugins` route, build a split prototype, and compare
+cold-start time and first-diagram regression on the same metric before adding a
+`webServer` route, cache-busting `?v=<hash>` + `immutable` caching, and a
+failure fallback.
 
 ## Build contract (`scripts/build-client.mjs`)
 
@@ -292,23 +538,37 @@ Behavior:
 - Optional `--check` mode: build to memory and require byte equality with
   `lib/client.js`. Both modes check the wrapper/id and a fixed list of CDN
   markers; these checks are not a general network-policy audit.
-- Report the byte size. A ~700 KB bundle is expected (Pele 1.6.0 main entry).
+- Report the byte size. `0.2.0` ships 738,710 bytes with Pele 1.9.0 plus export
+  and viewer; the whole-inline-bundle raw budget is 750,000 bytes.
 
 ## Testing contract
 
 - `node --test "tests/*.test.mjs"`, Node ≥ 20, jsdom for DOM tests.
-- Unit tests import `src/client/*.js` directly (ESM).
+- Unit tests import `src/client/*.js` directly (ESM). `0.2.0` totals **120
+  tests, 120 pass, 0 fail, 0 cancelled, 0 skipped, 0 todo**: engine, theme CSS,
+  block manager, export (7), viewer (13), installed-host bindings (6), real
+  React 18.3.1 lifecycle, and built-bundle smoke (7).
 - jsdom fixture blocks must match the DOM contract above (the primitives source
-  is the reference).
+  is the reference). Export tests use a hostile SVG fixture to assert
+  sanitization, natural sizing, theme variables, filename shape, and download
+  dispatch/revocation. Viewer tests inject a stage box through
+  `measureStage` and cover structure, zoom/pan/fit, keyboard/focus/scroll,
+  backdrop close, reuse, and teardown.
 - `tests/bundle.test.mjs` evaluates the built bundle in a jsdom + vm sandbox:
   fake `window.__ModuleLoader__`, assert `factory(require)` never calls
-  `require`, returns `{ inject: ['theme'], apply }`, and that `apply` mounts a
-  diagram into a fixture.
+  `require`, returns `{ inject: ['theme'], apply }`, that `apply` mounts
+  diagrams with the four-button toolbar, and that teardown restores the page.
 - Real React 18.3.1 tests cover source-only updates, props-only language changes,
   three pre shapes, Copy parity, replacement/unmount, alternate branches and
   suspended updates. Static Fiber fixtures only exercise language recognition.
 - `scripts/verify-host.mjs` separately executes the installed CodeBlock body
-  with fixture helpers and pinned React; it does not run a live DSH chat.
+  with versioned bindings and pinned React; it does not run a live DSH chat.
+- `scripts/verify-visual.mjs` drives the real built bundle in isolated headless
+  Chrome against the fixture: P1 layout facts (CJK wrapping, class-group rows
+  in wide/narrow columns, generic/rich labels), four-control toolbar, viewer,
+  theme/font behavior, narrow 720×2200 capture, and teardown. Restricted
+  sandboxes must set `DSH_VISUAL_CHROME_NO_SANDBOX=1` to add Chrome's
+  `--no-sandbox --disable-setuid-sandbox`; default runs keep the sandbox.
 - No network in any test.
 
 ## Non-goals
@@ -318,8 +578,12 @@ Behavior:
   DOM only.
 - No second Mermaid engine; if another Mermaid renderer plugin is active, only
   one should be enabled (documented).
+- No lazy runtime in 0.2.0 (P6 no-go above); no host route, no cache layer.
+- No automatic diagram image loading, no author options, no source heuristics.
 
 ## Remaining limitations
 
 See [KNOWN-LIMITATIONS.md](KNOWN-LIMITATIONS.md) for private-Fiber compatibility,
-scan cost, timer scheduling, font size and the scope of external-resource tests.
+host-probe version sensitivity, scan cost, timer scheduling, font size,
+export/viewer scope, the missing live `0.2.2` verification (P0), the P6 no-go,
+and the scope of external-resource tests.

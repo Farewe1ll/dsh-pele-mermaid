@@ -1,0 +1,61 @@
+[
+  {
+    "id": "dsh-pele-mermaid@0.2.0",
+    "name": "dsh-pele-mermaid",
+    "version": "0.2.0",
+    "size": 295928,
+    "unpackedSize": 786779,
+    "shasum": "0572f53072547b7cb55b6197637a07e998274779",
+    "integrity": "sha512-JnkrwHahVHckcgevVhfNvkyV48CdHA6aDB/7rxS2guxeoLTHHwnw29zJwhMStGMHMTYGARctJcjj5u0uw0FW/w==",
+    "filename": "dsh-pele-mermaid-0.2.0.tgz",
+    "files": [
+      {
+        "path": "CHANGELOG.md",
+        "size": 9852,
+        "mode": 384
+      },
+      {
+        "path": "LICENSE",
+        "size": 1282,
+        "mode": 384
+      },
+      {
+        "path": "README.md",
+        "size": 14003,
+        "mode": 384
+      },
+      {
+        "path": "README.zh.md",
+        "size": 12683,
+        "mode": 384
+      },
+      {
+        "path": "cordis.patch.yml",
+        "size": 573,
+        "mode": 384
+      },
+      {
+        "path": "docs/KNOWN-LIMITATIONS.md",
+        "size": 7603,
+        "mode": 420
+      },
+      {
+        "path": "index.js",
+        "size": 632,
+        "mode": 384
+      },
+      {
+        "path": "lib/client.js",
+        "size": 738710,
+        "mode": 420
+      },
+      {
+        "path": "package.json",
+        "size": 1441,
+        "mode": 420
+      }
+    ],
+    "entryCount": 9,
+    "bundled": []
+  }
+]

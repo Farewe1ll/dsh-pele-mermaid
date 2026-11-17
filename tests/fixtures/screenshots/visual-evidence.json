@@ -1,36 +1,49 @@
 {
   "status": "PASS",
-  "date": "2026-10-19T15:50:03.045Z",
-  "browser": "Chrome/155.0.8059.85",
-  "scope": "Browser fixture with static committed-shape Fiber objects; real React lifecycle is tested separately.",
-  "url": "http://127.0.0.1:49713/tests/fixtures/fixture.html",
+  "date": "2026-11-17T03:53:34.961Z",
+  "browser": "Chrome/157.0.8103.79",
+  "scope": "Browser fixture with static committed-shape Fiber objects; real React lifecycle is tested separately. P1 cases: CJK wrapping, class-diagram group wrapping (wide vs narrow column), generic angle-bracket labels, rich <sub>/<sup>/<code>/<kbd>/<samp> labels.",
+  "url": "http://127.0.0.1:64556/tests/fixtures/fixture.html",
   "query": "?locale=en",
   "viewport": {
     "width": 1400,
     "height": 2400,
-    "deviceScaleFactor": 1
+    "deviceScaleFactor": 1,
+    "mobile": false
   },
-  "bundleSha256": "ba5b29085cac5c6f3fe34b2e76e5b00744b191f7c98877700982ddad90a8a1e4",
+  "bundleSha256": "3259e916e0017a66090781493376b982ef2ab373be062bbb8795ec54cd913c82",
   "screenshots": {
     "fixture-light.png": {
-      "bytes": 329773,
-      "sha256": "5965ac067fc5080225e34f447747751330c3227516980316a02ca6867fc697ef"
+      "bytes": 403650,
+      "sha256": "1bed9a0524b00340c03a75ae0e0343de840d848b0733ff5399252bedecb350b1"
+    },
+    "fixture-wide-p1.png": {
+      "bytes": 401022,
+      "sha256": "0d720c0ed4d8e5933c04102a3d28ebacefb2b24a1d0c91a795a409cabd3d3b80"
     },
     "fixture-dark.png": {
-      "bytes": 334247,
-      "sha256": "5e3d61f3b5f782935489d3290297a54e938c361079e1da6d562c2eae456aa9e8"
+      "bytes": 409746,
+      "sha256": "45a047528b2438717940c510304a70270477d4fec73cd8017b4a3aa470af35eb"
     },
     "fixture-source-view.png": {
-      "bytes": 333159,
-      "sha256": "3ec8e53c6b1a4eefcd4b1cfd31629f29462b190e37b138a31927c790b5e2c30a"
+      "bytes": 408878,
+      "sha256": "700b8651d331e5427f7b15efc5756f1fae6881725b83ea8e5e5f44d3e7f4153b"
+    },
+    "fixture-viewer.png": {
+      "bytes": 52355,
+      "sha256": "00fa6f58989e116ff1e5d7bf3cfadd14af22a6c8c241d66f0ec3be6dbb4fb23b"
+    },
+    "fixture-narrow.png": {
+      "bytes": 153277,
+      "sha256": "c099a8fbb8e7b8326790dcfdb1f4982816efbff89656e89583b65b7b308d260c"
     },
     "fixture-font-refresh.png": {
-      "bytes": 334373,
-      "sha256": "9485ea065a8520f3551fbf050bcda00f2ffd2b43cfd9e44eac94ce285638508b"
+      "bytes": 401666,
+      "sha256": "8d753c1ee9f11a3fc4d7072c64f9ef8579fa9b37b7786f179cabdb1ffb04819c"
     },
     "fixture-teardown.png": {
-      "bytes": 232311,
-      "sha256": "9fa616176b945e212ee0915f00c9640eecfa65234ff1138b3075424acb8fdc87"
+      "bytes": 361006,
+      "sha256": "0795a6925024e90d5ccb09f05d338f85196cb590c52141d0195bdc017dd5d0ca"
     }
   },
   "light": {
@@ -53,39 +66,141 @@
     "effectCalls": 1,
     "themeHandlers": 1,
     "dom": {
-      "blocks": 6,
-      "mountedContainers": 4,
-      "hosts": 4,
-      "diagramSvgs": 4,
+      "blocks": 10,
+      "mountedContainers": 8,
+      "hosts": 8,
+      "diagramSvgs": 8,
       "svgTypes": [
         "flowchart",
         "sequence",
         "pie",
-        "gantt"
+        "gantt",
+        "flowchart",
+        "class",
+        "flowchart",
+        "flowchart"
       ],
-      "zoomIconSvgs": 12,
-      "toolbars": 4,
-      "toolbarButtons": 8,
+      "zoomIconSvgs": 24,
+      "toolbars": 8,
+      "toolbarButtons": 32,
       "ariaPressed": [
         "true",
         "false",
+        null,
+        null,
         "true",
         "false",
+        null,
+        null,
         "true",
         "false",
+        null,
+        null,
         "true",
-        "false"
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null
       ],
       "toolbarLabels": [
         "Diagram",
         "Source",
+        "",
+        "",
         "Diagram",
         "Source",
+        "",
+        "",
         "Diagram",
         "Source",
+        "",
+        "",
         "Diagram",
-        "Source"
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        ""
       ],
+      "toolbarButtonsPerDiagram": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "iconButtons": 16,
+      "downloadButtons": 8,
+      "fullscreenButtons": 8,
+      "disabledToolbarButtons": 0,
+      "diagramWidths": [
+        813,
+        518,
+        371,
+        800,
+        508,
+        752,
+        594,
+        190
+      ],
+      "diagramHeights": [
+        135,
+        314,
+        296,
+        197,
+        598,
+        120,
+        64,
+        448
+      ],
+      "hostWidths": [
+        845,
+        845,
+        845,
+        845,
+        845,
+        845,
+        845,
+        845
+      ],
+      "viewerOpen": false,
+      "viewerOverlays": 0,
+      "viewerDialogs": 0,
+      "viewerToolbarButtons": 0,
+      "viewerViewBox": null,
+      "viewerFocusRestored": null,
       "errorNotes": 1,
       "errorTexts": [
         "Pele: No diagram type detected for the given text."
@@ -99,25 +214,319 @@
         "代码块",
         "代码块",
         "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
         "javascript"
       ]
     },
-    "remounts": 4,
+    "expectedDiagrams": 8,
+    "diagramKinds": [
+      "flowchart",
+      "sequenceDiagram",
+      "pie",
+      "gantt",
+      "flowchart (CJK wrapping)",
+      "classDiagram (group wrapping)",
+      "flowchart (generic labels)",
+      "flowchart (rich labels)",
+      "mermaid (invalid)"
+    ],
+    "invalidSources": 1,
+    "remounts": 8,
     "teardown": {
       "tornDown": false,
       "restored": null
     },
     "mountEvents": [
       {
-        "count": 4,
-        "remounts": 4,
-        "at": 466
+        "count": 8,
+        "remounts": 8,
+        "at": 467
       }
     ],
     "themeEvents": [
       {
         "theme": "light",
-        "at": 35
+        "at": 23
+      }
+    ],
+    "errors": [],
+    "pele": {
+      "target": "first .dsh-pele-mermaid-diagram",
+      "backgroundColor": "rgb(249, 250, 251)",
+      "vars": {
+        "--pele-bg": "#f9fafb",
+        "--pele-fg": "#0f1115",
+        "--pele-muted": "#81858c",
+        "--pele-line": "#61666b",
+        "--pele-surface": "#fff",
+        "--pele-surface-alt": "#f9fafb",
+        "--pele-border": "#0000001a",
+        "--pele-accent": "#0f1115",
+        "--pele-radius": "12px",
+        "--pele-font": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+        "--pele-font-mono": "\"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\", \"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\""
+      }
+    }
+  },
+  "p1Wide": {
+    "cjk": {
+      "width": 508,
+      "height": 598,
+      "hostWidth": 845,
+      "wrappedLabels": 4,
+      "maxLines": 5,
+      "punctuationKept": true,
+      "labels": [
+        "是",
+        "否",
+        "用户提交一条较长的中文需求描述，其中包含 Englishtoken 和 code 标识符，需要在中文字符之间换行而不是把图表撑宽。",
+        "是否已经完成流式输出？",
+        "等待 fence 稳定后再挂载图表。",
+        "继续读取 stream 内容，保留原始 source 文本。",
+        "检查长标签的收尾标点（含句号）。"
+      ]
+    },
+    "class": {
+      "width": 752,
+      "height": 120,
+      "hostWidth": 845,
+      "classNodes": 3,
+      "rows": 1
+    },
+    "generic": {
+      "width": 594,
+      "height": 64,
+      "hostWidth": 845,
+      "labels": [
+        "List<Diagram>",
+        "Map<String, Diagram>",
+        "Set<Diagram>"
+      ],
+      "angleBracketsIntact": true
+    },
+    "rich": {
+      "width": 190,
+      "height": 448,
+      "hostWidth": 845,
+      "sub": 1,
+      "sup": 1,
+      "mono": 3,
+      "labels": [
+        "H2O",
+        "E = mc2",
+        "mountDiagram()",
+        "Press Esc",
+        "svg.pele"
+      ]
+    }
+  },
+  "wideP1": {
+    "theme": "light",
+    "darkAttribute": false,
+    "bodyBackground": "rgb(255, 255, 255)",
+    "bodyColor": "rgb(15, 17, 21)",
+    "registrationId": "dsh-pele-mermaid",
+    "factoryType": "function",
+    "exportsFace": {
+      "apply": "function",
+      "inject": [
+        "theme"
+      ]
+    },
+    "applied": true,
+    "ready": true,
+    "requireCalls": 0,
+    "applyCalls": 1,
+    "effectCalls": 1,
+    "themeHandlers": 1,
+    "dom": {
+      "blocks": 10,
+      "mountedContainers": 8,
+      "hosts": 8,
+      "diagramSvgs": 8,
+      "svgTypes": [
+        "flowchart",
+        "sequence",
+        "pie",
+        "gantt",
+        "flowchart",
+        "class",
+        "flowchart",
+        "flowchart"
+      ],
+      "zoomIconSvgs": 24,
+      "toolbars": 8,
+      "toolbarButtons": 32,
+      "ariaPressed": [
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null
+      ],
+      "toolbarLabels": [
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        ""
+      ],
+      "toolbarButtonsPerDiagram": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "iconButtons": 16,
+      "downloadButtons": 8,
+      "fullscreenButtons": 8,
+      "disabledToolbarButtons": 0,
+      "diagramWidths": [
+        813,
+        518,
+        371,
+        800,
+        508,
+        752,
+        594,
+        190
+      ],
+      "diagramHeights": [
+        135,
+        314,
+        296,
+        197,
+        598,
+        120,
+        64,
+        448
+      ],
+      "hostWidths": [
+        845,
+        845,
+        845,
+        845,
+        845,
+        845,
+        845,
+        845
+      ],
+      "viewerOpen": false,
+      "viewerOverlays": 0,
+      "viewerDialogs": 0,
+      "viewerToolbarButtons": 0,
+      "viewerViewBox": null,
+      "viewerFocusRestored": null,
+      "errorNotes": 1,
+      "errorTexts": [
+        "Pele: No diagram type detected for the given text."
+      ],
+      "styleElements": 1,
+      "sourceViews": 0,
+      "nonMermaidPre": true,
+      "bannerTexts": [
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "javascript"
+      ]
+    },
+    "expectedDiagrams": 8,
+    "diagramKinds": [
+      "flowchart",
+      "sequenceDiagram",
+      "pie",
+      "gantt",
+      "flowchart (CJK wrapping)",
+      "classDiagram (group wrapping)",
+      "flowchart (generic labels)",
+      "flowchart (rich labels)",
+      "mermaid (invalid)"
+    ],
+    "invalidSources": 1,
+    "remounts": 8,
+    "teardown": {
+      "tornDown": false,
+      "restored": null
+    },
+    "mountEvents": [
+      {
+        "count": 8,
+        "remounts": 8,
+        "at": 467
+      }
+    ],
+    "themeEvents": [
+      {
+        "theme": "light",
+        "at": 23
       }
     ],
     "errors": [],
@@ -159,39 +568,141 @@
     "effectCalls": 1,
     "themeHandlers": 1,
     "dom": {
-      "blocks": 6,
-      "mountedContainers": 4,
-      "hosts": 4,
-      "diagramSvgs": 4,
+      "blocks": 10,
+      "mountedContainers": 8,
+      "hosts": 8,
+      "diagramSvgs": 8,
       "svgTypes": [
         "flowchart",
         "sequence",
         "pie",
-        "gantt"
+        "gantt",
+        "flowchart",
+        "class",
+        "flowchart",
+        "flowchart"
       ],
-      "zoomIconSvgs": 12,
-      "toolbars": 4,
-      "toolbarButtons": 8,
+      "zoomIconSvgs": 24,
+      "toolbars": 8,
+      "toolbarButtons": 32,
       "ariaPressed": [
         "true",
         "false",
+        null,
+        null,
         "true",
         "false",
+        null,
+        null,
         "true",
         "false",
+        null,
+        null,
         "true",
-        "false"
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null
       ],
       "toolbarLabels": [
         "Diagram",
         "Source",
+        "",
+        "",
         "Diagram",
         "Source",
+        "",
+        "",
         "Diagram",
         "Source",
+        "",
+        "",
         "Diagram",
-        "Source"
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        ""
       ],
+      "toolbarButtonsPerDiagram": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "iconButtons": 16,
+      "downloadButtons": 8,
+      "fullscreenButtons": 8,
+      "disabledToolbarButtons": 0,
+      "diagramWidths": [
+        813,
+        518,
+        371,
+        800,
+        508,
+        752,
+        594,
+        190
+      ],
+      "diagramHeights": [
+        135,
+        314,
+        296,
+        197,
+        598,
+        120,
+        64,
+        448
+      ],
+      "hostWidths": [
+        845,
+        845,
+        845,
+        845,
+        845,
+        845,
+        845,
+        845
+      ],
+      "viewerOpen": false,
+      "viewerOverlays": 0,
+      "viewerDialogs": 0,
+      "viewerToolbarButtons": 0,
+      "viewerViewBox": null,
+      "viewerFocusRestored": null,
       "errorNotes": 1,
       "errorTexts": [
         "Pele: No diagram type detected for the given text."
@@ -205,29 +716,46 @@
         "代码块",
         "代码块",
         "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
         "javascript"
       ]
     },
-    "remounts": 4,
+    "expectedDiagrams": 8,
+    "diagramKinds": [
+      "flowchart",
+      "sequenceDiagram",
+      "pie",
+      "gantt",
+      "flowchart (CJK wrapping)",
+      "classDiagram (group wrapping)",
+      "flowchart (generic labels)",
+      "flowchart (rich labels)",
+      "mermaid (invalid)"
+    ],
+    "invalidSources": 1,
+    "remounts": 8,
     "teardown": {
       "tornDown": false,
       "restored": null
     },
     "mountEvents": [
       {
-        "count": 4,
-        "remounts": 4,
-        "at": 466
+        "count": 8,
+        "remounts": 8,
+        "at": 467
       }
     ],
     "themeEvents": [
       {
         "theme": "light",
-        "at": 35
+        "at": 23
       },
       {
         "theme": "dark",
-        "at": 698
+        "at": 1277
       }
     ],
     "errors": [],
@@ -269,39 +797,141 @@
     "effectCalls": 1,
     "themeHandlers": 1,
     "dom": {
-      "blocks": 6,
-      "mountedContainers": 4,
-      "hosts": 4,
-      "diagramSvgs": 4,
+      "blocks": 10,
+      "mountedContainers": 8,
+      "hosts": 8,
+      "diagramSvgs": 8,
       "svgTypes": [
         "flowchart",
         "sequence",
         "pie",
-        "gantt"
+        "gantt",
+        "flowchart",
+        "class",
+        "flowchart",
+        "flowchart"
       ],
-      "zoomIconSvgs": 12,
-      "toolbars": 4,
-      "toolbarButtons": 8,
+      "zoomIconSvgs": 24,
+      "toolbars": 8,
+      "toolbarButtons": 32,
       "ariaPressed": [
         "false",
         "true",
+        null,
+        null,
         "true",
         "false",
+        null,
+        null,
         "true",
         "false",
+        null,
+        null,
         "true",
-        "false"
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null
       ],
       "toolbarLabels": [
         "Diagram",
         "Source",
+        "",
+        "",
         "Diagram",
         "Source",
+        "",
+        "",
         "Diagram",
         "Source",
+        "",
+        "",
         "Diagram",
-        "Source"
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        ""
       ],
+      "toolbarButtonsPerDiagram": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "iconButtons": 16,
+      "downloadButtons": 8,
+      "fullscreenButtons": 8,
+      "disabledToolbarButtons": 0,
+      "diagramWidths": [
+        813,
+        518,
+        371,
+        800,
+        508,
+        752,
+        594,
+        190
+      ],
+      "diagramHeights": [
+        135,
+        314,
+        296,
+        197,
+        598,
+        120,
+        64,
+        448
+      ],
+      "hostWidths": [
+        0,
+        845,
+        845,
+        845,
+        845,
+        845,
+        845,
+        845
+      ],
+      "viewerOpen": false,
+      "viewerOverlays": 0,
+      "viewerDialogs": 0,
+      "viewerToolbarButtons": 0,
+      "viewerViewBox": null,
+      "viewerFocusRestored": null,
       "errorNotes": 1,
       "errorTexts": [
         "Pele: No diagram type detected for the given text."
@@ -315,29 +945,46 @@
         "代码块",
         "代码块",
         "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
         "javascript"
       ]
     },
-    "remounts": 4,
+    "expectedDiagrams": 8,
+    "diagramKinds": [
+      "flowchart",
+      "sequenceDiagram",
+      "pie",
+      "gantt",
+      "flowchart (CJK wrapping)",
+      "classDiagram (group wrapping)",
+      "flowchart (generic labels)",
+      "flowchart (rich labels)",
+      "mermaid (invalid)"
+    ],
+    "invalidSources": 1,
+    "remounts": 8,
     "teardown": {
       "tornDown": false,
       "restored": null
     },
     "mountEvents": [
       {
-        "count": 4,
-        "remounts": 4,
-        "at": 466
+        "count": 8,
+        "remounts": 8,
+        "at": 467
       }
     ],
     "themeEvents": [
       {
         "theme": "light",
-        "at": 35
+        "at": 23
       },
       {
         "theme": "dark",
-        "at": 698
+        "at": 1277
       }
     ],
     "errors": [],
@@ -359,11 +1006,11 @@
       }
     }
   },
-  "fontRefresh": {
-    "theme": "dark",
-    "darkAttribute": true,
-    "bodyBackground": "rgb(21, 21, 23)",
-    "bodyColor": "rgb(249, 250, 251)",
+  "viewer": {
+    "theme": "light",
+    "darkAttribute": false,
+    "bodyBackground": "rgb(255, 255, 255)",
+    "bodyColor": "rgb(15, 17, 21)",
     "registrationId": "dsh-pele-mermaid",
     "factoryType": "function",
     "exportsFace": {
@@ -379,39 +1026,141 @@
     "effectCalls": 1,
     "themeHandlers": 1,
     "dom": {
-      "blocks": 6,
-      "mountedContainers": 4,
-      "hosts": 4,
-      "diagramSvgs": 4,
+      "blocks": 10,
+      "mountedContainers": 8,
+      "hosts": 8,
+      "diagramSvgs": 8,
       "svgTypes": [
         "flowchart",
         "sequence",
         "pie",
-        "gantt"
+        "gantt",
+        "flowchart",
+        "class",
+        "flowchart",
+        "flowchart"
       ],
-      "zoomIconSvgs": 12,
-      "toolbars": 4,
-      "toolbarButtons": 8,
+      "zoomIconSvgs": 24,
+      "toolbars": 8,
+      "toolbarButtons": 32,
       "ariaPressed": [
         "true",
         "false",
+        null,
+        null,
         "true",
         "false",
+        null,
+        null,
         "true",
         "false",
+        null,
+        null,
         "true",
-        "false"
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null
       ],
       "toolbarLabels": [
         "Diagram",
         "Source",
+        "",
+        "",
         "Diagram",
         "Source",
+        "",
+        "",
         "Diagram",
         "Source",
+        "",
+        "",
         "Diagram",
-        "Source"
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        ""
       ],
+      "toolbarButtonsPerDiagram": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "iconButtons": 16,
+      "downloadButtons": 8,
+      "fullscreenButtons": 8,
+      "disabledToolbarButtons": 0,
+      "diagramWidths": [
+        849,
+        518,
+        371,
+        800,
+        508,
+        752,
+        594,
+        190
+      ],
+      "diagramHeights": [
+        152,
+        314,
+        296,
+        197,
+        598,
+        120,
+        64,
+        448
+      ],
+      "hostWidths": [
+        860,
+        860,
+        860,
+        860,
+        860,
+        860,
+        860,
+        860
+      ],
+      "viewerOpen": true,
+      "viewerOverlays": 1,
+      "viewerDialogs": 1,
+      "viewerToolbarButtons": 4,
+      "viewerViewBox": "0 0 813 135",
+      "viewerFocusRestored": false,
       "errorNotes": 1,
       "errorTexts": [
         "Pele: No diagram type detected for the given text."
@@ -425,64 +1174,81 @@
         "代码块",
         "代码块",
         "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
         "javascript"
       ]
     },
-    "remounts": 8,
+    "expectedDiagrams": 8,
+    "diagramKinds": [
+      "flowchart",
+      "sequenceDiagram",
+      "pie",
+      "gantt",
+      "flowchart (CJK wrapping)",
+      "classDiagram (group wrapping)",
+      "flowchart (generic labels)",
+      "flowchart (rich labels)",
+      "mermaid (invalid)"
+    ],
+    "invalidSources": 1,
+    "remounts": 9,
     "teardown": {
       "tornDown": false,
       "restored": null
     },
     "mountEvents": [
       {
-        "count": 4,
-        "remounts": 4,
-        "at": 466
+        "count": 8,
+        "remounts": 8,
+        "at": 467
       },
       {
-        "count": 4,
-        "remounts": 8,
-        "at": 2039
+        "count": 1,
+        "remounts": 9,
+        "at": 2913
       }
     ],
     "themeEvents": [
       {
         "theme": "light",
-        "at": 35
+        "at": 23
       },
       {
         "theme": "dark",
-        "at": 698
+        "at": 1277
       },
       {
-        "emit": "font",
-        "at": 1884
+        "theme": "light",
+        "at": 2491
       }
     ],
     "errors": [],
     "pele": {
       "target": "first .dsh-pele-mermaid-diagram",
-      "backgroundColor": "rgb(27, 27, 28)",
+      "backgroundColor": "rgb(249, 250, 251)",
       "vars": {
-        "--pele-bg": "#1b1b1c",
-        "--pele-fg": "#f9fafb",
-        "--pele-muted": "#adb2b8",
-        "--pele-line": "#cfd3d6",
-        "--pele-surface": "#232324",
-        "--pele-surface-alt": "#2c2c2e",
-        "--pele-border": "#ffffff1f",
-        "--pele-accent": "#f9fafb",
+        "--pele-bg": "#f9fafb",
+        "--pele-fg": "#0f1115",
+        "--pele-muted": "#81858c",
+        "--pele-line": "#61666b",
+        "--pele-surface": "#fff",
+        "--pele-surface-alt": "#f9fafb",
+        "--pele-border": "#0000001a",
+        "--pele-accent": "#0f1115",
         "--pele-radius": "12px",
         "--pele-font": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif",
         "--pele-font-mono": "\"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\", \"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\""
       }
     }
   },
-  "teardown": {
-    "theme": "dark",
-    "darkAttribute": true,
-    "bodyBackground": "rgb(21, 21, 23)",
-    "bodyColor": "rgb(249, 250, 251)",
+  "viewerClosed": {
+    "theme": "light",
+    "darkAttribute": false,
+    "bodyBackground": "rgb(255, 255, 255)",
+    "bodyColor": "rgb(15, 17, 21)",
     "registrationId": "dsh-pele-mermaid",
     "factoryType": "function",
     "exportsFace": {
@@ -498,7 +1264,1078 @@
     "effectCalls": 1,
     "themeHandlers": 1,
     "dom": {
-      "blocks": 6,
+      "blocks": 10,
+      "mountedContainers": 8,
+      "hosts": 8,
+      "diagramSvgs": 8,
+      "svgTypes": [
+        "flowchart",
+        "sequence",
+        "pie",
+        "gantt",
+        "flowchart",
+        "class",
+        "flowchart",
+        "flowchart"
+      ],
+      "zoomIconSvgs": 24,
+      "toolbars": 8,
+      "toolbarButtons": 32,
+      "ariaPressed": [
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null
+      ],
+      "toolbarLabels": [
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        ""
+      ],
+      "toolbarButtonsPerDiagram": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "iconButtons": 16,
+      "downloadButtons": 8,
+      "fullscreenButtons": 8,
+      "disabledToolbarButtons": 0,
+      "diagramWidths": [
+        849,
+        518,
+        371,
+        800,
+        508,
+        752,
+        594,
+        190
+      ],
+      "diagramHeights": [
+        152,
+        314,
+        296,
+        197,
+        598,
+        120,
+        64,
+        448
+      ],
+      "hostWidths": [
+        845,
+        845,
+        845,
+        845,
+        845,
+        845,
+        845,
+        845
+      ],
+      "viewerOpen": false,
+      "viewerOverlays": 0,
+      "viewerDialogs": 0,
+      "viewerToolbarButtons": 0,
+      "viewerViewBox": null,
+      "viewerFocusRestored": true,
+      "errorNotes": 1,
+      "errorTexts": [
+        "Pele: No diagram type detected for the given text."
+      ],
+      "styleElements": 1,
+      "sourceViews": 0,
+      "nonMermaidPre": true,
+      "bannerTexts": [
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "javascript"
+      ]
+    },
+    "expectedDiagrams": 8,
+    "diagramKinds": [
+      "flowchart",
+      "sequenceDiagram",
+      "pie",
+      "gantt",
+      "flowchart (CJK wrapping)",
+      "classDiagram (group wrapping)",
+      "flowchart (generic labels)",
+      "flowchart (rich labels)",
+      "mermaid (invalid)"
+    ],
+    "invalidSources": 1,
+    "remounts": 9,
+    "teardown": {
+      "tornDown": false,
+      "restored": null
+    },
+    "mountEvents": [
+      {
+        "count": 8,
+        "remounts": 8,
+        "at": 467
+      },
+      {
+        "count": 1,
+        "remounts": 9,
+        "at": 2913
+      }
+    ],
+    "themeEvents": [
+      {
+        "theme": "light",
+        "at": 23
+      },
+      {
+        "theme": "dark",
+        "at": 1277
+      },
+      {
+        "theme": "light",
+        "at": 2491
+      }
+    ],
+    "errors": [],
+    "pele": {
+      "target": "first .dsh-pele-mermaid-diagram",
+      "backgroundColor": "rgb(249, 250, 251)",
+      "vars": {
+        "--pele-bg": "#f9fafb",
+        "--pele-fg": "#0f1115",
+        "--pele-muted": "#81858c",
+        "--pele-line": "#61666b",
+        "--pele-surface": "#fff",
+        "--pele-surface-alt": "#f9fafb",
+        "--pele-border": "#0000001a",
+        "--pele-accent": "#0f1115",
+        "--pele-radius": "12px",
+        "--pele-font": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+        "--pele-font-mono": "\"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\", \"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\""
+      }
+    }
+  },
+  "viewerReclosed": {
+    "theme": "light",
+    "darkAttribute": false,
+    "bodyBackground": "rgb(255, 255, 255)",
+    "bodyColor": "rgb(15, 17, 21)",
+    "registrationId": "dsh-pele-mermaid",
+    "factoryType": "function",
+    "exportsFace": {
+      "apply": "function",
+      "inject": [
+        "theme"
+      ]
+    },
+    "applied": true,
+    "ready": true,
+    "requireCalls": 0,
+    "applyCalls": 1,
+    "effectCalls": 1,
+    "themeHandlers": 1,
+    "dom": {
+      "blocks": 10,
+      "mountedContainers": 8,
+      "hosts": 8,
+      "diagramSvgs": 8,
+      "svgTypes": [
+        "flowchart",
+        "sequence",
+        "pie",
+        "gantt",
+        "flowchart",
+        "class",
+        "flowchart",
+        "flowchart"
+      ],
+      "zoomIconSvgs": 24,
+      "toolbars": 8,
+      "toolbarButtons": 32,
+      "ariaPressed": [
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null
+      ],
+      "toolbarLabels": [
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        ""
+      ],
+      "toolbarButtonsPerDiagram": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "iconButtons": 16,
+      "downloadButtons": 8,
+      "fullscreenButtons": 8,
+      "disabledToolbarButtons": 0,
+      "diagramWidths": [
+        849,
+        518,
+        371,
+        800,
+        508,
+        752,
+        594,
+        190
+      ],
+      "diagramHeights": [
+        152,
+        314,
+        296,
+        197,
+        598,
+        120,
+        64,
+        448
+      ],
+      "hostWidths": [
+        845,
+        845,
+        845,
+        845,
+        845,
+        845,
+        845,
+        845
+      ],
+      "viewerOpen": false,
+      "viewerOverlays": 0,
+      "viewerDialogs": 0,
+      "viewerToolbarButtons": 0,
+      "viewerViewBox": null,
+      "viewerFocusRestored": true,
+      "errorNotes": 1,
+      "errorTexts": [
+        "Pele: No diagram type detected for the given text."
+      ],
+      "styleElements": 1,
+      "sourceViews": 0,
+      "nonMermaidPre": true,
+      "bannerTexts": [
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "javascript"
+      ]
+    },
+    "expectedDiagrams": 8,
+    "diagramKinds": [
+      "flowchart",
+      "sequenceDiagram",
+      "pie",
+      "gantt",
+      "flowchart (CJK wrapping)",
+      "classDiagram (group wrapping)",
+      "flowchart (generic labels)",
+      "flowchart (rich labels)",
+      "mermaid (invalid)"
+    ],
+    "invalidSources": 1,
+    "remounts": 9,
+    "teardown": {
+      "tornDown": false,
+      "restored": null
+    },
+    "mountEvents": [
+      {
+        "count": 8,
+        "remounts": 8,
+        "at": 467
+      },
+      {
+        "count": 1,
+        "remounts": 9,
+        "at": 2913
+      }
+    ],
+    "themeEvents": [
+      {
+        "theme": "light",
+        "at": 23
+      },
+      {
+        "theme": "dark",
+        "at": 1277
+      },
+      {
+        "theme": "light",
+        "at": 2491
+      }
+    ],
+    "errors": [],
+    "pele": {
+      "target": "first .dsh-pele-mermaid-diagram",
+      "backgroundColor": "rgb(249, 250, 251)",
+      "vars": {
+        "--pele-bg": "#f9fafb",
+        "--pele-fg": "#0f1115",
+        "--pele-muted": "#81858c",
+        "--pele-line": "#61666b",
+        "--pele-surface": "#fff",
+        "--pele-surface-alt": "#f9fafb",
+        "--pele-border": "#0000001a",
+        "--pele-accent": "#0f1115",
+        "--pele-radius": "12px",
+        "--pele-font": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+        "--pele-font-mono": "\"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\", \"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\""
+      }
+    }
+  },
+  "narrowViewport": {
+    "width": 720,
+    "height": 2200,
+    "deviceScaleFactor": 1,
+    "mobile": false
+  },
+  "p1Narrow": {
+    "cjk": {
+      "width": 508,
+      "height": 598,
+      "hostWidth": 585,
+      "wrappedLabels": 4,
+      "maxLines": 5,
+      "punctuationKept": true,
+      "labels": [
+        "是",
+        "否",
+        "用户提交一条较长的中文需求描述，其中包含 Englishtoken 和 code 标识符，需要在中文字符之间换行而不是把图表撑宽。",
+        "是否已经完成流式输出？",
+        "等待 fence 稳定后再挂载图表。",
+        "继续读取 stream 内容，保留原始 source 文本。",
+        "检查长标签的收尾标点（含句号）。"
+      ]
+    },
+    "class": {
+      "width": 203,
+      "height": 490,
+      "hostWidth": 585,
+      "classNodes": 3,
+      "rows": 3
+    },
+    "generic": {
+      "width": 570,
+      "height": 64,
+      "hostWidth": 585,
+      "labels": [
+        "List<Diagram>",
+        "Map<String, Diagram>",
+        "Set<Diagram>"
+      ],
+      "angleBracketsIntact": true
+    },
+    "rich": {
+      "width": 190,
+      "height": 448,
+      "hostWidth": 585,
+      "sub": 1,
+      "sup": 1,
+      "mono": 3,
+      "labels": [
+        "H2O",
+        "E = mc2",
+        "mountDiagram()",
+        "Press Esc",
+        "svg.pele"
+      ]
+    }
+  },
+  "narrow": {
+    "theme": "light",
+    "darkAttribute": false,
+    "bodyBackground": "rgb(255, 255, 255)",
+    "bodyColor": "rgb(15, 17, 21)",
+    "registrationId": "dsh-pele-mermaid",
+    "factoryType": "function",
+    "exportsFace": {
+      "apply": "function",
+      "inject": [
+        "theme"
+      ]
+    },
+    "applied": true,
+    "ready": true,
+    "requireCalls": 0,
+    "applyCalls": 1,
+    "effectCalls": 1,
+    "themeHandlers": 1,
+    "dom": {
+      "blocks": 10,
+      "mountedContainers": 8,
+      "hosts": 8,
+      "diagramSvgs": 8,
+      "svgTypes": [
+        "flowchart",
+        "sequence",
+        "pie",
+        "gantt",
+        "flowchart",
+        "class",
+        "flowchart",
+        "flowchart"
+      ],
+      "zoomIconSvgs": 24,
+      "toolbars": 8,
+      "toolbarButtons": 32,
+      "ariaPressed": [
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null
+      ],
+      "toolbarLabels": [
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        ""
+      ],
+      "toolbarButtonsPerDiagram": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "iconButtons": 16,
+      "downloadButtons": 8,
+      "fullscreenButtons": 8,
+      "disabledToolbarButtons": 0,
+      "diagramWidths": [
+        384,
+        518,
+        371,
+        585,
+        508,
+        203,
+        570,
+        190
+      ],
+      "diagramHeights": [
+        484,
+        314,
+        296,
+        197,
+        598,
+        490,
+        64,
+        448
+      ],
+      "hostWidths": [
+        585,
+        585,
+        585,
+        585,
+        585,
+        585,
+        585,
+        585
+      ],
+      "viewerOpen": false,
+      "viewerOverlays": 0,
+      "viewerDialogs": 0,
+      "viewerToolbarButtons": 0,
+      "viewerViewBox": null,
+      "viewerFocusRestored": true,
+      "errorNotes": 1,
+      "errorTexts": [
+        "Pele: No diagram type detected for the given text."
+      ],
+      "styleElements": 1,
+      "sourceViews": 0,
+      "nonMermaidPre": true,
+      "bannerTexts": [
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "javascript"
+      ]
+    },
+    "expectedDiagrams": 8,
+    "diagramKinds": [
+      "flowchart",
+      "sequenceDiagram",
+      "pie",
+      "gantt",
+      "flowchart (CJK wrapping)",
+      "classDiagram (group wrapping)",
+      "flowchart (generic labels)",
+      "flowchart (rich labels)",
+      "mermaid (invalid)"
+    ],
+    "invalidSources": 1,
+    "remounts": 13,
+    "teardown": {
+      "tornDown": false,
+      "restored": null
+    },
+    "mountEvents": [
+      {
+        "count": 8,
+        "remounts": 8,
+        "at": 467
+      },
+      {
+        "count": 1,
+        "remounts": 9,
+        "at": 2913
+      },
+      {
+        "count": 1,
+        "remounts": 10,
+        "at": 3337
+      },
+      {
+        "count": 1,
+        "remounts": 11,
+        "at": 3338
+      },
+      {
+        "count": 1,
+        "remounts": 12,
+        "at": 3340
+      },
+      {
+        "count": 1,
+        "remounts": 13,
+        "at": 3340
+      }
+    ],
+    "themeEvents": [
+      {
+        "theme": "light",
+        "at": 23
+      },
+      {
+        "theme": "dark",
+        "at": 1277
+      },
+      {
+        "theme": "light",
+        "at": 2491
+      }
+    ],
+    "errors": [],
+    "pele": {
+      "target": "first .dsh-pele-mermaid-diagram",
+      "backgroundColor": "rgb(249, 250, 251)",
+      "vars": {
+        "--pele-bg": "#f9fafb",
+        "--pele-fg": "#0f1115",
+        "--pele-muted": "#81858c",
+        "--pele-line": "#61666b",
+        "--pele-surface": "#fff",
+        "--pele-surface-alt": "#f9fafb",
+        "--pele-border": "#0000001a",
+        "--pele-accent": "#0f1115",
+        "--pele-radius": "12px",
+        "--pele-font": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+        "--pele-font-mono": "\"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\", \"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\""
+      }
+    }
+  },
+  "fontRefresh": {
+    "theme": "light",
+    "darkAttribute": false,
+    "bodyBackground": "rgb(255, 255, 255)",
+    "bodyColor": "rgb(15, 17, 21)",
+    "registrationId": "dsh-pele-mermaid",
+    "factoryType": "function",
+    "exportsFace": {
+      "apply": "function",
+      "inject": [
+        "theme"
+      ]
+    },
+    "applied": true,
+    "ready": true,
+    "requireCalls": 0,
+    "applyCalls": 1,
+    "effectCalls": 1,
+    "themeHandlers": 1,
+    "dom": {
+      "blocks": 10,
+      "mountedContainers": 8,
+      "hosts": 8,
+      "diagramSvgs": 8,
+      "svgTypes": [
+        "flowchart",
+        "sequence",
+        "pie",
+        "gantt",
+        "flowchart",
+        "class",
+        "flowchart",
+        "flowchart"
+      ],
+      "zoomIconSvgs": 24,
+      "toolbars": 8,
+      "toolbarButtons": 32,
+      "ariaPressed": [
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null
+      ],
+      "toolbarLabels": [
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        ""
+      ],
+      "toolbarButtonsPerDiagram": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "iconButtons": 16,
+      "downloadButtons": 8,
+      "fullscreenButtons": 8,
+      "disabledToolbarButtons": 0,
+      "diagramWidths": [
+        813,
+        518,
+        371,
+        800,
+        508,
+        752,
+        594,
+        190
+      ],
+      "diagramHeights": [
+        135,
+        314,
+        296,
+        197,
+        598,
+        120,
+        64,
+        448
+      ],
+      "hostWidths": [
+        845,
+        845,
+        845,
+        845,
+        845,
+        845,
+        845,
+        845
+      ],
+      "viewerOpen": false,
+      "viewerOverlays": 0,
+      "viewerDialogs": 0,
+      "viewerToolbarButtons": 0,
+      "viewerViewBox": null,
+      "viewerFocusRestored": false,
+      "errorNotes": 1,
+      "errorTexts": [
+        "Pele: No diagram type detected for the given text."
+      ],
+      "styleElements": 1,
+      "sourceViews": 0,
+      "nonMermaidPre": true,
+      "bannerTexts": [
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "javascript"
+      ]
+    },
+    "expectedDiagrams": 8,
+    "diagramKinds": [
+      "flowchart",
+      "sequenceDiagram",
+      "pie",
+      "gantt",
+      "flowchart (CJK wrapping)",
+      "classDiagram (group wrapping)",
+      "flowchart (generic labels)",
+      "flowchart (rich labels)",
+      "mermaid (invalid)"
+    ],
+    "invalidSources": 1,
+    "remounts": 25,
+    "teardown": {
+      "tornDown": false,
+      "restored": null
+    },
+    "mountEvents": [
+      {
+        "count": 1,
+        "remounts": 11,
+        "at": 3338
+      },
+      {
+        "count": 1,
+        "remounts": 12,
+        "at": 3340
+      },
+      {
+        "count": 1,
+        "remounts": 13,
+        "at": 3340
+      },
+      {
+        "count": 1,
+        "remounts": 14,
+        "at": 3820
+      },
+      {
+        "count": 1,
+        "remounts": 15,
+        "at": 3820
+      },
+      {
+        "count": 1,
+        "remounts": 16,
+        "at": 3821
+      },
+      {
+        "count": 1,
+        "remounts": 17,
+        "at": 3821
+      },
+      {
+        "count": 8,
+        "remounts": 25,
+        "at": 4442
+      }
+    ],
+    "themeEvents": [
+      {
+        "theme": "light",
+        "at": 23
+      },
+      {
+        "theme": "dark",
+        "at": 1277
+      },
+      {
+        "theme": "light",
+        "at": 2491
+      },
+      {
+        "emit": "font",
+        "at": 4261
+      }
+    ],
+    "errors": [],
+    "pele": {
+      "target": "first .dsh-pele-mermaid-diagram",
+      "backgroundColor": "rgb(249, 250, 251)",
+      "vars": {
+        "--pele-bg": "#f9fafb",
+        "--pele-fg": "#0f1115",
+        "--pele-muted": "#81858c",
+        "--pele-line": "#61666b",
+        "--pele-surface": "#fff",
+        "--pele-surface-alt": "#f9fafb",
+        "--pele-border": "#0000001a",
+        "--pele-accent": "#0f1115",
+        "--pele-radius": "12px",
+        "--pele-font": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+        "--pele-font-mono": "\"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\", \"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\""
+      }
+    }
+  },
+  "remounts": {
+    "initial": 8,
+    "beforeFont": 17,
+    "afterFont": 25,
+    "fontDelta": 8,
+    "note": "The initial mount adds one svg.pele per diagram (8). Colour-only theme flips add zero. Resize re-renders add nodes too, so the font refresh is measured as a +8 delta from the value immediately before it."
+  },
+  "teardown": {
+    "theme": "light",
+    "darkAttribute": false,
+    "bodyBackground": "rgb(255, 255, 255)",
+    "bodyColor": "rgb(15, 17, 21)",
+    "registrationId": "dsh-pele-mermaid",
+    "factoryType": "function",
+    "exportsFace": {
+      "apply": "function",
+      "inject": [
+        "theme"
+      ]
+    },
+    "applied": true,
+    "ready": true,
+    "requireCalls": 0,
+    "applyCalls": 1,
+    "effectCalls": 1,
+    "themeHandlers": 1,
+    "dom": {
+      "blocks": 10,
       "mountedContainers": 0,
       "hosts": 0,
       "diagramSvgs": 0,
@@ -508,6 +2345,20 @@
       "toolbarButtons": 0,
       "ariaPressed": [],
       "toolbarLabels": [],
+      "toolbarButtonsPerDiagram": [],
+      "iconButtons": 0,
+      "downloadButtons": 0,
+      "fullscreenButtons": 0,
+      "disabledToolbarButtons": 0,
+      "diagramWidths": [],
+      "diagramHeights": [],
+      "hostWidths": [],
+      "viewerOpen": false,
+      "viewerOverlays": 0,
+      "viewerDialogs": 0,
+      "viewerToolbarButtons": 0,
+      "viewerViewBox": null,
+      "viewerFocusRestored": false,
       "errorNotes": 0,
       "errorTexts": [],
       "styleElements": 0,
@@ -519,38 +2370,89 @@
         "代码块",
         "代码块",
         "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
         "javascript"
       ]
     },
-    "remounts": 8,
+    "expectedDiagrams": 8,
+    "diagramKinds": [
+      "flowchart",
+      "sequenceDiagram",
+      "pie",
+      "gantt",
+      "flowchart (CJK wrapping)",
+      "classDiagram (group wrapping)",
+      "flowchart (generic labels)",
+      "flowchart (rich labels)",
+      "mermaid (invalid)"
+    ],
+    "invalidSources": 1,
+    "remounts": 25,
     "teardown": {
       "tornDown": true,
       "restored": true
     },
     "mountEvents": [
       {
-        "count": 4,
-        "remounts": 4,
-        "at": 466
+        "count": 1,
+        "remounts": 11,
+        "at": 3338
       },
       {
-        "count": 4,
-        "remounts": 8,
-        "at": 2039
+        "count": 1,
+        "remounts": 12,
+        "at": 3340
+      },
+      {
+        "count": 1,
+        "remounts": 13,
+        "at": 3340
+      },
+      {
+        "count": 1,
+        "remounts": 14,
+        "at": 3820
+      },
+      {
+        "count": 1,
+        "remounts": 15,
+        "at": 3820
+      },
+      {
+        "count": 1,
+        "remounts": 16,
+        "at": 3821
+      },
+      {
+        "count": 1,
+        "remounts": 17,
+        "at": 3821
+      },
+      {
+        "count": 8,
+        "remounts": 25,
+        "at": 4442
       }
     ],
     "themeEvents": [
       {
         "theme": "light",
-        "at": 35
+        "at": 23
       },
       {
         "theme": "dark",
-        "at": 698
+        "at": 1277
+      },
+      {
+        "theme": "light",
+        "at": 2491
       },
       {
         "emit": "font",
-        "at": 1884
+        "at": 4261
       }
     ],
     "errors": [],
@@ -559,5 +2461,9 @@
   "network": {
     "scope": "Requests from this fixture page only, for these sample diagrams",
     "externalRequests": []
+  },
+  "console": {
+    "scope": "Error-level console/log entries during the whole run",
+    "errors": []
   }
 }

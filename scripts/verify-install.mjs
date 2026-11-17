@@ -25,7 +25,9 @@
  * and the running Desktop app are never read or written.
  *
  * Usage:
- *   node scripts/verify-install.mjs            # run, clean up temp dir on pass
+ *   node scripts/verify-install.mjs            # install from the workspace
+ *   node scripts/verify-install.mjs --source=dsh-pele-mermaid-0.2.0.tgz
+ *                                              # install the packed artifact
  *   node scripts/verify-install.mjs --keep     # keep the temp dir for inspection
  *   node scripts/verify-install.mjs --output=docs/evidence/install.json
  *   DSH_BIN=/path/to/dsh node scripts/verify-install.mjs
@@ -47,6 +49,7 @@ const PLUGIN_ID = 'dsh-pele-mermaid'
 const BUNDLE_PATH = path.join(ROOT, 'lib', 'client.js')
 const KEEP_TEMP = process.argv.includes('--keep')
 const OUTPUT_PATH = process.argv.find((arg) => arg.startsWith('--output='))?.slice('--output='.length)
+const SOURCE_ARG = process.argv.find((arg) => arg.startsWith('--source='))?.slice('--source='.length)
 const DSH_BIN = process.env.DSH_BIN || 'dsh'
 const THEME_PACKAGE = '@deepseek-ai/dsh-client-ui-theme'
 
@@ -386,6 +389,17 @@ async function main() {
   const bundleSha256 = createHash('sha256').update(bundleBytes).digest('hex')
   const pkg = JSON.parse(await readFile(path.join(ROOT, 'package.json'), 'utf8'))
   assert.equal(pkg.name, PLUGIN_ID, 'package name must be dsh-pele-mermaid')
+
+  // Install from a packed tarball (final release check) or from this checkout.
+  const sourcePath = SOURCE_ARG ? path.resolve(ROOT, SOURCE_ARG) : ROOT
+  assert.ok(existsSync(sourcePath), `install source does not exist: ${sourcePath}`)
+  const sourceKind = /\.(?:tgz|tar\.gz)$/i.test(sourcePath) ? 'tarball' : 'workspace'
+  const sourceSha256 = sourceKind === 'tarball'
+    ? createHash('sha256').update(await readFile(sourcePath)).digest('hex')
+    : null
+  note('install.source', SOURCE_ARG ? path.relative(ROOT, sourcePath) : 'workspace')
+  note('install.source.kind', sourceKind)
+  if (sourceSha256 !== null) note('install.source.sha256', sourceSha256)
   assert.ok(
     bundleText.startsWith(`window.__ModuleLoader__.load({id:${JSON.stringify(PLUGIN_ID)}`),
     'built bundle must start with the module-loader wrapper',
@@ -419,7 +433,9 @@ async function main() {
   try {
     /* -------------------------------------------------------------------- */
     beginStep('1. install the plugin into a throwaway web profile')
-    const install = await runDsh(['plugin', '--profile', 'web', 'add', ROOT], { label: 'install from workspace path' })
+    const install = await runDsh(['plugin', '--profile', 'web', 'add', sourcePath], {
+      label: sourceKind === 'tarball' ? 'install from packed tarball' : 'install from workspace path',
+    })
     assert.equal(install.code, 0, `plugin install failed with exit ${install.code}`)
     const profileDir = path.join(homeDir, 'profiles', 'web')
     const profilePackage = JSON.parse(await readFile(path.join(profileDir, 'package.json'), 'utf8'))
@@ -651,7 +667,7 @@ async function main() {
   log('\n=== verify-install: PASS ===')
   log(`elapsed: ${elapsed} ms`)
   log('reproduce (all commands used DSH_HOME=<temp dir under os.tmpdir()>):')
-  log(`  DSH_HOME=<tmp>/home dsh plugin --profile web add ${ROOT}`)
+  log(`  DSH_HOME=<tmp>/home dsh plugin --profile web add ${sourcePath}`)
   log('  DSH_HOME=<tmp>/home dsh --profile web --dump-config')
   log('  DSH_HOME=<tmp>/home dsh web --no-open --port <free port>')
   log('  # fetch the printed ?token= URL, keep the dsh-auth cookie, then GET / and the boot-graph batch URL')
