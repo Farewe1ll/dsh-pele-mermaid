@@ -1,13 +1,10 @@
 node_modules/
 *.log
-# Reviewed originals referenced by the 2026-10-19 evidence manifest.
-!docs/evidence/build-freshness.log
-!docs/evidence/bundle-verify.log
-!docs/evidence/host-probe.log
-!docs/evidence/tests.log
-!docs/evidence/visual.log
-!docs/evidence/**/*.log
+# Reviewed log for the 2026-11-17 0.2.0 iteration (see docs/evidence/2026-11-17/PUBLICATION.md).
+!docs/evidence/2026-11-17/install.log
 .DS_Store
 coverage/
+# Local staging outputs for verification runs (raw captures before publication review).
+.artifacts/
 # Locally packed release artifacts (hashes recorded in docs/evidence/).
 dist/

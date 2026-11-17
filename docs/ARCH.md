@@ -88,40 +88,13 @@ dsh-pele-mermaid/
 
 ## Browser-half contracts
 
-### `src/client/engine.js`
+Exact JSDoc types and parameter signatures live in the source modules under
+[`src/client/`](../src/client/); this section summarizes each module's exported
+surface and the rules it must obey.
 
-```js
-/**
- * @typedef {Object} DiagramSnapshot
- * @property {string} svg    // pristine natural-size SVG markup
- * @property {number} width  // natural width
- * @property {number} height // natural height
- * @property {string} type   // diagram type (filename hint)
- */
+### [`src/client/engine.js`](../src/client/engine.js)
 
-/**
- * @typedef {Object} DiagramHandle
- * @property {boolean} ok          // false when the source could not be drawn
- * @property {string | null} error // plain-text error message, null when ok
- * @property {() => void} refresh  // re-layout in place (fonts/width changed)
- * @property {() => void} destroy  // stop observers, clear the container
- * @property {() => DiagramSnapshot | null} snapshot // pristine export/viewer source
- * @property {() => { scale: number, fit: number, factor: number }} zoom // inline zoom state
- */
-
-/**
- * Mount one Mermaid source into `container` with Pele.
- * Synchronous; never throws for diagram errors (returns ok:false instead).
- * Options are engine-owned constants, never author-supplied.
- * @param {HTMLElement} container
- * @param {string} source
- * @returns {DiagramHandle}
- */
-export function mountDiagram(container, source)
-
-/** Pele display options used by mountDiagram (exported for tests/docs). */
-export const DIAGRAM_OPTIONS
-```
+Exports: `mountDiagram(container, source) -> DiagramHandle` (`{ ok, error, refresh, destroy, snapshot, zoom }`) and `DIAGRAM_OPTIONS`.
 
 Rules:
 
@@ -146,40 +119,13 @@ Rules:
   present.
 - No `document`/`window` access at module import time; resolve at call time.
 
-### `src/client/theme-css.js`
+### [`src/client/theme-css.js`](../src/client/theme-css.js)
 
-```js
-/** Install/reuse the plugin stylesheet for exactly one owner. */
-export function installStyles(doc = document): () => void
-
-/** Build the stylesheet text (pure; used by tests and installStyles). */
-export function buildStyles(): string
-
-/** Attribute marking our installed <style> element (single owner, reused). */
-export const STYLE_ATTR
-
-/** Pele-variable ← DSH-token pairs (exported for tests/docs). */
-export const PELE_VARIABLES
-/** The `--pele-*` custom-property names in mapping order (used by export). */
-export const PELE_VARIABLE_NAMES
-
-/** Class names used by blocks.js / icons.js / viewer.js. */
-export const CLASS = {
-  diagram: 'dsh-pele-mermaid-diagram',
-  toolbar: 'dsh-pele-mermaid-toolbar',
-  error: 'dsh-pele-mermaid-error',
-  source: 'dsh-pele-mermaid-source',
-  active: 'dsh-pele-mermaid-active',
-  icon: 'dsh-pele-mermaid-icon',
-  viewer: 'dsh-pele-mermaid-viewer',
-  viewerBackdrop: 'dsh-pele-mermaid-viewer-backdrop',
-  viewerDialog: 'dsh-pele-mermaid-viewer-dialog',
-  viewerToolbar: 'dsh-pele-mermaid-viewer-toolbar',
-  viewerStage: 'dsh-pele-mermaid-viewer-stage',
-  viewerCanvas: 'dsh-pele-mermaid-viewer-canvas',
-  viewerSvg: 'dsh-pele-mermaid-viewer-svg',
-}
-```
+Exports: `installStyles(doc) -> () => void`, `buildStyles() -> string`,
+`STYLE_ATTR`, `SOURCE_HIDDEN_ATTR`, `PELE_VARIABLES`, `PELE_VARIABLE_NAMES`, and
+the `CLASS` namespace map (`diagram`, `toolbar`, `error`, `source`, `active`,
+`icon`, `viewer`, `viewerBackdrop`, `viewerDialog`, `viewerToolbar`,
+`viewerStage`, `viewerCanvas`, `viewerSvg`).
 
 Rules:
 
@@ -206,43 +152,14 @@ Rules:
 - Class names are prefixed `dsh-pele-mermaid-`; never reuse DSH's hashed
   markdown classes for our own styling.
 
-### `src/client/blocks.js`
+### [`src/client/blocks.js`](../src/client/blocks.js)
 
-```js
-export const MERMAID_LANG = 'mermaid'
-/** Explicit fence languages rendered by Pele (no heuristics). */
-export const MERMAID_LANGS = Object.freeze(['mermaid', 'mermaidjs', 'mmd'])
-export function isMermaidLanguage(lang): boolean
-
-/** Read committed React language, falling back to the banner when unavailable. */
-export function readFenceLanguage(block): string | null
-
-/** Read committed React code, falling back to host pre text, or null. */
-export function readFenceSource(block): string | null
-
-/**
- * Create one page's block manager.
- * @param {Object} options
- * @param {Document} options.document
- * @param {(container: HTMLElement, source: string) => import('./engine.js').DiagramHandle} [options.mountDiagram]
- * @param {(fn: () => void, ms: number) => void} [options.schedule] // settle timer, test seam
- * @param {() => number} [options.now]                              // test seam
- * @param {number} [options.settleMs]                               // default 180
- * @param {string} [options.locale]                                 // 'zh' | 'en'
- * @param {string} [options.errorPrefix]                            // default 'Pele: '
- * @param {(snapshot, context) => string | null} [options.exportSvg] // export builder seam
- * @param {(text, filename) => boolean} [options.downloadSvg]       // download seam
- * @param {(options) => { open, close, destroy? }} [options.createViewer] // viewer factory seam
- * @param {{ open, close, destroy? }} [options.viewer]              // pre-built viewer
- */
-export function createBlockManager(options)
-
-// manager surface:
-//   scan(): void          // sync pass; renders blocks whose source settled
-//   refreshAll(): void    // rebuild mounted diagrams (font metrics changed)
-//   destroy(): void       // remove plugin additions, preserve latest host state
-//   get count(): number   // mounted diagram count (diagnostics/tests)
-```
+Exports: `MERMAID_LANG` (`'mermaid'`), `MERMAID_LANGS` (`['mermaid', 'mermaidjs', 'mmd']`),
+`isMermaidLanguage(lang)`, `readFenceFacts(block)`, `readFenceLanguage(block)`,
+`readFenceSource(block)`, and `createBlockManager(options) -> { scan, refreshAll, destroy, count, locale }`.
+The injected `options.mountDiagram` accepts the simplified `BlockDiagramHandle`
+contract (`{ ok, error?, destroy?, snapshot?, zoom? }`) rather than requiring a
+full engine handle (`refresh()` is not called by `blocks.js`).
 
 Behavior:
 
@@ -343,47 +260,22 @@ Behavior:
     下载 SVG/全屏查看, `en`: Diagram controls/Diagram/Source/Download SVG/
     Fullscreen. Focus style uses `--dsw-alias-border-l2`.
 
-### `src/client/icons.js`
+### [`src/client/icons.js`](../src/client/icons.js)
 
-```js
-/** 24x24 stroke icons keyed by name: download, fullscreen, close, zoomIn, zoomOut, fit. */
-export const ICON_PATHS
-
-/** Build one decorative icon (`aria-hidden`, `focusable="false"`, `currentColor`). */
-export function createIcon(doc, name): SVGElement
-```
+Exports: `ICON_PATHS` (`download`, `fullscreen`, `close`, `zoomIn`, `zoomOut`, `fit`)
+and `createIcon(doc, name) -> SVGElement`.
 
 Rules: inline SVG only — no icon font, sprite, data URL, or network request; the
 owning button carries the accessible name; a missing path name still returns a
 usable empty icon rather than throwing.
 
-### `src/client/export.js`
+### [`src/client/export.js`](../src/client/export.js)
 
-```js
-/** Resolved `--pele-*` variables from the inline card (computed style, inline fallback). */
-export function collectThemeVariables(container, view): Record<string, string>
-
-/**
- * Pristine snapshot → sanitized standalone SVG document string, or null.
- * theme: 'resolved' (default) freezes current colors for a downloaded file;
- * 'inherit' keeps var(--dsw-*) tokens for an in-app surface that follows the
- * live theme.
- */
-export function buildExportSvg(
-  snapshot,
-  { document, view, container, theme = 'resolved' },
-): string | null
-
-/** Attribute/class on the exported background rectangle (first child of the root). */
-export const BACKGROUND_ATTR = 'data-dsh-pele-mermaid-background'
-export const BACKGROUND_CLASS = 'pele-export-background'
-
-/** `pele-<type>-YYYYMMDD-HHmmss.svg` (local time; type reduced to filename-safe chars). */
-export function exportFilename(type, date = new Date()): string
-
-/** Offer one SVG as a download and revoke the object URL afterwards. */
-export function downloadSvg(svgText, filename, { document, view, url }): boolean
-```
+Exports: `collectThemeVariables(container, view)`,
+`buildExportSvg(snapshot, { document, view, container, theme = 'resolved' })`,
+`BACKGROUND_ATTR` (`'data-dsh-pele-mermaid-background'`), `BACKGROUND_CLASS`
+(`'pele-export-background'`), `exportFilename(type, date)`,
+`downloadSvg(svgText, filename, { document, view, url })`, and `viewOf(doc)`.
 
 Rules:
 
@@ -419,21 +311,9 @@ Rules:
 - No network access and no renderer re-run. Filename uses the client's local
   time.
 
-### `src/client/viewer.js`
+### [`src/client/viewer.js`](../src/client/viewer.js)
 
-```js
-/** One reusable overlay per page; DOM access happens only inside open(). */
-export function createViewer({ document, view, locale, measureStage, maxScale }): {
-  open(params: { svg, width, height, zoomFactor?, onClose? }): boolean
-  close(): void
-  destroy(): void
-  isOpen: boolean
-  scale: number
-  zoomIn(): void
-  zoomOut(): void
-  fit(): void
-}
-```
+Exports: `createViewer({ document, view, locale, measureStage, maxScale }) -> { open, close, destroy, isOpen, scale, zoomIn, zoomOut, fit }`.
 
 Rules:
 
@@ -470,7 +350,7 @@ Rules:
 - jsdom has no layout engine; `measureStage(stage)` is the documented test seam
   returning the available inner box.
 
-### `src/client/index.js`
+### [`src/client/index.js`](../src/client/index.js)
 
 - `export const inject = ['theme']` — static array, exactly the services used.
 - `apply(ctx)` installs one `MutationObserver` on `document.body`

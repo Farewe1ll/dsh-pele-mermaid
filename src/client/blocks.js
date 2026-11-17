@@ -404,11 +404,18 @@ export function readFenceSource(block) {
 /* -------------------------------------------------------------------------- */
 
 /**
- * @typedef {Object} DiagramHandle
+ * Simplified handle contract consumed by the block layer. Test stubs only need
+ * `{ ok, error?, destroy? }`; `snapshot()` and `zoom()` are optional (when
+ * absent, the export/viewer controls stay disabled and default to zoom factor 1).
+ * The block layer rebuilds via `mountDiagram` on `refreshAll()` and does not
+ * call `handle.refresh()`.
+ *
+ * @typedef {Object} BlockDiagramHandle
  * @property {boolean} ok
- * @property {string | null} error
- * @property {() => void} [refresh]
+ * @property {string | null} [error]
  * @property {() => void} [destroy]
+ * @property {() => import('./engine.js').DiagramSnapshot | null} [snapshot]
+ * @property {() => { scale?: number, fit?: number, factor?: number }} [zoom]
  */
 
 /**
@@ -420,7 +427,7 @@ export function readFenceSource(block) {
  * @property {number} since                  now() when `source` last changed
  * @property {boolean} pendingTimer
  * @property {'pending'|'mounted'|'error'} status
- * @property {DiagramHandle | null} handle
+ * @property {BlockDiagramHandle | null} handle
  * @property {Element | null} container
  * @property {Element | null} host      Pele mount target (sibling of the toolbar)
  * @property {Element | null} toolbar
@@ -441,7 +448,7 @@ export function readFenceSource(block) {
  *
  * @param {Object} [options]
  * @param {Document} [options.document]
- * @param {(container: Element, source: string) => DiagramHandle} [options.mountDiagram]
+ * @param {(container: Element, source: string) => BlockDiagramHandle} [options.mountDiagram]
  * @param {(fn: () => void, ms: number) => unknown} [options.schedule] settle timer seam
  * @param {() => number} [options.now] clock seam
  * @param {number} [options.settleMs] default 180
@@ -1000,7 +1007,7 @@ export function createBlockManager(options = {}) {
       return
     }
 
-    record.handle = /** @type {DiagramHandle} */ (handle)
+    record.handle = /** @type {BlockDiagramHandle} */ (handle)
     record.status = 'mounted'
     if (record.buttons) {
       // Export/viewer are only possible with a pristine render result.

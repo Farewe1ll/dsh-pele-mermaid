@@ -1,9 +1,13 @@
 # Maintenance and evidence conventions
 
-Status: maintenance plan under final review. Evidence publication direction and
-the behavior-based test gate are maintainer-confirmed (2026-11-10); archival
-delivery, cleanup, and P0 remain pending.
-Last updated: 2026-11-10
+Status: active governance conventions. The 2026-10-19 archival log delivery was
+committed in `a8197776c879ca60af2e2d7800b67e60dd014d92` and archived out of
+`HEAD` with verified restoration in
+[`evidence/2026-10-19/PUBLICATION.md`](evidence/2026-10-19/PUBLICATION.md);
+documentation/comment alignment and the manifest/isolation tooling (`13/13`
+governance tests in `tests/tooling-governance.test.mjs`) are complete. P0/P7
+live verification remains pending.
+Last updated: 2026-11-17
 
 This document governs the maintenance work alongside [ROADMAP.md](ROADMAP.md).
 The roadmap owns feature scope and phase acceptance. This document owns evidence
@@ -22,20 +26,29 @@ documentation cleanup are not prerequisites for P0.
 
 ## 2. Preserve evidence identity
 
-The existing [manifest](evidence/manifest.json) records the 2026-10-19 verification.
-Its 14 evidence files match their recorded sizes and hashes locally. Five logs
-were omitted from Git. The selected repair retains all five original files,
-including the byte-identical `host-probe.log` / `host-codeblock.json` pair, and
-allows only those reviewed logs through `.gitignore`. Include them in the archival
-commit; changing ignore rules alone does not deliver them to a clone. The
-duplicate preserves the historical file list and does not represent another run.
+The [historical publication record](evidence/2026-10-19/PUBLICATION.md) records
+the 2026-10-19 `0.1.1` verification manifest (`8,462` bytes, SHA-256
+`5b2e95b4…`) and pins the six documentation files to their first matching
+committed snapshot (`7398e08a6af99ddc7294a1d72ff6bd2232fd163e`) and Git blob
+IDs. Commit `a8197776c879ca60af2e2d7800b67e60dd014d92` delivers all five
+originally omitted logs alongside the remaining 9 evidence files, so all 14
+`evidenceFiles` and all 6 `documentationFiles` match their recorded sizes and
+SHA-256 digests at `a8197776c879ca60af2e2d7800b67e60dd014d92`. With that
+immutable snapshot committed and full restoration + `scripts/manifest.mjs
+--legacy-root-paths --check` verified, the 9 historical `0.1.1` root files were
+archived out of `HEAD` to keep `docs/evidence/` clean. Verify historical
+documents and evidence against `a8197776c879ca60af2e2d7800b67e60dd014d92` (see
+the `git archive` restoration recipe in
+[`evidence/2026-10-19/PUBLICATION.md`](evidence/2026-10-19/PUBLICATION.md)),
+not current working files after later edits. Keep the historical manifest and
+test identities intact.
 
-The [historical publication record](evidence/2026-10-19/PUBLICATION.md) pins the
-six documentation files to their first matching committed snapshot and Git blob
-IDs. Verify historical documents against that snapshot, not current working
-files after later edits. Keep the historical manifest and test identities intact.
-This batch uses original bytes, so it needs no redacted copies or derivative
-mapping. The publication record only supplies retrieval, review, and scope details.
+Likewise, for the 2026-11-17 `0.2.0` iteration,
+[`evidence/2026-11-17/PUBLICATION.md`](evidence/2026-11-17/PUBLICATION.md)
+records the two build passes (`15c30e9…` and `e59a294…`), the retained JSON/log
+inventory, the post-hoc derived response digest (`60ad9cf4…`), and the
+`e59a2945bc085b27420c13eda0b836afaeee500d` locator for the two removed console
+wrapper logs (`host-probe.log` and `visual.log`).
 
 For future runs:
 
@@ -43,26 +56,31 @@ For future runs:
   original file hashes. Do not substitute the current HEAD for the tested snapshot.
 - Review files before deciding whether to publish their original bytes. Prior
   publication of a username or path does not approve future environment details.
-  If redaction is needed, preserve the raw original outside the public set.
-  Replace an approved personal home prefix consistently with `<HOME>` while
-  retaining useful trailing segments and input semantics such as `link:`. For
-  temporary paths use a consistent `<TMP_ROOT>` mapping. Record the rules, retain
-  useful versions, and separately review sensitive content in remaining segments.
+  - **Capture-time path normalization (preferred for new runs):** scripts may
+    normalize personal home prefixes to `<HOME>` (retaining useful trailing
+    segments and input semantics such as `link:`) and temporary directories to
+    `<TMP_ROOT>` directly when writing initial output, recording the rule
+    version and hashing the normalized output directly without generating
+    separate raw and redacted files.
+  - **Post-capture redaction / derivatives:** if an already-captured file is
+    transformed after the fact, preserve the raw original outside the public
+    set and record original identity/hash, public path or asset URL, public
+    bytes/hash, and transformation rules in `PUBLICATION.md`. Private originals
+    are not made retrievable or independently verified by recording their hashes.
 - Keep one `docs/evidence/<run-id>/PUBLICATION.md` per run. Record archival review
   time separately from execution time, retrieval locations, and any limitations.
-  For derivatives, also record original identity/hash, public path or asset URL,
-  public bytes/hash, and transformation rules. Private originals are not made
-  retrievable or independently verified by recording their hashes.
+- Once a historical run's complete file set is committed at a verified Git
+  commit SHA and its retrieval procedure and hashes are recorded in
+  `PUBLICATION.md`, duplicate console logs or superseded historical files may be
+  removed from `HEAD`.
 - Keep the manifest's public-file inventory limited to retrievable files with
   concrete paths or asset URLs and expected sizes/hashes. Store original/private
   provenance and fixed historical document locators in `PUBLICATION.md`; these
-  are not additional current-worktree file checks. The existing schema v1
-  `evidenceFiles` already contains file entries, not private provenance fields.
-  Verify public file integrity separately from any claim about their origin or
-  a redaction process, and report unavailable originals as limitations.
+  are not additional current-worktree file checks.
 - Add Git ignore exceptions only for reviewed public logs or their dedicated
-  publication directory. Keep raw captures ignored and inspect the actual file
-  list before staging; an ignore exception is not a publication review.
+  publication directory. Keep raw captures (`.artifacts/`) ignored and inspect
+  the actual file list before staging; an ignore exception is not a publication
+  review.
 
 GitHub Release storage remains a P7 decision. Repository storage is acceptable
 for small reviewed records. If assets are used, verify upload and retrieval
@@ -107,11 +125,57 @@ For each run:
    Later corrections create a clearly identified supplement or revised public
    record with provenance, not a silently rewritten historical test result.
 
-Before finalizing the first new run, provide a repeatable manifest generation
-and `--check` command (planned: `scripts/manifest.mjs`; not implemented yet).
-Use explicit file lists, exclude the manifest itself, fail on missing or changed
-public files, and distinguish public file checks from provenance metadata. This
-tool is a prerequisite for finalizing the record, not starting P0 capture.
+Before finalizing a new run, use `scripts/manifest.mjs` (`--dir=<run-dir>` to
+generate and `--check` to validate). It uses explicit file lists, records
+`pathBase: "run-dir"` so missing run-directory files never silently fall back to
+the repository root (historical schema v1 manifests without `pathBase` require
+explicit `--legacy-root-paths`), restricts `manifestPath` to the owning run
+directory, excludes the manifest itself and `PUBLICATION.md`, and refuses to
+overwrite an existing `manifest.json` by default (`flag: 'wx'`) or anywhere in
+frozen directories. This tool is a prerequisite for finalizing the record, not
+starting P0 capture.
+
+### Change impact and tooling contracts
+
+Evaluate any workspace change across three independent dimensions:
+
+1. **Existing `.tgz` bytes on disk:** unchanged until `npm pack` overwrites the
+   file, but a modified workspace can make the existing `.tgz` stale.
+2. **Rebuild / repack output:**
+   - `lib/client.js` depends on `src/client/**`, `scripts/build-client.mjs`,
+     `package.json` (name/exports), `package-lock.json`, and build-tool
+     versions. `node scripts/build-client.mjs --check` proves only that an
+     in-memory rebuild matches the current `lib/client.js` on disk; also compare
+     the full SHA-256 to prove it still matches a recorded baseline.
+   - `.tgz` identity depends on the **actual 9-file pack inventory**
+     (`package.json` itself plus the 8 entries in `package.json#files`:
+     `index.js`, `cordis.patch.yml`, `lib/client.js`, `README.md`,
+     `README.zh.md`, `CHANGELOG.md`, `LICENSE`, `docs/KNOWN-LIMITATIONS.md`).
+     Any byte change in those 9 files produces a new tarball SHA-256 on
+     re-pack.
+3. **Verification coverage:** changes to `tests/**` or `scripts/verify-*.mjs`
+   alter verification semantics and require re-running the affected checks.
+
+Enforced script boundaries (covered by `tests/tooling-governance.test.mjs`):
+
+- **`scripts/verify-install.mjs`:** in `--source=<tgz>` mode, reads
+  `package/package.json` and `package/lib/client.js` directly from the tarball
+  as the authoritative expected values and records
+  `install.source.matchesWorkspaceBundle` (`'unavailable'` when workspace
+  `lib/client.js` is absent). Reads the HTTP route response via
+  `Buffer.from(await response.arrayBuffer())`, records `active.route.bytes` and
+  `active.route.sha256` (decoded body payload digest), compares the prefix
+  against expected `lib/client.js` **by raw bytes** (`Buffer.equals`), and
+  decodes only the trailing suffix with `TextDecoder('utf-8', { fatal: true })`
+  against the allowed loader source-map suffix pattern (supporting
+  variable-length hex `rev` without assuming a fixed 73-byte suffix length).
+- **`scripts/verify-visual.mjs`:** defaults to `.artifacts/<run-id>/` (printing
+  the resolved path on startup) and writes a `.run-id` owner marker. Any path
+  inside `tests/fixtures/screenshots/**` or `docs/evidence/**` (checked both
+  lexically and via ancestor `realpath` / `lstat` to block directory or
+  output-file symlink bypasses, whether existing or brand-new) is rejected
+  at preparation time without creating directories or files. Non-empty staging
+  directories require `--overwrite` with a matching `.run-id`.
 
 `minify: true` and `legalComments: 'none'` do not guarantee that all comment
 changes preserve output. Build annotations and JavaScript line-break semantics

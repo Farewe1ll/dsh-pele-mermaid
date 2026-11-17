@@ -62,7 +62,7 @@ probe and a real chat exercise different paths.
 | Compatibility claim | Unchanged: only `0.1.1` / `0.2.1-rc.2` is verified. `0.2.2` rows are pending (P0). |
 | P0 live 0.2.2 | **Not recorded**; blocked/deferred (DG1 unresolved) |
 | P6 decision | **NO-GO**; keep Pele bundled inline |
-| Release | P7 partial: version + `CHANGELOG.md` + packed-tarball install/served-route/disable-uninstall verified (release step re-packs the final bundle); live regression and GitHub Release pending |
+| Release | P7 partial: version + `CHANGELOG.md` + packed-tarball (`824a8e06…`) install/served-route/disable-uninstall verified (re-pack required only if any of the 9 packaged files change before release); live regression and GitHub Release pending |
 
 The plan was drafted against DSH `0.2.2-rc.1`; by this iteration the installed
 desktop runtime is `0.2.2-rc.3`, so the status records and matrix below use
@@ -77,7 +77,7 @@ artifact hash. P0's `0.1.1` result does not transfer to `0.2.0`.
 
 | Plugin | Host | Evidence | Status |
 | --- | --- | --- | --- |
-| 0.1.1 | 0.2.1-rc.2 | [VERIFICATION.md](VERIFICATION.md) Appendix A: 84 tests, host probe, isolated install, visual fixture | Verified (recorded 2026-10-19) |
+| 0.1.1 | 0.2.1-rc.2 | [VERIFICATION-HISTORY.md §10](VERIFICATION-HISTORY.md#10-historical-011-post-repair-baseline-2026-10-19): 84 tests, host probe, isolated install, visual fixture | Verified (recorded 2026-10-19) |
 | 0.1.1 | 0.2.2-rc.3 | P0 — no controlled live session evidence (screenshot consent not granted) | Pending (blocked) |
 | 0.2.0 | 0.2.1-rc.2 | Bundle/component tests only; no live session | Unknown |
 | 0.2.0 | 0.2.2-rc.3 | P2 host probe PASS (fixture adapters); final `.tgz` and live regression pending | Pending |
@@ -155,9 +155,18 @@ replaced in this iteration.
 2. Run the full 10-case matrix on `0.1.1`, capturing screenshots/recording,
    console output, boot graph, frontend asset hash, bundle hash, and DOM checks.
 3. Write `docs/VERIFICATION-0.2.2.md` with per-case results and link it from
-   `docs/VERIFICATION.md`; then update the compatibility matrix/README.
-4. Repeat on the final `0.2.0` tarball in P7 before adding a `0.2.0` / `0.2.2`
-   row.
+   `docs/VERIFICATION.md`; only if all cases pass and the loaded client identity
+   is verified, close `DG1` and promote `0.1.1 / 0.2.2-rc.3` to `Verified`.
+4. Repeat on the final `0.2.0` tarball in P7 (adding the `0.2.0` alias, export,
+   and viewer checks) before adding a `0.2.0` / `0.2.2` row.
+5. **Release policy alternative (superseding the `0.1.1` live baseline):** the
+   maintainer may choose not to invest a separate live run in `0.1.1` and
+   instead concentrate the full 10-case base matrix plus the `0.2.0` P3/P4/P5
+   checks onto the final `0.2.0` tarball. Under that choice, `DG1` is recorded as
+   **Superseded** (never `Pass`), `0.1.1 / 0.2.2-rc.3` remains `Not verified` in
+   this release cycle, and the corresponding wording in the packaged files
+   (`docs/KNOWN-LIMITATIONS.md` L10 and `CHANGELOG.md`) must be updated **before**
+   freezing and packing the final `0.2.0` tarball.
 
 **Goal:** establish whether 0.1.1 works in the installed 0.2.2 app before
 changing code or compatibility text.
@@ -225,8 +234,10 @@ cases / 8 rendered diagrams) and `npm run verify:visual` PASS assert the P1
 benefits: CJK labels wrap between characters with closing punctuation retained,
 class groups sit on one row wide / three rows narrow, `List<T>`/`Map<K,V>` text
 survives, and `<sub>`/`<sup>`/`<code>`/`<kbd>`/`<samp>` labels render. Evidence:
-[`visual.log`](evidence/2026-11-17/visual.log) and the ten screenshots under
-`tests/fixtures/screenshots/`. The old 1.6.0 captures were historical and have
+[`visual-evidence.json`](../tests/fixtures/screenshots/visual-evidence.json),
+the ten screenshots under `tests/fixtures/screenshots/`, and
+[`evidence/2026-11-17/PUBLICATION.md`](evidence/2026-11-17/PUBLICATION.md). The
+old 1.6.0 captures were historical and have
 since been overwritten, so "match or improve on 1.6.0" is supported by asserted
 layout facts, not a pixel diff.
 
@@ -282,8 +293,10 @@ component `99afefb4…4b09839`; React 18.3.1; six checks) and records the
 version/hash. An unknown version fails with the typed `UnsupportedHostError`
 (code `unsupported-host`) and an actionable message instead of a raw
 `ReferenceError`; `tests/host-bindings.test.mjs` covers that path. Evidence:
-[`host-probe.log`](evidence/2026-11-17/host-probe.log),
-[`host-probe.json`](evidence/2026-11-17/host-probe.json). The optional one-off
+[`host-probe.json`](evidence/2026-11-17/host-probe.json) (and the archived
+console wrapper in
+[`evidence/2026-11-17/PUBLICATION.md`](evidence/2026-11-17/PUBLICATION.md)). The
+optional one-off
 live CDP probe from approach step 2 was not performed — the controlled live
 session remains P0's job and its result wins if they disagree. The
 `0.2.1-rc.2` map is unit-tested but no longer render-verified because that host
@@ -593,9 +606,31 @@ reproducible 0.2.0 artifact.
   SHA-256 and the response SHA-256 separately; do **not** require them to be
   equal. Teach `scripts/verify-install.mjs` to accept a tarball source, or add
   an equivalent wrapper for this check.
-- Run a live chat regression on that installed tarball: explicit fence,
-  generic-banner fence, Diagram/Source, Copy, theme switch, and one error case.
-  P0's evidence is for `0.1.1`; it does not prove `0.2.0`.
+- Run a live chat regression on that installed tarball (explicitly naming the
+  tested profile, e.g., Desktop profile managed by the app's bundled `dsh` CLI):
+  explicit fence, generic-banner fence, Diagram/Source, Copy, theme switch, one
+  error case, plus the `0.2.0` additions (`P3` `mermaidjs`/`mmd` aliases, `P4`
+  light/dark SVG export with background rectangle readable on a white standalone
+  page, and `P5` fullscreen viewer open/zoom/fit/Escape/focus/live-theme
+  repaint/teardown). P0's evidence is for `0.1.1`; it does not prove `0.2.0`.
+- **Re-pack and final-tarball rule:** any edit to any of the 9 packaged files
+  (`package.json`, `index.js`, `cordis.patch.yml`, `lib/client.js`,
+  `README.md`, `README.zh.md`, `CHANGELOG.md`, `LICENSE`,
+  `docs/KNOWN-LIMITATIONS.md`) produces a new `.tgz` SHA-256. Whenever a new
+  candidate `.tgz` is packed, re-run `scripts/verify-install.mjs
+  --source=<final-tgz>` and complete the P7 live regression on that newly
+  installed `.tgz` (earlier `0.2.0` feature-specific checks may be cited as
+  supplementary evidence only after verifying byte equality of all runtime files
+  in the tarball: `index.js`, `cordis.patch.yml`, `lib/client.js`, and
+  `package.json` runtime fields). Freeze all packaged documentation before the
+  final pack, and record post-regression verification reports in non-packaged
+  files (`docs/VERIFICATION*.md`, `docs/evidence/<run-id>/`) so the verified
+  tarball SHA-256 matches the GitHub Release asset exactly.
+- **Tag verification (`0.2.0`):** after committing the finalized non-packaged
+  evidence and creating the `0.2.0` Git tag, verify via `git show 0.2.0:<path>`
+  that all 9 packaged files in the tagged commit match the verified `.tgz`
+  entries byte-for-byte (if running `npm pack` as a check, pass
+  `--pack-destination <isolated-temp-dir>` so `dist/` is never overwritten).
 - Disable and confirm the graph returns to baseline; then uninstall.
 - Record the bundle SHA-256 and the installed route bytes.
 - Confirm the wrapper id equals `package.json#name`; the patch row `name` is the
@@ -651,11 +686,14 @@ reproducible 0.2.0 artifact.
       (NO-GO).
 - [x] README/ARCH/KNOWN-LIMITATIONS/VERIFICATION agree.
 - [x] Packed `.tgz` installed in an isolated profile; served route contains the
-      full tarball bundle plus only the loader source-map suffix; artifact and
-      response hashes recorded separately; disable/uninstall restore the baseline
-      (bundle SHA-256 `906b1cc2…f1ea4af`, route 739,599 bytes; final tarball
-      297,759 bytes, SHA-256 `824a8e06…acc630`; evidence
-      `docs/evidence/2026-11-17/install.json`).
+      full tarball bundle plus only the loader source-map suffix; disable/uninstall
+      restore the baseline (bundle SHA-256 `906b1cc2…f1ea4af`, route 739,599 bytes;
+      final tarball 297,759 bytes, SHA-256 `824a8e06…acc630`; evidence
+      `docs/evidence/2026-11-17/install.json` records the bundle hash, route byte
+      length, and suffix text, from which the `rev=203a6529fd35` response SHA-256
+      is deterministically derived post-hoc as `60ad9cf4…304304e` in
+      `docs/evidence/2026-11-17/PUBLICATION.md`; `scripts/verify-install.mjs` now
+      records `active.route.sha256` directly for subsequent runs).
 - [ ] `0.2.0` / `0.2.2` row backed by a live regression on the final tarball.
 - [x] `npm pack --dry-run` contents and bundle SHA recorded
       (`docs/evidence/2026-11-17/package-dry-run.json`, 9 files, final
@@ -703,17 +741,51 @@ These remain open after the 2026-11-17 iteration:
 2. **P6 threshold evidence.** The no-go stands for 0.2.0. Reconsider only with
    authenticated installed-route `PerformanceResourceTiming`/`Content-Encoding`/
    cache data and a split prototype measuring first-diagram regression.
-3. **P7 release steps.** Packaging/install is verified from a packed `.tgz`;
-   the release step re-packs the final bundle and refreshes
-   `docs/evidence/2026-11-17/install.json` (authoritative for the shipped
-   artifact). Remaining: the live chat regression on that installed tarball
-   (blocked with P0), then the GitHub Release with the tarball and evidence
-   links, and the `0.2.0` tag.
+3. **P7 release steps.** Packaging/install is verified from the packed `.tgz`
+   (`824a8e06…acc630`) containing the final `906b1cc2…f1ea4af` bundle in
+   `docs/evidence/2026-11-17/install.json`. If any of the 9 packaged files are
+   modified before release, re-pack and re-run `verify-install.mjs` + the live
+   regression on that new tarball. Remaining: the live chat regression on the
+   final installed tarball (blocked with P0), then the GitHub Release with that
+   exact tarball and evidence links, and the `0.2.0` tag.
 4. **Registry publication after 0.2.0.** Revisit npm or GitHub Packages only
    after the GitHub Release/tarball install path is stable; 0.2.0 does not
    publish to a registry.
 
-## 11. References
+## 11. Post-0.2.0 engineering proposals (D1–D4)
+
+These follow-ups are scoped outside the `0.2.0` release and each requires its
+own preconditions and acceptance checks:
+
+1. **Proposal D1 — Fix `L4` shared scan/refresh timer race (recommended first):**
+   - `src/client/index.js` currently shares one `timer` between `scheduleScan`
+     and `scheduleRefresh`, allowing a DOM mutation within the 150 ms debounce
+     window to cancel a pending font-metric `refreshAll()`.
+   - Precondition & acceptance: add a failing reproduction test first ("font
+     change followed by DOM mutation within 150 ms"), then split the timer or
+     track a `pendingRefresh` flag so the expiry runs `manager.refreshAll()`,
+     rebuild `lib/client.js`, and run full verification.
+2. **Proposal D2 — Scoped JSDoc static type checking (`tsc --noEmit`):**
+   - Clean up non-standard JSDoc type names (`DOMWindow` → `Window`) and provide
+     local ambient declarations for `@deepseek-ai/cordis` `Context` before
+     enabling a `jsconfig.json` check over `src/client/*.js`.
+3. **Proposal D3 — `L2` scan and settle-timer consolidation:**
+   - Profile multi-block streaming histories to establish a baseline before
+     consolidating per-record settle timers or filtering `MutationObserver`
+     records. Any change must preserve 100% of existing block insertion/removal,
+     nested static-Shiki `<pre>` replacement, language reuse, 1 s props-audit,
+     and `destroy()` self-healing tests.
+4. **Proposal D4 — Evidence storage slimming and bundle budget review:**
+   - Future runs omit duplicate wrapper logs (`host-probe.log`, `visual.log`).
+   - Evaluating an incremental format for `visual-evidence.json` requires
+     defining an explicit baseline locator and verifying that a run's full state
+     can still be reconstructed independently.
+   - Re-evaluating the `750,000` B raw bundle budget or revisiting P6 lazy
+     loading requires authenticated installed-route `PerformanceResourceTiming`
+     (`Content-Encoding`, `encodedBodySize`, cache hit behavior) and a split
+     prototype.
+
+## 12. References
 
 - [MAINTENANCE.md](MAINTENANCE.md) — evidence handling, documentation ownership,
   structural cleanup boundaries, and behavior-based test acceptance.

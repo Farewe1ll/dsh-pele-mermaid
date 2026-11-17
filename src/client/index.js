@@ -9,9 +9,10 @@
  * Decoupling contract:
  *  - No `require()` of any DSH client package; we only use the public `theme`
  *    Cordis service (declared in `inject`, a static array).
- *  - Colors/fonts flow through our stylesheet: `--pele-*` variables are defined
- *    from DSH `--dsw-*` tokens, so light/dark/theme changes are pure CSS and
- *    never re-render a diagram.
+ *  - Colors flow through our stylesheet: `--pele-*` variables are defined from
+ *    DSH `--dsw-*` tokens, so light/dark/scheme color changes are pure CSS and
+ *    never re-render a diagram. Font-input changes (`fontSizes` / `fontFamilies`)
+ *    observed via `theme/change` request a layout rebuild (`manager.refreshAll()`).
  *  - The Markdown DOM is read and locally augmented; the Session log and the
  *    original code-block source are never modified. Destroying the plugin
  *    removes its additions while preserving the latest host-owned DOM.

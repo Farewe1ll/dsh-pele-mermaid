@@ -6,12 +6,12 @@ made.** Date: 2026-11-17 (Asia/Shanghai). Package:
 `dsh-pele-mermaid@0.2.0`, working build; no package was published to a
 registry.
 
-Historical 0.1.0 and pre-repair 0.1.1 records are preserved in
-[VERIFICATION-HISTORY.md](VERIFICATION-HISTORY.md); the 2026-10-19 `0.1.1`
-baseline that previously lived in this file is kept as
-[Appendix A](#appendix-a--historical-011-record-2026-10-19). Its old counts,
-hashes and screenshots do not describe the `0.2.0` build. Current evidence is
-under [`evidence/2026-11-17/`](evidence/2026-11-17/) and
+Historical `0.1.0`, pre-repair `0.1.1`, and the 2026-10-19 post-repair `0.1.1`
+baseline (84 tests, DSH `0.2.1-rc.2`) are preserved in
+[VERIFICATION-HISTORY.md](VERIFICATION-HISTORY.md#10-historical-011-post-repair-baseline-2026-10-19)
+and [`evidence/2026-10-19/PUBLICATION.md`](evidence/2026-10-19/PUBLICATION.md).
+Their old counts, hashes and screenshots do not describe the `0.2.0` build.
+Current evidence is under [`evidence/2026-11-17/`](evidence/2026-11-17/) and
 [`screenshots/`](../tests/fixtures/screenshots/).
 
 ## 1. Scope: what is and is not verified
@@ -19,13 +19,13 @@ under [`evidence/2026-11-17/`](evidence/2026-11-17/) and
 | Claim | State | Evidence |
 | --- | --- | --- |
 | Built bundle is fresh, single-loader, dependency-free | **Verified** | `npm run verify`: build `--check` + 7-test bundle smoke |
-| Automated behavior suite passes | **Verified** | `npm test`: 123/123, 0 fail/skip/todo (section 3) |
-| Installed CodeBlock (DSH `0.2.2-rc.3`) keeps its props/DOM/Copy contracts | **Verified (component probe)** | `evidence/2026-11-17/host-probe.{log,json}` (section 4) |
-| Pele 1.9 visual cases, toolbar, export backgrounds and viewer live theming | **Verified (real-browser fixture)** | `evidence/2026-11-17/visual.log`, `screenshots/` (section 5) |
+| Automated behavior suite passes | **Verified** | `npm test`: 123/123 product tests (plus 13 tooling-governance tests), 0 fail/skip/todo (section 3) |
+| Installed CodeBlock (DSH `0.2.2-rc.3`) keeps its props/DOM/Copy contracts | **Verified (component probe)** | `evidence/2026-11-17/host-probe.json` (section 4) |
+| Pele 1.9 visual cases, toolbar, export backgrounds and viewer live theming | **Verified (real-browser fixture)** | `screenshots/visual-evidence.json`, `screenshots/` (section 5) |
 | Lazy-runtime decision has measurements | **Recorded: NO-GO** | `evidence/2026-11-17/p6-measurement.json` (section 6) |
-| `0.1.1` / DSH `0.2.1-rc.2` install/disable/absent behavior | **Verified historically** | Appendix A; [`evidence/manifest.json`](evidence/manifest.json) |
+| `0.1.1` / DSH `0.2.1-rc.2` install/disable/absent behavior | **Verified historically** | [VERIFICATION-HISTORY.md §10](VERIFICATION-HISTORY.md#10-historical-011-post-repair-baseline-2026-10-19); [`evidence/2026-10-19/PUBLICATION.md`](evidence/2026-10-19/PUBLICATION.md) |
 | `0.1.1` or `0.2.0` in a live DSH `0.2.2` conversation | **NOT verified** | P0: no screenshots/recording; consent was not granted |
-| Packed `.tgz` install + served-route suffix + disable/uninstall (release step re-packs the final bundle) | **Verified** | `evidence/2026-11-17/install.json`, `install.log` (section 7) |
+| Packed `.tgz` install + served-route suffix + disable/uninstall (for `e59a294` tarball `824a8e06…`; re-pack required if any of the 9 packaged files change before release) | **Verified** | `evidence/2026-11-17/install.json`, `install.log` (section 7) |
 | `0.2.0` live chat regression on the installed tarball | **NOT verified** | P0/P7 live step blocked (section 7) |
 | Installed-route `Content-Encoding`/`encodedBodySize`/cache metrics; split prototype | **NOT measured** | P6 route caveat (section 6) |
 | Exported SVG opens in a vector editor | **NOT verified** | Automated parse/sanitize/background assertions and a browser-rendered dark preview only |
@@ -94,8 +94,9 @@ byte difference before the smoke test runs.
 ## 4. Installed-host probe (P2) — PASS
 
 Command: `npm run verify:host -- --output=docs/evidence/2026-11-17/host-probe.json`.
-Evidence: [host-probe.log](evidence/2026-11-17/host-probe.log),
-[host-probe.json](evidence/2026-11-17/host-probe.json).
+Evidence: [host-probe.json](evidence/2026-11-17/host-probe.json) (the original
+console wrapper `host-probe.log` is archived in commit `e59a294…`; see
+[`evidence/2026-11-17/PUBLICATION.md`](evidence/2026-11-17/PUBLICATION.md)).
 
 | Field | Value |
 | --- | --- |
@@ -131,8 +132,9 @@ the env var adds only `--no-sandbox --disable-setuid-sandbox` — normal runs ke
 Chrome's renderer sandbox). Browser: `Chrome/157.0.8103.79`, wide viewport
 1400×2400, narrow viewport 720×2200, device scale 1, `?locale=en`, bundle
 SHA-256 `906b1cc2…f1ea4af`. Evidence:
-[visual.log](evidence/2026-11-17/visual.log) and
-[`screenshots/visual-evidence.json`](../tests/fixtures/screenshots/visual-evidence.json).
+[`screenshots/visual-evidence.json`](../tests/fixtures/screenshots/visual-evidence.json)
+(the terminal summary wrapper `visual.log` is archived in commit `e59a294…`; see
+[`evidence/2026-11-17/PUBLICATION.md`](evidence/2026-11-17/PUBLICATION.md)).
 
 Fixture: ten code-block cards = nine diagram cases (eight rendered diagrams +
 one invalid fallback) + one untouched JavaScript fence. Facts asserted from live
@@ -228,23 +230,26 @@ bytes**, SHA-256 `824a8e06d5442f63cda6ef34efd96874a7f065b5820b4574b2e6941fe4acc6
 | Pack contents | 9 files: `CHANGELOG.md`, `LICENSE`, both READMEs, `cordis.patch.yml`, `docs/KNOWN-LIMITATIONS.md`, `index.js`, `lib/client.js`, `package.json`; per-file sizes in `package-dry-run.json`. |
 | Install | `DSH_HOME=<tmp> dsh plugin --profile web add <tarball>`; profile depends on the tarball (`file:…/dsh-pele-mermaid-0.2.0.tgz`) and lists the bundle layer; `dsh -V` = `0.2.2-rc.3` |
 | Boot graph | entry `dsh-pele-mermaid` with `inject: ["@deepseek-ai/dsh-client-ui-theme"]` and a batch URL |
-| Served route | 200, 739,599 bytes = 739,526-byte bundle (SHA-256 `906b1cc2…f1ea4af`) + 73-byte loader source-map suffix `;\n//# sourceMappingURL=??dsh-pele-mermaid/client.js.map&rev=…`; artifact and response hashes are different and recorded separately (`install.json`) |
+| Served route | 200, 739,599 bytes = 739,526-byte bundle (SHA-256 `906b1cc2…f1ea4af`) + 73-byte loader source-map suffix `;\n//# sourceMappingURL=??dsh-pele-mermaid/client.js.map&rev=…`; `install.json` recorded the bundle SHA-256, the exact response byte length (`739,599`), and the suffix text (from which the `rev=203a6529fd35` response body SHA-256 is deterministically derived post-hoc as `60ad9cf4fba565addd573d30275d0a656944ac64079926169ad65881c304304e`; see [`evidence/2026-11-17/PUBLICATION.md`](evidence/2026-11-17/PUBLICATION.md)) |
 | Disable / uninstall | disabled: entry absent, 0 occurrences in the index HTML, route 404; disabled boot graph is structurally identical to a freshly uninstalled profile (rev-normalized, 75 entries / 3 batches) |
 | Cleanup | temp `DSH_HOME` removed after PASS; real `~/.dsh` untouched |
 
-The remaining P7 items are the re-pack/evidence refresh for the final bundle, the
-**live chat regression on that installed tarball** (blocked with P0), the
-`0.2.0` / `0.2.2` compatibility row, the GitHub Release with the tarball, and
-the `0.2.0` tag. No npm/GitHub Packages publication is planned for 0.2.0.
+The `824a8e06…acc630` tarball already contains the final 739,526-byte bundle
+(`906b1cc2…f1ea4af`) and is verified in `install.json`. If any of the 9 packaged
+files (`package.json` or the 8 files in `package.json#files`) are modified before
+release, the release step must re-pack, refresh the installation evidence, and
+run the **live chat regression on that newly packed tarball** (blocked with P0)
+before publishing the `0.2.0` / `0.2.2` compatibility row, the GitHub Release,
+and the `0.2.0` tag. No npm/GitHub Packages publication is planned for 0.2.0.
 
 Compatibility matrix (claims are per plugin/host tuple):
 
 | Plugin | Host | Evidence | Status |
 | --- | --- | --- | --- |
-| 0.1.1 | 0.2.1-rc.2 | Appendix A + [`evidence/manifest.json`](evidence/manifest.json) | **Verified** (recorded 2026-10-19; 84 tests at the time) |
+| 0.1.1 | 0.2.1-rc.2 | [VERIFICATION-HISTORY.md §10](VERIFICATION-HISTORY.md#10-historical-011-post-repair-baseline-2026-10-19) + [`evidence/2026-10-19/PUBLICATION.md`](evidence/2026-10-19/PUBLICATION.md) | **Verified** (recorded 2026-10-19; 84 tests at the time) |
 | 0.1.1 | 0.2.2-rc.3 | P0 — no live session evidence | **Pending** (blocked) |
 | 0.2.0 | 0.2.1-rc.2 | Component/bundle tests only; no live session | **Unknown** |
-| 0.2.0 | 0.2.2-rc.3 | Host probe passes; packed-tarball install verified (section 7, re-pack pending); live chat session pending | **Pending** |
+| 0.2.0 | 0.2.2-rc.3 | Host probe passes; packed-tarball (`824a8e06…`) install verified (section 7; re-pack required only if packaged files change); live chat session pending | **Pending** |
 
 P0 remains blocked: a sample was posted to a running session, but desktop
 screenshot consent was not granted, so no controlled live chat evidence exists.
@@ -252,14 +257,16 @@ The exact follow-up is: reproduce the P0 preconditions (Desktop profile lists th
 plugin, bundled `dsh` CLI manages the profile, restart/refresh so the client
 loads, fixed run directory), run the 10-case matrix from the P0 section of [ROADMAP.md](ROADMAP.md) on
 `0.1.1`, record `docs/VERIFICATION-0.2.2.md` with plugin/host/frontend/bundle
-hashes and screenshots, and only then promote a host row. Repeat it on the final
-`0.2.0` tarball.
+hashes and screenshots, and only then (if all cases pass and the loaded client
+identity is verified) promote a host row. Repeat the live regression (plus the
+`0.2.0` alias, export, and viewer checks) on the final `0.2.0` tarball.
 
-Done in this iteration: `npm pack` dry-run and a packed tarball, isolated
-tarball install, served-route suffix check, and disable/uninstall baseline for
-`0.2.0` (the release step re-packs/refreshes these for the final bundle). Not
-done: live chat regression on the repacked tarball, GitHub Release, `0.2.0`
-tag, and npm/GitHub Packages publication (not planned for 0.2.0).
+Done in this iteration: `npm pack` dry-run and a packed tarball (`824a8e06…`),
+isolated tarball install, served-route suffix check, and disable/uninstall
+baseline for `0.2.0` (a further re-pack/refresh is needed only if any of the 9
+packaged files change before release). Not done: live chat regression on the
+final tarball, GitHub Release, `0.2.0` tag, and npm/GitHub Packages publication
+(not planned for 0.2.0).
 
 ## 8. Reproduce
 
@@ -277,144 +284,13 @@ node scripts/verify-install.mjs --source=dist/dsh-pele-mermaid-0.2.0.tgz \
   --output=docs/evidence/2026-11-17/install.json
 ```
 
-`npm run verify:visual` regenerates the ten PNGs and
-`visual-evidence.json`. Set `CHROME_BIN` to use another Chrome/Chromium
-binary; the temporary profile and loopback server are cleaned up afterwards. A
-later code/build change requires fresh evidence for affected checks; a later
-host upgrade requires revalidating the private integration and the binding map.
+`npm run verify:visual` writes by default into `.artifacts/<run-id>/` so the
+committed baseline in `tests/fixtures/screenshots/` is protected. Set
+`CHROME_BIN` to use another Chrome/Chromium binary; the temporary profile and
+loopback server are cleaned up afterwards. A later code/build change requires
+fresh evidence for affected checks; a later host upgrade requires revalidating
+the private integration and the binding map.
 
----
-
-## Appendix A — Historical 0.1.1 record (2026-10-19)
-
-> Historical baseline: these sections describe the `0.1.1` working build on DSH
-> `0.2.1-rc.2` as recorded on 2026-10-19, not the current `0.2.0` build. The
-> screenshot paths were later reused by new captures; the sizes/hashes below
-> identify the old PNGs and not the current files. Acceptance for the current
-> build is sections 1–8 above.
-
-### A.1 Artifact identity and environment
-
-| Item | Verified value |
-| --- | --- |
-| Git base | `0839b1ac01349b8ac1aefa775d21ca302f50ceff`, plus uncommitted changes |
-| Bundle | `lib/client.js`, 694,058 bytes |
-| Bundle SHA-256 | `ba5b29085cac5c6f3fe34b2e76e5b00744b191f7c98877700982ddad90a8a1e4` |
-| Wrapper ID | `dsh-pele-mermaid` |
-| Node / npm | `v24.22.0` / `11.19.1` |
-| Installed DSH / frontend | `0.2.1-rc.2` |
-| React / React DOM used in component tests | `18.3.1` / `18.3.1` |
-| Pele | `1.6.0` |
-| Browser fixture | `Chrome/155.0.8059.85`, isolated headless profile |
-
-[`manifest.json`](evidence/manifest.json) records the product source, lockfile,
-test, script, documentation and evidence hashes. Its source snapshot identifies
-the working code beyond the Git base commit. Host, install and visual JSON all
-identify the same bundle above. The final build freshness check also passed
-after a source-comment clarification; it did not change the bundle bytes.
-
-### A.2 Acceptance results and their scope
-
-| Area | Result and evidence | Scope |
-| --- | --- | --- |
-| Automated suite | **84/84**, no skips or failures; [tests.log](evidence/tests.log) | Engine, CSS, DOM manager, real React lifecycle and built bundle; test count is a result, not the acceptance criterion. |
-| Built artifact | Fresh build comparison and **7/7** bundle tests; [bundle-verify.log](evidence/bundle-verify.log), [build-freshness.log](evidence/build-freshness.log) | Actual `lib/client.js` evaluated in jsdom, including generic-banner cards with real React. These 7 tests are also included in the 84 above. |
-| Language / committed state | Real React update, memo bailout, suspended work and deep-tree tests; [host-codeblock.json](evidence/host-codeblock.json) | Explicit committed props take precedence. When unavailable, an explicit DOM banner is required; unknown source is not guessed. |
-| Copy | Plain, streamed and nested static-pre tests compare native Copy with plugin Diagram/Source states | The baseline is the same host state, including removal of exactly one trailing newline. It is not the raw `code` prop. |
-| DOM lifecycle | Source-only updates, replacements, language reuse, innerHTML replacement, unmount and post-disposal updates pass | Original source parents are retained. Cleanup preserves latest host content, releases handles and does not resurrect obsolete nodes. |
-| Image restriction | Remote, relative and root-relative `img` cases render successfully without SVG image nodes or the supplied image URLs, including refresh | Engine tests exercise `images: false`; filtered links remain user-activated navigation. This is not a complete sandbox audit. |
-| Installation / disabled state | **PASS**; [install.json](evidence/install.json) | Real DSH CLI, isolated web profile and pnpm store. Checks config, boot graph and served bytes; does not exercise a chat. |
-| Browser | **PASS**; [visual-evidence.json](../tests/fixtures/screenshots/visual-evidence.json), [visual.log](evidence/visual.log) | Static committed-shape Fiber fixture, real bundle and copied DSH tokens; React lifecycle is tested separately. |
-| Packaging | **PASS**; [package-dry-run.json](evidence/package-dry-run.json) | `npm pack --dry-run`: 8 files, 270,409 compressed / 718,655 unpacked bytes reported; includes the bundle and known limitations. No tarball publication. |
-
-The installed-host probe read the CodeBlock function from
-`dsh/node_modules/@deepseek-ai/dsh-web-frontend/dist/assets/index-CN7NIWNw.js`
-inside the installed app archive. Extracted component SHA-256:
-`3ec423c4bd570d98d05fa70c9d27c79d473a7de539631a288d9f4a1950e3c557`.
-It executed that function unchanged with real React. Styling, toolbar,
-visibility activation and tokenization helpers were fixture adapters. Its
-mount/update/language/unmount checks used a stub diagram engine; the separate
-bundle test ran Pele. The probe checked native Copy/shapes, while the portable
-React lifecycle tests checked plugin-before/after Copy parity across all three
-shapes. These complementary checks did not establish whole-application timing,
-failure frequency or future private-Fiber compatibility.
-
-### A.3 Isolated installation
-
-The active boot graph contained 70 entries and 3 batches, including the plugin.
-Its route returned HTTP 200 with **694,131 bytes**: the exact 694,058-byte bundle
-plus a 73-byte loader source-map suffix. With the row disabled, the graph had
-69 entries, the HTML contained zero plugin-ID occurrences, and the route
-returned HTTP 404. The disabled and fully removed boot graphs compared equal
-after only per-boot `rev` values were normalized.
-
-Every DSH invocation used a temporary `DSH_HOME` and pnpm store. The successful
-run stopped its servers and removed its temporary directory; `install.json`
-records `cleanup.tempRemoved: true`. No daily DSH or browser profile was used by
-this repair's verification. Reading the installed app archive is separate from
-accessing a user profile. Earlier Desktop work belongs to the historical record
-and has a different scope.
-
-### A.4 Browser evidence
-
-All five captures and their JSON were regenerated together for the bundle in
-A.1. Viewport: **1400 × 2400**, device scale 1, query `?locale=en`. Host
-banners were `代码块`; plugin toolbar labels were `Diagram` / `Source`. The
-initial page had four diagrams (flowchart, sequence, pie, gantt), one error
-fallback, and one unchanged JavaScript fence. Theme switching left the SVG
-mount count at 4; font refresh raised it to 8. Source toggle preserved the
-original pre parent. Teardown left zero plugin SVGs/styles and restored the
-fixture thread byte-for-byte **because this fixture had no host source update**.
-Dynamic cleanup used the latest-state assertions in the React tests instead.
-
-| Screenshot | Bytes | SHA-256 |
-| --- | ---: | --- |
-| [Light](../tests/fixtures/screenshots/fixture-light.png) | 329,773 | `5965ac067fc5080225e34f447747751330c3227516980316a02ca6867fc697ef` |
-| [Dark](../tests/fixtures/screenshots/fixture-dark.png) | 334,247 | `5e3d61f3b5f782935489d3290297a54e938c361079e1da6d562c2eae456aa9e8` |
-| [Source](../tests/fixtures/screenshots/fixture-source-view.png) | 333,159 | `3ec8e53c6b1a4eefcd4b1cfd31629f29462b190e37b138a31927c790b5e2c30a` |
-| [Font refresh](../tests/fixtures/screenshots/fixture-font-refresh.png) | 334,373 | `9485ea065a8520f3551fbf050bcda00f2ffd2b43cfd9e44eac94ce285638508b` |
-| [Teardown](../tests/fixtures/screenshots/fixture-teardown.png) | 232,311 | `9fa616176b945e212ee0915f00c9640eecfa65234ff1138b3075424acb8fdc87` |
-
-All five PNGs were visually inspected at the time: diagrams, toolbar, error
-fallback, source view and teardown were legible, with no apparent overlapping or
-clipped content in this viewport. The browser recorded no uncaught exceptions
-and no external page requests for these sample inputs. That network observation
-does not cover every diagram type, clicked links or the host's own requests.
-
-### A.5 Changes covered and remaining work (as of 2026-10-19)
-
-| Review item | Current handling |
-| --- | --- |
-| #1 / #5 | Source-language guessing and its ignored-candidate cache are removed; explicit language changes are tested. |
-| #2 | Source stays in its host-owned position; dynamic updates/replacement/cleanup are covered with real React. Whole-host incident frequency was not measured. |
-| #3 | Diagram images are disabled and tested; resource-policy claims are scoped. |
-| #4 | A stale-alternate props bug found during real React validation is fixed; committed-root checks and version-targeted tests replace reliance on static Fiber fixtures alone. |
-| #6 | Built-bundle E2E now covers real React generic cards, current props, source updates, Copy and language reuse. |
-| #7 | Current artifact and visual evidence are refreshed, ARCH matches implementation, old records are labeled historical, and remaining risks have a separate register. |
-
-[KNOWN-LIMITATIONS.md](KNOWN-LIMITATIONS.md) tracked private Fiber
-compatibility, per-record settle timers/full scans, the added 1 s props audit and
-throttling, the existing scan/font-refresh race, missing Pele font-size mapping,
-host DOM evolution, resource-policy scope and the 180 ms streaming stability
-window. They were not silently converted into resolved issues by this PASS
-status.
-
-### A.6 Reproduce (2026-10-19 baseline)
-
-Run from the repository with the lockfile dependencies installed. Host and
-visual checks used macOS, the installed DSH app, and the Node/Chrome versions
-above.
-
-```sh
-npm run build
-npm test
-npm run verify
-node scripts/verify-host.mjs --output=docs/evidence/host-codeblock.json
-node scripts/verify-install.mjs --output=docs/evidence/install.json
-npm run verify:visual
-npm pack --dry-run --json --cache /private/tmp/dsh-pele-npm-cache
-```
-
-`DSH_APP_ASAR`, `DSH_BIN` and `CHROME_BIN` override the corresponding local
-tools. A later code/build change requires fresh evidence for affected checks;
-a later host upgrade requires revalidating the private integration.
+Historical `0.1.1` (`2026-10-19`) verification details and reproduction steps
+are in
+[VERIFICATION-HISTORY.md §10](VERIFICATION-HISTORY.md#10-historical-011-post-repair-baseline-2026-10-19).

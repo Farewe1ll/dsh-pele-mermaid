@@ -4,7 +4,7 @@
  * Mounts one Mermaid source into a caller-owned container with Pele and exposes
  * a tiny, stable handle to the block layer:
  *
- *   { ok, error, refresh(), destroy() }
+ *   { ok, error, refresh(), destroy(), snapshot(), zoom() }
  *
  * Design constraints (see docs/ARCH.md, "Browser-half contracts"):
  *  - Synchronous. Pele is synchronous and dependency-free.

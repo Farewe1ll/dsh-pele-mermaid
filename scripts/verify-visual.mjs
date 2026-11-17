@@ -2,15 +2,16 @@
 /** Reproduce screenshots and JSON together using an isolated headless Chrome. */
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
-import { mkdtemp, readFile, writeFile, rm } from 'node:fs/promises'
-import { createHash } from 'node:crypto'
+import { existsSync } from 'node:fs'
+import { lstat, mkdir, mkdtemp, readdir, readFile, realpath, writeFile, rm } from 'node:fs/promises'
+import { createHash, randomBytes } from 'node:crypto'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const output = path.join(ROOT, 'tests/fixtures/screenshots')
 const chromePath = process.env.CHROME_BIN || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+const OWNER_MARKER_FILE = '.run-id'
 /** Wide fixture column: one class-diagram row, CJK labels wrapped but not cramped. */
 const WIDE = { width: 1400, height: 2400, deviceScaleFactor: 1, mobile: false }
 /**
@@ -22,6 +23,248 @@ const WIDE = { width: 1400, height: 2400, deviceScaleFactor: 1, mobile: false }
 const NARROW = { width: 720, height: 2200, deviceScaleFactor: 1, mobile: false }
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex')
+
+/**
+ * Generate a distinct `<YYYY-MM-DD>-<short-bundle-sha>-<seq>` run identifier.
+ * @param {string} [root]
+ */
+export async function generateVisualRunId(root = ROOT) {
+  const date = new Date().toISOString().slice(0, 10)
+  let shortSha = 'nobundle'
+  try {
+    const bundleBytes = await readFile(path.join(root, 'lib', 'client.js'))
+    shortSha = sha256(bundleBytes).slice(0, 8)
+  } catch {
+    /* fallback to nobundle */
+  }
+  const seq = randomBytes(3).toString('hex')
+  return `${date}-${shortSha}-${seq}`
+}
+
+/**
+ * Resolve the canonical real path of `targetPath`, even when leaf segments do
+ * not exist yet, by resolving `realpath` on the deepest existing ancestor.
+ *
+ * @param {string} targetPath
+ * @returns {Promise<string>}
+ */
+export async function resolveRealPath(targetPath) {
+  const abs = path.resolve(targetPath)
+  /** @type {string[]} */
+  const tail = []
+  let current = abs
+  while (true) {
+    try {
+      await lstat(current)
+      break
+    } catch {
+      const parent = path.dirname(current)
+      if (parent === current) break
+      tail.unshift(path.basename(current))
+      current = parent
+    }
+  }
+  let resolvedBase = current
+  try {
+    resolvedBase = await realpath(current)
+  } catch {
+    /* keep lexical path when realpath cannot resolve a broken link */
+  }
+  return tail.length > 0 ? path.join(resolvedBase, ...tail) : resolvedBase
+}
+
+/**
+ * Check whether `targetPath` (lexically or after resolving symlinks on existing
+ * ancestors) lies inside a frozen directory (`docs/evidence/**` or
+ * `tests/fixtures/screenshots/**`).
+ *
+ * @param {string} root
+ * @param {string} targetPath
+ * @returns {Promise<'screenshots' | 'evidence' | null>}
+ */
+async function classifyFrozenZone(root, targetPath) {
+  const lexicalRoot = path.resolve(root)
+  const lexicalTarget = path.resolve(targetPath)
+  const realRoot = await resolveRealPath(lexicalRoot)
+  const realTarget = await resolveRealPath(lexicalTarget)
+
+  for (const [r, t] of [
+    [lexicalRoot, lexicalTarget],
+    [realRoot, realTarget],
+  ]) {
+    const screenshotsDir = path.join(r, 'tests', 'fixtures', 'screenshots')
+    if (t === screenshotsDir || t.startsWith(screenshotsDir + path.sep)) {
+      return 'screenshots'
+    }
+  }
+  for (const [r, t] of [
+    [lexicalRoot, lexicalTarget],
+    [realRoot, realTarget],
+  ]) {
+    const evidenceDir = path.join(r, 'docs', 'evidence')
+    if (t === evidenceDir || t.startsWith(evidenceDir + path.sep)) {
+      return 'evidence'
+    }
+  }
+  return null
+}
+
+/**
+ * Write one visual output artifact (`fixture-*.png`, `visual-evidence.json`, or
+ * `.run-id`) into `outputDir`, refusing to write through a symbolic link or into
+ * a frozen zone.
+ *
+ * @param {string} outputDir
+ * @param {string} filename
+ * @param {Buffer | string} data
+ * @param {{ root?: string }} [options]
+ */
+export async function writeVisualOutputFile(
+  outputDir,
+  filename,
+  data,
+  { root = ROOT } = {},
+) {
+  if (
+    typeof filename !== 'string' ||
+    filename.trim() === '' ||
+    path.basename(filename) !== filename ||
+    filename === '.' ||
+    filename === '..'
+  ) {
+    throw new Error(`invalid visual output filename: ${String(filename)}`)
+  }
+  const targetPath = path.join(path.resolve(outputDir), filename)
+  try {
+    const info = await lstat(targetPath)
+    if (info.isSymbolicLink()) {
+      throw new Error(`refusing to write visual output through symbolic link: ${targetPath}`)
+    }
+  } catch (error) {
+    if (error && /** @type {any} */ (error).code !== 'ENOENT') throw error
+  }
+
+  const dirZone = await classifyFrozenZone(root, outputDir)
+  const fileZone = await classifyFrozenZone(root, targetPath)
+  if (dirZone === 'screenshots' || fileZone === 'screenshots') {
+    throw new Error(`refusing to write to frozen historical screenshots directory: ${targetPath}`)
+  }
+  if (dirZone === 'evidence' || fileZone === 'evidence') {
+    throw new Error(`refusing to write to frozen evidence directory: ${targetPath}`)
+  }
+
+  await writeFile(targetPath, data)
+}
+
+/**
+ * Resolve and prepare the output directory for a visual verification run:
+ *  - Without `outputDirArg`, defaults to `.artifacts/<run-id>/` under `root`.
+ *  - Raw visual captures must always target a staging directory; any path under
+ *    the public/frozen zones (`tests/fixtures/screenshots/**` or
+ *    `docs/evidence/**`, whether existing or brand-new, direct or via symlink)
+ *    is rejected immediately in the preparation step without creating any
+ *    directory or `.run-id` marker.
+ *  - Rejects `outputDir` if `outputDir` itself is a symbolic link or contains
+ *    symbolic link entries.
+ *  - For staging directories outside frozen zones, a non-empty directory is
+ *    writable only when `overwrite: true` AND the directory's `.run-id` owner
+ *    marker exists (as a regular file) and equals `runId`.
+ *
+ * @param {{
+ *   root?: string,
+ *   outputDirArg?: string | null,
+ *   runId?: string | null,
+ *   overwrite?: boolean,
+ * }} [options]
+ * @returns {Promise<{ outputDir: string, runId: string }>}
+ */
+export async function prepareVisualOutputDir({
+  root = ROOT,
+  outputDirArg = null,
+  runId = null,
+  overwrite = false,
+} = {}) {
+  const resolvedRoot = path.resolve(root)
+  const effectiveRunId =
+    typeof runId === 'string' && runId.trim() !== ''
+      ? runId.trim()
+      : await generateVisualRunId(resolvedRoot)
+  const outputDir =
+    typeof outputDirArg === 'string' && outputDirArg.trim() !== ''
+      ? path.resolve(resolvedRoot, outputDirArg.trim())
+      : path.join(resolvedRoot, '.artifacts', effectiveRunId)
+
+  let outputStat = null
+  try {
+    outputStat = await lstat(outputDir)
+  } catch (error) {
+    if (!error || /** @type {any} */ (error).code !== 'ENOENT') throw error
+  }
+
+  const zone = await classifyFrozenZone(resolvedRoot, outputDir)
+  if (zone === 'screenshots') {
+    throw new Error(
+      `refusing to write to frozen historical screenshots directory: ${outputDir}`,
+    )
+  }
+  if (zone === 'evidence') {
+    throw new Error(
+      `refusing to write raw visual capture to frozen evidence directory (use a staging directory first): ${outputDir}`,
+    )
+  }
+
+  if (outputStat && outputStat.isSymbolicLink()) {
+    throw new Error(`refusing to use symbolic link as visual output directory: ${outputDir}`)
+  }
+
+  const markerPath = path.join(outputDir, OWNER_MARKER_FILE)
+  if (!outputStat) {
+    await mkdir(outputDir, { recursive: true })
+    await writeVisualOutputFile(outputDir, OWNER_MARKER_FILE, `${effectiveRunId}\n`, {
+      root: resolvedRoot,
+    })
+    return { outputDir, runId: effectiveRunId }
+  }
+
+  const dirEntries = await readdir(outputDir, { withFileTypes: true })
+  for (const entry of dirEntries) {
+    if (entry.isSymbolicLink()) {
+      throw new Error(
+        `refusing to write to directory containing symbolic link "${entry.name}": ${outputDir}`,
+      )
+    }
+  }
+
+  if (dirEntries.length === 0) {
+    await writeVisualOutputFile(outputDir, OWNER_MARKER_FILE, `${effectiveRunId}\n`, {
+      root: resolvedRoot,
+    })
+    return { outputDir, runId: effectiveRunId }
+  }
+
+  if (!overwrite) {
+    throw new Error(
+      `refusing to write to non-empty directory without --overwrite and matching .run-id: ${outputDir}`,
+    )
+  }
+
+  if (!existsSync(markerPath)) {
+    throw new Error(
+      `refusing to overwrite directory without ${OWNER_MARKER_FILE} owner marker: ${outputDir}`,
+    )
+  }
+  const markerStat = await lstat(markerPath)
+  if (markerStat.isSymbolicLink()) {
+    throw new Error(`refusing to trust symbolic link ${OWNER_MARKER_FILE}: ${markerPath}`)
+  }
+  const existingOwner = (await readFile(markerPath, 'utf8')).trim()
+  if (existingOwner !== effectiveRunId) {
+    throw new Error(
+      `refusing to overwrite directory owned by run "${existingOwner}" (current run "${effectiveRunId}"): ${outputDir}`,
+    )
+  }
+  return { outputDir, runId: effectiveRunId }
+}
 
 /** Relative luminance of #rrggbb / rgb(...) colors, for the export background. */
 function luminanceOf(color) {
@@ -51,46 +294,58 @@ function backgroundOf(text) {
     height: /height="([^"]+)"/.exec(rect[0])?.[1] ?? null,
   }
 }
-const profile = await mkdtemp(path.join(os.tmpdir(), 'dsh-pele-visual-'))
-let server, chrome, ws
-const pending = new Map()
-let serial = 0
-async function until(fn, label, timeout = 15000) {
-  const start = Date.now()
-  while (Date.now() - start < timeout) {
-    const value = await fn()
-    if (value) return value
-    await sleep(50)
-  }
-  throw new Error(`Timed out: ${label}`)
-}
-function send(method, params = {}) {
-  const id = ++serial
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => { pending.delete(id); reject(new Error(`CDP timeout: ${method}`)) }, 15000)
-    pending.set(id, { resolve, reject, timer })
-    ws.send(JSON.stringify({ id, method, params }))
+async function main() {
+  const outputDirArg = process.argv.find((arg) => arg.startsWith('--output-dir='))?.slice('--output-dir='.length) ?? null
+  const runIdArg = process.argv.find((arg) => arg.startsWith('--run-id='))?.slice('--run-id='.length) ?? null
+  const overwrite = process.argv.includes('--overwrite')
+  const { outputDir: output, runId } = await prepareVisualOutputDir({
+    root: ROOT,
+    outputDirArg,
+    runId: runIdArg,
+    overwrite,
   })
-}
-async function evaluate(expression) {
-  const result = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true })
-  if (result.exceptionDetails) throw new Error(JSON.stringify(result.exceptionDetails))
-  return result.result.value
-}
-async function stop(child) {
-  if (!child || child.exitCode !== null) return
-  child.kill('SIGTERM')
-  await Promise.race([new Promise((resolve) => child.once('exit', resolve)), sleep(3000)])
-  if (child.exitCode === null) child.kill('SIGKILL')
-}
-/** Dispatch one real Escape keystroke through CDP (not a synthetic DOM event). */
-async function pressEscape() {
-  const key = { key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 }
-  await send('Input.dispatchKeyEvent', { type: 'rawKeyDown', ...key })
-  await send('Input.dispatchKeyEvent', { type: 'keyUp', ...key })
-}
-try {
-  let serverOutput = ''
+  console.error(`verify-visual: run-id=${runId} output-dir=${output}`)
+
+  const profile = await mkdtemp(path.join(os.tmpdir(), 'dsh-pele-visual-'))
+  let server, chrome, ws
+  const pending = new Map()
+  let serial = 0
+  async function until(fn, label, timeout = 15000) {
+    const start = Date.now()
+    while (Date.now() - start < timeout) {
+      const value = await fn()
+      if (value) return value
+      await sleep(50)
+    }
+    throw new Error(`Timed out: ${label}`)
+  }
+  function send(method, params = {}) {
+    const id = ++serial
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => { pending.delete(id); reject(new Error(`CDP timeout: ${method}`)) }, 15000)
+      pending.set(id, { resolve, reject, timer })
+      ws.send(JSON.stringify({ id, method, params }))
+    })
+  }
+  async function evaluate(expression) {
+    const result = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true })
+    if (result.exceptionDetails) throw new Error(JSON.stringify(result.exceptionDetails))
+    return result.result.value
+  }
+  async function stop(child) {
+    if (!child || child.exitCode !== null) return
+    child.kill('SIGTERM')
+    await Promise.race([new Promise((resolve) => child.once('exit', resolve)), sleep(3000)])
+    if (child.exitCode === null) child.kill('SIGKILL')
+  }
+  /** Dispatch one real Escape keystroke through CDP (not a synthetic DOM event). */
+  async function pressEscape() {
+    const key = { key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 }
+    await send('Input.dispatchKeyEvent', { type: 'rawKeyDown', ...key })
+    await send('Input.dispatchKeyEvent', { type: 'keyUp', ...key })
+  }
+  try {
+    let serverOutput = ''
   server = spawn(process.execPath, ['scripts/serve-fixture.mjs', '--port', '0', '--quiet'], { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] })
   server.stdout.on('data', (chunk) => { serverOutput += chunk })
   server.stderr.on('data', (chunk) => { serverOutput += chunk })
@@ -166,7 +421,7 @@ try {
     const shot = await send('Page.captureScreenshot', { format: 'png' })
     const bytes = Buffer.from(shot.data, 'base64')
     const filename = `fixture-${name}.png`
-    await writeFile(path.join(output, filename), bytes)
+    await writeVisualOutputFile(output, filename, bytes, { root: ROOT })
     evidence.screenshots[filename] = { bytes: bytes.length, sha256: sha256(bytes) }
     return report
   }
@@ -521,12 +776,26 @@ try {
   evidence.network = { scope: 'Requests from this fixture page only, for these sample diagrams', externalRequests: external }
   assert.deepEqual(consoleErrors, [], 'the whole run produced no error-level console messages')
   evidence.console = { scope: 'Error-level console/log entries during the whole run', errors: consoleErrors }
-  await writeFile(path.join(output, 'visual-evidence.json'), JSON.stringify(evidence, null, 2) + '\n')
-  console.log(JSON.stringify({ status: 'PASS', browser: browser.Browser, bundleSha256: evidence.bundleSha256, viewport: WIDE, narrowViewport: NARROW, consoleErrors: evidence.console.errors, screenshots: evidence.screenshots }, null, 2))
-} finally {
-  ws?.close()
-  for (const promise of pending.values()) clearTimeout(promise.timer)
-  await stop(chrome)
-  await stop(server)
-  await rm(profile, { recursive: true, force: true })
+  await writeVisualOutputFile(output, 'visual-evidence.json', JSON.stringify(evidence, null, 2) + '\n', {
+    root: ROOT,
+  })
+  console.log(JSON.stringify({ status: 'PASS', runId, outputDir: output, browser: browser.Browser, bundleSha256: evidence.bundleSha256, viewport: WIDE, narrowViewport: NARROW, consoleErrors: evidence.console.errors, screenshots: evidence.screenshots }, null, 2))
+  } finally {
+    ws?.close()
+    for (const promise of pending.values()) clearTimeout(promise.timer)
+    await stop(chrome)
+    await stop(server)
+    await rm(profile, { recursive: true, force: true })
+  }
+}
+
+const IS_MAIN =
+  Boolean(process.argv[1]) &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+
+if (IS_MAIN) {
+  main().catch((error) => {
+    console.error('verify-visual: FAIL —', error instanceof Error ? error.message : String(error))
+    process.exitCode = 1
+  })
 }

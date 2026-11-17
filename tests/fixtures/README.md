@@ -42,38 +42,61 @@ the measured SVG facts (wrapped line counts, closing-punctuation retention,
 class-diagram row count, angle-bracket label text, rich-text run counts), so
 the verification asserts those facts instead of only comparing pixels.
 
-## Where the token files come from (read-only extraction)
+## Where the token files come from (read-only extraction and version gate)
 
-Both are read from the installed DSH app bundle (no user profile is touched):
+Both committed token files are pinned to `@deepseek-ai/dsh-client-ui-theme`
+**`0.2.1-rc.2`** (read-only from `app.asar`; no user profile is touched):
+
+- `tests/fixtures/theme-tokens.css` — 19,035 bytes, SHA-256
+  `679d76601164388d80a80719bb49a06ac83e7aa3847f4e881225086a61bcfa76`
+- `tests/fixtures/theme-tokens-base.css` — 1,797 bytes, SHA-256
+  `fbde7d74dc5ec9b9f2b62032dfc6c114e8555ad4de5f4d0e8b27728a419289cf`
+
+To verify or extract against an installed DSH archive, check the source package
+version and asset digest first. **Do not overwrite these files from a
+`0.2.2-rc.*` installation and label them as the `0.2.1-rc.2` fixture** — if the
+`0.2.1-rc.2` app archive is unavailable locally, keep the committed files above
+and treat exact archive re-extraction as a historical source limitation
+(upgrading the fixture to a newer host version must be done as a separate,
+re-verified change):
 
 ```sh
-# COLOR layers (the 19 KB extraction)
-cat /tmp/dsh-theme-tokens.css          # produced by the Lead from @deepseek-ai/dsh-client-ui-theme 0.2.1-rc.2
-# BASE layer (fonts / radii / easings)
 ELECTRON_RUN_AS_NODE=1 "/Applications/DeepSeek Harness.app/Contents/MacOS/DeepSeek Harness" -e '
   const fs = require("fs")
-  const p = "/Applications/DeepSeek Harness.app/Contents/Resources/app.asar/dsh/node_modules/@deepseek-ai/dsh-client-ui-theme/lib/client.js"
-  const txt = fs.readFileSync(p, "utf8")
-  const marker = "var base_css_default = "
-  const m = txt.indexOf(marker)
-  const quote = txt.indexOf("\"", m + marker.length)
-  let i = quote + 1, out = "", escaped = false
-  for (; i < txt.length; i++) {
-    const c = txt[i]
-    if (escaped) { out += c === "n" ? "\n" : c === "t" ? "\t" : c; escaped = false }
-    else if (c === "\\") escaped = true
-    else if (c === "\"") break
-    else out += c
+  const crypto = require("crypto")
+  const base = "/Applications/DeepSeek Harness.app/Contents/Resources/app.asar/dsh/node_modules/@deepseek-ai/dsh-client-ui-theme"
+  const pkg = JSON.parse(fs.readFileSync(base + "/package.json", "utf8"))
+  const clientBytes = fs.readFileSync(base + "/lib/client.js")
+  const clientSha256 = crypto.createHash("sha256").update(clientBytes).digest("hex")
+  console.error("source package:", pkg.name + "@" + pkg.version, "lib/client.js sha256:", clientSha256)
+  if (pkg.version !== "0.2.1-rc.2") {
+    console.error("refusing to overwrite 0.2.1-rc.2 fixture tokens from host version " + pkg.version)
+    process.exit(1)
   }
-  process.stdout.write(out)
+  const txt = clientBytes.toString("utf8")
+  const readCssString = (marker) => {
+    const m = txt.indexOf(marker)
+    if (m < 0) throw new Error("missing marker: " + marker)
+    const quote = txt.indexOf("\"", m + marker.length)
+    let i = quote + 1, out = "", escaped = false
+    for (; i < txt.length; i++) {
+      const c = txt[i]
+      if (escaped) { out += c === "n" ? "\n" : c === "t" ? "\t" : c; escaped = false }
+      else if (c === "\\") escaped = true
+      else if (c === "\"") break
+      else out += c
+    }
+    return out
+  }
+  process.stdout.write(readCssString("var base_css_default = "))
 '
 ```
 
 `theme-tokens-base.css` stores that base layer verbatim under a provenance
-comment. Keeping the two layers together means `--dsw-font-family`,
-`--ds-font-family-code` and `--dsw-radius-md` resolve exactly as they do in DSH,
-so the fixture proves the plugin's Pele-variable mapping instead of relying on
-Pele's fallbacks.
+comment, alongside the color-token layer in `theme-tokens.css`. Keeping the two
+layers together means `--dsw-font-family`, `--ds-font-family-code` and
+`--dsw-radius-md` resolve exactly as they do in DSH, so the fixture proves the
+plugin's Pele-variable mapping instead of relying on Pele's fallbacks.
 
 ## Run it
 
@@ -126,7 +149,14 @@ self-describing. It reports:
 ```sh
 npm run build
 npm run verify:visual
+# or write into a specific new staging directory:
+node scripts/verify-visual.mjs --output-dir=.artifacts/visual-check
 ```
+
+By default `npm run verify:visual` writes into a fresh `.artifacts/<run-id>/`
+directory (and prints the resolved path on startup) so routine runs never
+clobber the committed baseline in `tests/fixtures/screenshots/` or finalized
+records under `docs/evidence/**`.
 
 This command starts a loopback server and an isolated headless Chrome profile,
 checks rendering, the 4-button toolbar, theme changes, source visibility/parent

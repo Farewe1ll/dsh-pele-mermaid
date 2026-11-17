@@ -43,6 +43,7 @@ import { createServer } from 'node:net'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { gunzipSync } from 'node:zlib'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const PLUGIN_ID = 'dsh-pele-mermaid'
@@ -282,10 +283,12 @@ async function fetchWithAuth(url, cookie) {
     headers: { cookie },
     redirect: 'manual',
   })
-  const body = await response.text()
+  const rawBody = Buffer.from(await response.arrayBuffer())
+  const body = rawBody.toString('utf8')
   return {
     status: response.status,
     contentType: response.headers.get('content-type') || '',
+    rawBody,
     body,
   }
 }
@@ -368,6 +371,240 @@ function bootEntry(boot, id = PLUGIN_ID) {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Tarball extraction & byte-level route verification                         */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Parse a C-style null-terminated string from a tar header field.
+ * @param {Buffer} buf
+ * @param {number} start
+ * @param {number} end
+ */
+function readTarString(buf, start, end) {
+  let stop = start
+  while (stop < end && buf[stop] !== 0) stop += 1
+  return buf.subarray(start, stop).toString('utf8')
+}
+
+/**
+ * Parse an octal size field from a 512-byte tar header block.
+ * @param {Buffer} header
+ */
+function readTarSize(header) {
+  if ((header[124] & 0x80) !== 0) {
+    let value = 0n
+    for (let i = 125; i < 136; i += 1) {
+      value = (value << 8n) | BigInt(header[i])
+    }
+    return Number(value)
+  }
+  const raw = readTarString(header, 124, 136).trim()
+  if (raw === '') return 0
+  const parsed = Number.parseInt(raw, 8)
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    throw new Error(`invalid tar entry size: ${JSON.stringify(raw)}`)
+  }
+  return parsed
+}
+
+/**
+ * Extract regular file entries from a `.tgz` / `.tar.gz` buffer into a Map keyed
+ * by normalized entry path (for example `package/package.json`).
+ *
+ * @param {Buffer | Uint8Array} tgzBytes
+ * @returns {Map<string, Buffer>}
+ */
+export function readTarballEntries(tgzBytes) {
+  const tar = gunzipSync(Buffer.isBuffer(tgzBytes) ? tgzBytes : Buffer.from(tgzBytes))
+  /** @type {Map<string, Buffer>} */
+  const files = new Map()
+  let offset = 0
+  /** @type {string | null} */
+  let paxPath = null
+  while (offset + 512 <= tar.length) {
+    const header = tar.subarray(offset, offset + 512)
+    let allZero = true
+    for (let i = 0; i < 512; i += 1) {
+      if (header[i] !== 0) {
+        allZero = false
+        break
+      }
+    }
+    if (allZero) break
+    const size = readTarSize(header)
+    const typeFlag = header[156] === 0 ? '0' : String.fromCharCode(header[156])
+    const name = readTarString(header, 0, 100)
+    const prefix = readTarString(header, 345, 500)
+    const dataStart = offset + 512
+    const dataEnd = dataStart + size
+    if (dataEnd > tar.length) {
+      throw new Error('truncated tar archive')
+    }
+    const content = Buffer.from(tar.subarray(dataStart, dataEnd))
+    if (typeFlag === 'x') {
+      const text = content.toString('utf8')
+      for (const line of text.split('\n')) {
+        const match = /^\d+\s+path=(.*)$/.exec(line)
+        if (match) paxPath = match[1]
+      }
+    } else if (typeFlag === 'L') {
+      paxPath = readTarString(content, 0, content.length)
+    } else if (typeFlag === '0') {
+      const fullPath = (paxPath ?? (prefix ? `${prefix}/${name}` : name)).replace(/^\.\//, '')
+      files.set(fullPath, content)
+      paxPath = null
+    } else {
+      paxPath = null
+    }
+    offset = dataStart + Math.ceil(size / 512) * 512
+  }
+  return files
+}
+
+/**
+ * Resolve the authoritative package metadata and expected `lib/client.js`
+ * bytes from either a packed `.tgz` (`--source=<tgz>`) or the workspace.
+ *
+ * When a tarball is supplied, `package/package.json` and `package/lib/client.js`
+ * inside that tarball are the sole source of truth for expected values. If the
+ * workspace `lib/client.js` is also present, `matchesWorkspaceBundle` records
+ * whether its SHA-256 equals the tarball's bundle SHA-256; if the workspace
+ * bundle is absent, `matchesWorkspaceBundle` is `'unavailable'` (never a false
+ * failure).
+ *
+ * @param {{ sourceArg?: string | null, workspaceRoot?: string, pluginId?: string }} [options]
+ */
+export async function resolveInstallExpectations({
+  sourceArg = SOURCE_ARG,
+  workspaceRoot = ROOT,
+  pluginId = PLUGIN_ID,
+} = {}) {
+  const sourcePath = sourceArg ? path.resolve(workspaceRoot, sourceArg) : workspaceRoot
+  assert.ok(existsSync(sourcePath), `install source does not exist: ${sourcePath}`)
+  const sourceKind = /\.(?:tgz|tar\.gz)$/i.test(sourcePath) ? 'tarball' : 'workspace'
+  const wrapperPrefix = Buffer.from(`window.__ModuleLoader__.load({id:${JSON.stringify(pluginId)}`, 'utf8')
+  const workspaceBundlePath = path.join(workspaceRoot, 'lib', 'client.js')
+
+  if (sourceKind === 'tarball') {
+    const tarballBytes = await readFile(sourcePath)
+    const sourceSha256 = createHash('sha256').update(tarballBytes).digest('hex')
+    const entries = readTarballEntries(tarballBytes)
+    const pkgBytes = entries.get('package/package.json')
+    assert.ok(pkgBytes, `tarball is missing package/package.json: ${sourcePath}`)
+    const pkg = JSON.parse(pkgBytes.toString('utf8'))
+    assert.equal(pkg.name, pluginId, `package name must be ${pluginId}`)
+    const bundleBytes = entries.get('package/lib/client.js')
+    assert.ok(bundleBytes, `tarball is missing package/lib/client.js: ${sourcePath}`)
+    assert.ok(
+      bundleBytes.length >= wrapperPrefix.length &&
+        bundleBytes.subarray(0, wrapperPrefix.length).equals(wrapperPrefix),
+      'tarball lib/client.js must start with the module-loader wrapper',
+    )
+    const bundleSha256 = createHash('sha256').update(bundleBytes).digest('hex')
+    /** @type {boolean | 'unavailable'} */
+    let matchesWorkspaceBundle = 'unavailable'
+    if (existsSync(workspaceBundlePath)) {
+      const wsBytes = await readFile(workspaceBundlePath)
+      const wsSha256 = createHash('sha256').update(wsBytes).digest('hex')
+      matchesWorkspaceBundle = wsSha256 === bundleSha256
+    }
+    return {
+      sourcePath,
+      sourceDisplay: sourceArg ? path.relative(workspaceRoot, sourcePath) : 'workspace',
+      sourceKind,
+      sourceSha256,
+      pkg,
+      bundlePath: 'lib/client.js',
+      bundleBytes,
+      bundleSha256,
+      matchesWorkspaceBundle,
+    }
+  }
+
+  if (!existsSync(workspaceBundlePath)) {
+    throw new Error('lib/client.js is missing — run `npm run build` first.')
+  }
+  const bundleBytes = await readFile(workspaceBundlePath)
+  const bundleSha256 = createHash('sha256').update(bundleBytes).digest('hex')
+  const pkg = JSON.parse(await readFile(path.join(workspaceRoot, 'package.json'), 'utf8'))
+  assert.equal(pkg.name, pluginId, `package name must be ${pluginId}`)
+  assert.ok(
+    bundleBytes.length >= wrapperPrefix.length &&
+      bundleBytes.subarray(0, wrapperPrefix.length).equals(wrapperPrefix),
+    'built bundle must start with the module-loader wrapper',
+  )
+  return {
+    sourcePath,
+    sourceDisplay: 'workspace',
+    sourceKind: 'workspace',
+    sourceSha256: null,
+    pkg,
+    bundlePath: path.relative(workspaceRoot, workspaceBundlePath),
+    bundleBytes,
+    bundleSha256,
+    matchesWorkspaceBundle: true,
+  }
+}
+
+/**
+ * Verify the raw HTTP response body served from the plugin bundle route:
+ *  1. Its prefix bytes must equal `expectedBundleBytes` byte-for-byte (never a
+ *     decoded string prefix check, which can mask invalid UTF-8 sequences that
+ *     collapse to identical U+FFFD replacement characters).
+ *  2. The remaining suffix bytes must decode under strict UTF-8 (`fatal: true`)
+ *     and match the allowed DSH loader source-map suffix format (supporting
+ *     variable-length hex `rev` identifiers without assuming a fixed 73-byte
+ *     suffix length).
+ *
+ * @param {Buffer | Uint8Array} rawBody
+ * @param {Buffer | Uint8Array} expectedBundleBytes
+ * @param {string} [pluginId]
+ */
+export function verifyServedRouteBody(rawBody, expectedBundleBytes, pluginId = PLUGIN_ID) {
+  const bodyBuf = Buffer.isBuffer(rawBody) ? rawBody : Buffer.from(rawBody)
+  const expectedBuf = Buffer.isBuffer(expectedBundleBytes)
+    ? expectedBundleBytes
+    : Buffer.from(expectedBundleBytes)
+  const wrapperPrefix = Buffer.from(`window.__ModuleLoader__.load({id:${JSON.stringify(pluginId)}`, 'utf8')
+  assert.ok(
+    bodyBuf.length >= wrapperPrefix.length &&
+      bodyBuf.subarray(0, wrapperPrefix.length).equals(wrapperPrefix),
+    `served route must start with the module-loader wrapper for ${pluginId}`,
+  )
+  assert.ok(
+    bodyBuf.length >= expectedBuf.length &&
+      bodyBuf.subarray(0, expectedBuf.length).equals(expectedBuf),
+    'served route must start with the exact expected lib/client.js bytes (+ loader source-map suffix)',
+  )
+  const suffixBytes = bodyBuf.subarray(expectedBuf.length)
+  let suffixText = ''
+  try {
+    suffixText = new TextDecoder('utf-8', { fatal: true }).decode(suffixBytes)
+  } catch (error) {
+    assert.fail(
+      `served route suffix is not valid UTF-8: ${error instanceof Error ? error.message : String(error)}`,
+    )
+  }
+  const escapedId = pluginId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const suffixPattern = new RegExp(
+    `^;\\n//# sourceMappingURL=.*${escapedId}/client\\.js\\.map&rev=[0-9a-f]+\\n$`,
+  )
+  assert.match(
+    suffixText,
+    suffixPattern,
+    `served route must only append the loader source-map suffix, got ${JSON.stringify(suffixText.slice(0, 120))}`,
+  )
+  return {
+    bytes: bodyBuf.length,
+    sha256: createHash('sha256').update(bodyBuf).digest('hex'),
+    servedOverCommittedBytes: suffixBytes.length,
+    suffix: suffixText,
+    hasWrapper: true,
+    prefixMatchesBundle: true,
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 /* Main verification                                                          */
 /* -------------------------------------------------------------------------- */
 
@@ -381,30 +618,26 @@ async function main() {
   /* ---------------------------------------------------------------------- */
   beginStep('0. preflight (isolated temp home, bundle identity)')
 
-  if (!existsSync(BUNDLE_PATH)) {
-    throw new Error('lib/client.js is missing — run `npm run build` first.')
-  }
-  const bundleBytes = await readFile(BUNDLE_PATH)
-  const bundleText = bundleBytes.toString('utf8')
-  const bundleSha256 = createHash('sha256').update(bundleBytes).digest('hex')
-  const pkg = JSON.parse(await readFile(path.join(ROOT, 'package.json'), 'utf8'))
-  assert.equal(pkg.name, PLUGIN_ID, 'package name must be dsh-pele-mermaid')
-
   // Install from a packed tarball (final release check) or from this checkout.
-  const sourcePath = SOURCE_ARG ? path.resolve(ROOT, SOURCE_ARG) : ROOT
-  assert.ok(existsSync(sourcePath), `install source does not exist: ${sourcePath}`)
-  const sourceKind = /\.(?:tgz|tar\.gz)$/i.test(sourcePath) ? 'tarball' : 'workspace'
-  const sourceSha256 = sourceKind === 'tarball'
-    ? createHash('sha256').update(await readFile(sourcePath)).digest('hex')
-    : null
-  note('install.source', SOURCE_ARG ? path.relative(ROOT, sourcePath) : 'workspace')
+  const expected = await resolveInstallExpectations({
+    sourceArg: SOURCE_ARG,
+    workspaceRoot: ROOT,
+    pluginId: PLUGIN_ID,
+  })
+  const {
+    sourcePath,
+    sourceKind,
+    sourceSha256,
+    pkg,
+    bundleBytes,
+    bundleSha256,
+    matchesWorkspaceBundle,
+  } = expected
+  note('install.source', expected.sourceDisplay)
   note('install.source.kind', sourceKind)
   if (sourceSha256 !== null) note('install.source.sha256', sourceSha256)
-  assert.ok(
-    bundleText.startsWith(`window.__ModuleLoader__.load({id:${JSON.stringify(PLUGIN_ID)}`),
-    'built bundle must start with the module-loader wrapper',
-  )
-  note('bundle.path', path.relative(ROOT, BUNDLE_PATH))
+  note('install.source.matchesWorkspaceBundle', matchesWorkspaceBundle)
+  note('bundle.path', expected.bundlePath)
   note('bundle.bytes', bundleBytes.length)
   note('bundle.sha256', bundleSha256)
 
@@ -510,27 +743,16 @@ async function main() {
     const route = await fetchWithAuth(routeUrl, activeServer.cookie)
     assert.equal(route.status, 200, `plugin bundle route must return 200, got ${route.status}`)
     assert.match(route.contentType, /javascript/, `plugin bundle route must serve JavaScript, got ${route.contentType}`)
-    assert.ok(
-      route.body.startsWith(`window.__ModuleLoader__.load({id:${JSON.stringify(PLUGIN_ID)}`),
-      'served route must start with the module-loader wrapper for dsh-pele-mermaid',
-    )
-    assert.ok(
-      route.body.startsWith(bundleText),
-      'served route must be the committed lib/client.js bytes (+ loader source-map suffix)',
-    )
-    const suffix = route.body.slice(bundleText.length)
-    assert.match(
-      suffix,
-      /^;\n\/\/# sourceMappingURL=.*dsh-pele-mermaid\/client\.js\.map&rev=[0-9a-f]+\n$/,
-      `served route must only append the loader source-map suffix, got ${JSON.stringify(suffix.slice(0, 120))}`,
-    )
+    const routeVerified = verifyServedRouteBody(route.rawBody, bundleBytes, PLUGIN_ID)
     note('active.route.status', route.status)
     note('active.route.contentType', route.contentType)
-    note('active.route.bytes', Buffer.byteLength(route.body))
-    note('active.route.servedOverCommittedBytes', Buffer.byteLength(route.body) - bundleBytes.length)
-    note('active.route.suffix', suffix.replace(/\n/g, '\\n'))
-    note('active.route.hasWrapper', route.body.startsWith(`window.__ModuleLoader__.load({id:${JSON.stringify(PLUGIN_ID)}`))
-    await writeFile(path.join(tempRoot, 'evidence', 'route.active.client.js'), route.body, 'utf8')
+    note('active.route.bytes', routeVerified.bytes)
+    note('active.route.sha256', routeVerified.sha256)
+    note('active.route.servedOverCommittedBytes', routeVerified.servedOverCommittedBytes)
+    note('active.route.suffix', routeVerified.suffix.replace(/\n/g, '\\n'))
+    note('active.route.hasWrapper', routeVerified.hasWrapper)
+    note('active.route.prefixMatchesBundle', routeVerified.prefixMatchesBundle)
+    await writeFile(path.join(tempRoot, 'evidence', 'route.active.client.js'), route.rawBody)
     pass('active boot graph entry present and its bundle route serves the wrapped built bundle')
 
     await activeServer.stop()
@@ -707,9 +929,15 @@ function configSection(text, header) {
   return next >= 0 ? rest.slice(0, next) : rest
 }
 
-main().catch((error) => {
-  log('')
-  log(`verify-install: FAIL at step: ${currentStep || 'unknown'}`)
-  log(`reason: ${error instanceof Error ? error.stack || error.message : String(error)}`)
-  process.exitCode = 1
-})
+const IS_MAIN =
+  Boolean(process.argv[1]) &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+
+if (IS_MAIN) {
+  main().catch((error) => {
+    log('')
+    log(`verify-install: FAIL at step: ${currentStep || 'unknown'}`)
+    log(`reason: ${error instanceof Error ? error.stack || error.message : String(error)}`)
+    process.exitCode = 1
+  })
+}
