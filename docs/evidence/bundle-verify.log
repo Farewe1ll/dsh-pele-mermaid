@@ -1,0 +1,39 @@
+
+> dsh-pele-mermaid@0.1.1 verify
+> node scripts/verify-bundle.mjs
+
+dsh-pele-mermaid verify — build check + bundle smoke test
+workspace: /Users/farewe1ll/Objects/dsh-pele-mermaid
+node:      v24.22.0 (/Users/farewe1ll/.local/share/mise/installs/node/24.22.0/bin/node)
+
+=== step 1/2: build --check (bundle freshness) ===
+$ node scripts/build-client.mjs --check
+build-client: up to date (694058 bytes, 104 ms)
+step 1/2: build --check (bundle freshness): PASS (143 ms, exit 0)
+
+=== step 2/2: bundle smoke test (jsdom, real built bundle) ===
+$ node --test tests/bundle.test.mjs
+✔ bundle wrapper: registers exactly id "dsh-pele-mermaid" and the factory never requires (73.246958ms)
+✔ apply(): settled mermaid fences become Pele diagrams; banners, source and non-mermaid blocks are preserved (503.673916ms)
+✔ toolbar: Diagram/Source round-trips the original <pre> node and aria-pressed state (400.476916ms)
+✔ theme/change: unchanged font inputs never re-render; a font change rebuilds in place (1451.885ms)
+✔ ctx.effect cleanup: restores the pre-plugin DOM byte-identically and stops observing (1126.577625ms)
+✔ MutationObserver: a mermaid fence appended after boot settles and renders (820.347208ms)
+✔ built bundle: real React generic cards update from source-only mutations, preserve Copy, and clean language reuse (1945.017208ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6648.607917
+step 2/2: bundle smoke test (jsdom, real built bundle): PASS (6693 ms, exit 0)
+
+=== bundle identity ===
+file:        lib/client.js
+bytes:       694,058
+sha256:      ba5b29085cac5c6f3fe34b2e76e5b00744b191f7c98877700982ddad90a8a1e4
+wrapper id:  "dsh-pele-mermaid" (package dsh-pele-mermaid@0.1.1)
+
+verify: PASS — 2 steps in 6848 ms

@@ -1,0 +1,27 @@
+{
+  "status": "PASS",
+  "browser": "Chrome/155.0.8059.85",
+  "bundleSha256": "ba5b29085cac5c6f3fe34b2e76e5b00744b191f7c98877700982ddad90a8a1e4",
+  "screenshots": {
+    "fixture-light.png": {
+      "bytes": 329773,
+      "sha256": "5965ac067fc5080225e34f447747751330c3227516980316a02ca6867fc697ef"
+    },
+    "fixture-dark.png": {
+      "bytes": 334247,
+      "sha256": "5e3d61f3b5f782935489d3290297a54e938c361079e1da6d562c2eae456aa9e8"
+    },
+    "fixture-source-view.png": {
+      "bytes": 333159,
+      "sha256": "3ec8e53c6b1a4eefcd4b1cfd31629f29462b190e37b138a31927c790b5e2c30a"
+    },
+    "fixture-font-refresh.png": {
+      "bytes": 334373,
+      "sha256": "9485ea065a8520f3551fbf050bcda00f2ffd2b43cfd9e44eac94ce285638508b"
+    },
+    "fixture-teardown.png": {
+      "bytes": 232311,
+      "sha256": "9fa616176b945e212ee0915f00c9640eecfa65234ff1138b3075424acb8fdc87"
+    }
+  }
+}

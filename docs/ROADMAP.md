@@ -1,7 +1,7 @@
 # dsh-pele-mermaid — Roadmap
 
 Status: draft
-Last updated: 2026-11-09
+Last updated: 2026-11-10
 Target release: 0.2.0
 Current release: 0.1.1
 Owner: repository maintainer
@@ -109,6 +109,10 @@ P1, not assumed to be already shipped.
 Indicative sequence: P0 → P1 → P3 → P2/P4 → P5 → P6 decision → P7. P3 can run in
 parallel with P1/P2; P2 is not a blocker for starting P4.
 
+[MAINTENANCE.md](MAINTENANCE.md) defines evidence handling, documentation
+ownership, and structural cleanup alongside these phases. Evidence repair and
+documentation work can proceed alongside P0 using fixed test inputs.
+
 ## 5. Phase details
 
 ### P0 — Real-session verification on DSH 0.2.2-rc.1
@@ -125,6 +129,10 @@ changing code or compatibility text.
   can still manage `web`.)
 - Restart the app or refresh the page after install/enable so the client boot
   graph is recomposed.
+- Identify the fixed source, dependencies, bundle, and host and reserve a run
+  directory under the [capture conventions](MAINTENANCE.md#3-p0-capture-and-manifest-timing).
+  Verify the client actually loaded by the session. P0 does not wait for all
+  documentation cleanup or a historical manifest rewrite.
 
 **Test matrix**
 
@@ -194,7 +202,8 @@ class-diagram groups, `List<T>`/`Map<K,V>`, or rich-text labels. A green
 
 **Exit criteria**
 
-- `npm test` passes; record the count (84 before P3, more after).
+- `npm test` meets the [behavior-based gate](MAINTENANCE.md#6-behavior-based-test-gate);
+  record actual results and explain changes to test coverage or organization.
 - `npm run verify` passes.
 - The visual cases match or improve on 1.6.0; no clipped/overlapping labels.
 - Bundle size is recorded (expected 718,094 bytes). The 0.2.0 raw budget of
@@ -244,6 +253,10 @@ from the fixture probe alone.
 
 **Goal:** accept `mermaid`, `mermaidjs`, and `mmd` fences without widening
 detection beyond explicit language metadata.
+
+If host identification is extracted under the maintenance plan, review and
+verify that change after P0 and before adding aliases. The extraction is optional;
+P3's required dependency remains P0.
 
 **Changes**
 
@@ -473,7 +486,8 @@ reproducible 0.2.0 artifact.
 ## 8. Definition of done for 0.2.0
 
 - [ ] P0 live verification recorded for the `0.1.1` / `0.2.2-rc.1` tuple.
-- [ ] 84+ automated tests and `npm run verify` pass.
+- [ ] Automated tests meet the [behavior-based gate](MAINTENANCE.md#6-behavior-based-test-gate),
+      actual results are recorded, and `npm run verify` passes.
 - [ ] Host probe passes on 0.2.2-rc.1, or its limitation is accepted in writing.
 - [ ] Pele 1.9 visual checks recorded; bundle hash updated.
 - [ ] Explicit aliases covered by tests and README.
@@ -515,6 +529,8 @@ These do not block P0/P1 but should be settled before P6/P7:
 
 ## 11. References
 
+- [MAINTENANCE.md](MAINTENANCE.md) — evidence handling, documentation ownership,
+  structural cleanup boundaries, and behavior-based test acceptance.
 - [ARCH.md](ARCH.md) — module contracts, build contract, non-goals.
 - [VERIFICATION.md](VERIFICATION.md) — current evidence and reproduction steps.
 - [VERIFICATION-HISTORY.md](VERIFICATION-HISTORY.md) — historical records.

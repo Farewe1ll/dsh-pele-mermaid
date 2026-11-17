@@ -1,4 +1,10 @@
 node_modules/
 *.log
+# Reviewed originals referenced by the 2026-10-19 evidence manifest.
+!docs/evidence/build-freshness.log
+!docs/evidence/bundle-verify.log
+!docs/evidence/host-probe.log
+!docs/evidence/tests.log
+!docs/evidence/visual.log
 .DS_Store
 coverage/
