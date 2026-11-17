@@ -1,0 +1,66 @@
+[
+  {
+    "id": "dsh-pele-mermaid@0.2.0",
+    "name": "dsh-pele-mermaid",
+    "version": "0.2.0",
+    "size": 297951,
+    "unpackedSize": 792531,
+    "shasum": "a1f84bf26b9514dbd711fbbb6801698ee8c8436f",
+    "integrity": "sha512-M5+/oppOluUCpe8mx4EYUqEH2ltCNYrAgiZYmcHL2n3ui+UE16zPWdzVjgQD+7VIqPAvMWSNQVHkwDG6qsDNNg==",
+    "filename": "dsh-pele-mermaid-0.2.0.tgz",
+    "files": [
+      {
+        "path": "CHANGELOG.md",
+        "size": 10569,
+        "mode": 384
+      },
+      {
+        "path": "LICENSE",
+        "size": 1363,
+        "mode": 384
+      },
+      {
+        "path": "README.md",
+        "size": 14323,
+        "mode": 384
+      },
+      {
+        "path": "README.zh.md",
+        "size": 12954,
+        "mode": 384
+      },
+      {
+        "path": "THIRD-PARTY-NOTICES.txt",
+        "size": 2184,
+        "mode": 420
+      },
+      {
+        "path": "cordis.patch.yml",
+        "size": 573,
+        "mode": 384
+      },
+      {
+        "path": "docs/KNOWN-LIMITATIONS.md",
+        "size": 8248,
+        "mode": 420
+      },
+      {
+        "path": "index.js",
+        "size": 632,
+        "mode": 384
+      },
+      {
+        "path": "lib/client.js",
+        "size": 739776,
+        "mode": 420
+      },
+      {
+        "path": "package.json",
+        "size": 1909,
+        "mode": 420
+      }
+    ],
+    "entryCount": 10,
+    "bundled": []
+  }
+]

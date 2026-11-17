@@ -11,7 +11,7 @@ Render Mermaid diagrams in the DeepSeek Harness (DSH) Web chat with
 > `mermaid` (or explicit `mermaidjs` / `mmd`) code fences become
 > interactive Pele diagrams.
 
-The unreleased viewer-stage update has a separate [verification record](docs/VERIFICATION.md#0-viewer-stage-updates--2026-11-17): 148 tests pass for the recovery follow-up; desktop/short-window browser evidence identifies the preceding committed bundle. Earlier dated bundle sizes and test counts below remain historical.
+Current release candidate: **0.2.0**. See the [verification record](https://github.com/Farewe1ll/dsh-pele-mermaid/blob/main/docs/VERIFICATION.md) for the current bundle identity and checks.
 
 ## Why Pele
 
@@ -37,26 +37,32 @@ The unreleased viewer-stage update has a separate [verification record](docs/VER
 
 ## Install
 
-DSH plugins are installed per profile. This release is the `0.2.0` working
-build; install it from this checkout (the GitHub Release tarball is part of the
-pending release steps).
+DSH plugins are installed per profile. Version `0.2.0` is prepared for npm;
+registry publication is a separate release step. Until it is published, install
+the locally packed tarball or a source checkout.
 
 ```sh
-# Web profile (auto-initialized from the shipped template on first use)
-dsh plugin --profile web add /path/to/dsh-pele-mermaid
+# From this checkout: verifies the release and writes the .tgz
+npm ci
+npm pack
 
-# Desktop profile: use the dsh command installed by the Desktop app (the app's
-# runtime). A standalone @deepseek-ai/dsh CLI cannot manage the desktop profile
-# (it can still manage the web profile).
-dsh plugin --profile desktop add /path/to/dsh-pele-mermaid
-```
-
-A packaged tarball or git source works the same way:
-
-```sh
+# Web profile (initialized from the shipped template on first use)
 dsh plugin --profile web add ./dsh-pele-mermaid-0.2.0.tgz
-dsh plugin --profile web add dsh-pele-mermaid
+
+# Desktop: use the dsh CLI installed by the Desktop app, then restart the app
+dsh plugin --profile desktop add ./dsh-pele-mermaid-0.2.0.tgz
 ```
+
+After npm publication, install the pinned version by package name:
+
+```sh
+dsh plugin --profile web add dsh-pele-mermaid@0.2.0
+dsh plugin --profile desktop add dsh-pele-mermaid@0.2.0
+```
+
+A checkout also works: `dsh plugin --profile web add /path/to/dsh-pele-mermaid`.
+The standalone `@deepseek-ai/dsh` CLI can manage the web profile; the Desktop
+profile requires the app's bundled CLI.
 
 Restart the profile (or the Desktop app) after installing, uninstalling, or
 toggling the row: the client boot graph is composed at Host start, and a plain
@@ -168,7 +174,7 @@ Theme/scheme changes are pure CSS. Source changes, host node replacement and
 font-input changes can rebuild diagrams. Appearance font size is not yet passed
 to Pele: a font-size event can request a rebuild without changing Pele's default
 16 px size. Scan/refresh scheduling also has a known race; see
-[known limitations](docs/KNOWN-LIMITATIONS.md). Peer plugins that change colors
+[known limitations](https://github.com/Farewe1ll/dsh-pele-mermaid/blob/main/docs/KNOWN-LIMITATIONS.md). Peer plugins that change colors
 by overriding tokens work too. To tune diagram colors, override
 the `--pele-*` variables on `.dsh-pele-mermaid-diagram` in your own stylesheet;
 no plugin code changes are needed. The exported SVG captures the resolved
@@ -195,13 +201,10 @@ expressions and follows live theme changes while open.
 
 ## Compatibility
 
-- **Verified target:** DSH `0.2.1-rc.2`, React/React DOM `18.3.1` (the
-  `0.1.1` / `0.2.1-rc.2` row). The installed-host component probe was also run
-  against DSH `0.2.2-rc.3` and passes, but that is a fixture-adapter probe of the
-  installed CodeBlock, not a live chat session. **DSH `0.2.2` is pending
-  verification**: do not assume it works end to end, and no `0.2.2` row is
-  claimed yet. The installed Desktop profile still runs plugin `0.1.1` and was
-  not replaced in the `0.2.0` iteration.
+- **Tested integration:** DSH `0.2.2-rc.3` installed CodeBlock component
+  probe and isolated web-profile tarball installation, route serving,
+  disable/uninstall checks. React lifecycle tests use `18.3.1`. Results and
+  exact scope are in the [verification record](https://github.com/Farewe1ll/dsh-pele-mermaid/blob/main/docs/VERIFICATION.md).
 - In addition to the public `theme` service and Markdown DOM, generic banners
   depend on private React Fiber fields. These are version-sensitive; unknown or
   unreadable languages stay native. The host probe resolves minified bindings by
@@ -209,7 +212,7 @@ expressions and follows live theme changes while open.
   version; re-run it before claiming support for a new host.
 - Pure props changes are checked approximately once per second in addition to
   DOM observation; background timer throttling can delay them. See the
-  [remaining limitations](docs/KNOWN-LIMITATIONS.md).
+  [remaining limitations](https://github.com/Farewe1ll/dsh-pele-mermaid/blob/main/docs/KNOWN-LIMITATIONS.md).
 - Pele `1.9.0` is bundled (MIT), pinned to the exact version. Mermaid syntax
   support follows Pele: every diagram type built into Mermaid 12.1.0.
 - Do not enable another Mermaid-fence renderer at the same time; two plugins
@@ -217,58 +220,33 @@ expressions and follows live theme changes while open.
 
 ## Verified
 
-`docs/VERIFICATION.md` records the full evidence; the measured highlights for
-`0.2.0` (`lib/client.js` 739,526 bytes, SHA-256
-`906b1cc2f77c99a41e8453d85bd1554e60ff36b7a9d12558b3e998a56f1ea4af`):
+The current client bundle is **739,776 bytes**, SHA-256
+`1862b3d0363c068f940fe660569cdafb23e5b608200477ab61f5215ef41379cb`.
 
-- **123 automated tests** (`npm test`): 123 pass, 0 fail, 0 skipped — engine,
-  theme CSS, block manager, export, viewer, installed-host bindings, real React
-  18.3.1 lifecycle cases, and built-bundle smoke. `npm run verify` also fails on
-  a stale `lib/client.js`.
-- **Installed-host probe** (`npm run verify:host`): PASS on DSH `0.2.2-rc.3`
-  (frontend asset `index-Ciz7DZxv.js`, 1,093,870 bytes, SHA-256
-  `65411dab…92d308b`) with six checks: committed props, mermaid-only mount,
-  unmount removing props, card banner + host Copy, and plain/static/streaming
-  source shapes with Copy parity. Styling, toolbar and tokenization helpers are
-  fixture adapters; this does not exercise the whole running DSH app.
-- **Real-browser fixture** (`DSH_VISUAL_CHROME_NO_SANDBOX=1 npm run verify:visual`,
-  headless Chrome 157.0.8103.79): eight diagrams (including the Pele 1.9 CJK,
-  class-group, generic-label and rich-label cases), a four-control toolbar,
-  light↔dark flips with **zero re-renders**, source toggling that keeps the same
-  host-owned `<pre>`, the fullscreen viewer (open/zoom/fit/Escape/focus),
-  a 720×2200 narrow-column capture, ten recorded screenshots, and teardown that
-  removes only plugin additions. The browser run also captures the real
-  downloaded SVG bytes in light and dark themes (background rectangle equals the
-  resolved `--pele-bg`: `#f9fafb` / `#1b1b1c`), renders the dark download on a
-  white stand-in page, and switches theme while the viewer is open to confirm
-  the diagram and dialog repaint.
-- **P6 decision: NO-GO for lazy loading in `0.2.0`** — Pele stays bundled
-  inline. Raw/gzip/brotli sizes are 739,526 / 276,084 / 223,848 bytes; the local
-  route's bundle request+eval finishes by ~34 ms cold and the first diagram is
-  ready in ~395 ms cold / ~370 ms warm (dominated by the 150 ms scan debounce +
-  180 ms settle window). Installed-route encoding/cache metrics and a split-prototype
-  first-diagram regression were not measured, so the roadmap adopt rule cannot
-  be satisfied. Evidence: `docs/evidence/2026-11-17/p6-measurement.json`.
-- **"Off ⇒ exactly normal"** (historical `0.1.1` install record): with the row
-  disabled the boot graph has zero plugin entries, the index HTML has zero
-  occurrences, and the old bundle route returns 404; the disabled graph is
-  structurally identical to a freshly uninstalled profile.
-- **Not verified:** a live DSH `0.2.2` conversation (P0) — a sample was posted to
-  a running session but desktop screenshot consent was not granted, so no
-  evidence was captured. The packaging/install path (tarball, served route,
-  disable/uninstall) is verified in an isolated profile; the release step
-  re-packs the final bundle and the live regression on that tarball is still
-  pending.
+- Automated tests cover rendering, source ownership, React lifecycle, export,
+  viewer controls, cleanup and release safeguards.
+- `npm run verify` rebuilds in memory and checks the committed bundle, then
+  runs the built-bundle smoke tests.
+- `npm run verify:package` creates and unpacks a temporary tarball, verifies
+  its ten-file inventory and complete third-party notices, checks its bytes
+  against the checkout, and exercises the host and client entry points.
+- The installed-host probe checks the real DSH `0.2.2-rc.3` CodeBlock with
+  fixture adapters. Isolated profile checks cover install, the served bundle,
+  disabled-route 404 and disabled/uninstalled boot-graph parity.
+
+[Current results](https://github.com/Farewe1ll/dsh-pele-mermaid/blob/main/docs/VERIFICATION.md) and [historical measurements](https://github.com/Farewe1ll/dsh-pele-mermaid/blob/main/docs/VERIFICATION-2026-11-17-BASELINE.md)
+are kept separately. See the [release checklist](https://github.com/Farewe1ll/dsh-pele-mermaid/blob/main/docs/RELEASING.md) for reproduction.
 
 ## Develop
 
 ```sh
-npm install
+npm ci
 npm run build      # build lib/client.js (esbuild; Pele 1.9.0 bundled)
 npm test           # node:test unit tests (engine, theme CSS, blocks, export, viewer)
 npm run verify     # build --check + bundle smoke test
 npm run verify:host # installed CodeBlock probe (macOS app required)
 npm run verify:visual # isolated Chrome screenshots + matching JSON
+npm run verify:release # tests + bundle check + actual package verification
 ```
 
 In restricted sandboxes where Chrome's renderer sandbox cannot start, run the
@@ -280,6 +258,12 @@ build wrapper, export/viewer internals, the host-probe version map, and the
 disable/cleanup guarantees. `docs/VERIFICATION.md` records the current evidence
 and reproduction steps; [CHANGELOG.md](CHANGELOG.md) lists the `0.2.0` changes.
 
+Development uses the latest Node LTS through mise (`mise use node@lts`);
+CI follows `lts/*`. Consumers receive a prebuilt bundle and need no devDependencies.
+`npm pack` and directory-based `npm publish` run `verify:release` through
+`prepack`. CI runs the same checks; the Desktop-specific probe is a local check.
+
 ## License
 
-MIT. Pele is MIT licensed; see its repository for details.
+MIT. [THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt) contains the complete
+Pele MIT and bundled Lucide icon ISC notices.

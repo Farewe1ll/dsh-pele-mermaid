@@ -1,12 +1,9 @@
 # dsh-pele-mermaid — Architecture
 
-Scope: current `0.2.0` working build. The verified compatibility target remains
-DSH `0.2.1-rc.2` / React `18.3.1`; the installed-host component probe also
-supports and passes on DSH `0.2.2-rc.3`, but no live `0.2.2` chat session was
-recorded (P0). This file is the single source of truth for module boundaries,
-interfaces, DOM assumptions, and the constraints that keep the plugin decoupled
-from DSH. Evidence for every acceptance claim lives in
-[`docs/VERIFICATION.md`](VERIFICATION.md).
+Scope: `0.2.0`. This file documents module boundaries, DOM assumptions and
+constraints. Integration checks cover the DSH `0.2.2-rc.3` installed component
+and isolated web profile; React tests use `18.3.1`. Artifact identities and
+check results live in [VERIFICATION.md](VERIFICATION.md).
 
 ## Why this shape
 
@@ -522,5 +519,5 @@ failure fallback.
 
 See [KNOWN-LIMITATIONS.md](KNOWN-LIMITATIONS.md) for private-Fiber compatibility,
 host-probe version sensitivity, scan cost, timer scheduling, font size,
-export/viewer scope, the missing live `0.2.2` verification (P0), the P6 no-go,
+export/viewer scope, the P6 no-go,
 and the scope of external-resource tests.

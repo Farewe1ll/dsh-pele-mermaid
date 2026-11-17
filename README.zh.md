@@ -4,7 +4,7 @@
 
 > **解耦保证。** 这是一个标准的 DSH **bundle 插件**，独立成包。它不修改、不 fork、不在运行时 import DSH 源码；渲染器随包提供，图表图片加载已关闭。插件行被禁用或未安装时，DSH 与出厂状态完全一致：无启动图条目、无样式、无观察器、无 DOM 改动。启用时，源码短暂稳定的 `mermaid`（以及显式的 `mermaidjs` / `mmd`）代码块会尝试渲染为可交互的 Pele 图表。
 
-未发布的查看器画布调整另有[验证记录](docs/VERIFICATION.md#0-viewer-stage-updates--2026-11-17)：恢复逻辑小修通过 148 项测试；桌面及矮窗口浏览器证据对应此前已提交的构建。下方此前记录的 bundle 大小与测试数量保留为历史数据。
+当前发布候选版本：**0.2.0**。当前 bundle 身份与检查结果见[验证记录](https://github.com/Farewe1ll/dsh-pele-mermaid/blob/main/docs/VERIFICATION.md)。
 
 ## 为什么用 Pele
 
@@ -17,23 +17,29 @@
 
 ## 安装
 
-DSH 插件按 profile 安装。本版本是 `0.2.0` 工作构建；从本仓库检出安装（GitHub Release tarball 属于尚未完成的发布步骤）。
+DSH 插件按 profile 安装。`0.2.0` 已按 npm 分发准备，实际发布另行执行；发布前使用本地 tarball 或源码目录安装。
 
 ```sh
-# Web profile（首次使用会从出厂模板自动初始化）
-dsh plugin --profile web add /path/to/dsh-pele-mermaid
+# 在仓库目录执行：安装锁定依赖，验证并生成 .tgz
+npm ci
+npm pack
 
-# Desktop profile：使用 Desktop 应用安装的 dsh 命令（应用自带 runtime）。
-# 独立的 @deepseek-ai/dsh CLI 不能管理 desktop profile（仍可管理 web）。
-dsh plugin --profile desktop add /path/to/dsh-pele-mermaid
-```
-
-打包 tarball、npm 或 git 源同理：
-
-```sh
+# Web profile（首次使用会自动初始化）
 dsh plugin --profile web add ./dsh-pele-mermaid-0.2.0.tgz
-dsh plugin --profile web add dsh-pele-mermaid
+
+# Desktop：使用应用安装的 dsh 命令，安装后重启应用
+dsh plugin --profile desktop add ./dsh-pele-mermaid-0.2.0.tgz
 ```
+
+npm 发布后可按固定版本安装：
+
+```sh
+dsh plugin --profile web add dsh-pele-mermaid@0.2.0
+dsh plugin --profile desktop add dsh-pele-mermaid@0.2.0
+```
+
+源码目录也可安装：`dsh plugin --profile web add /path/to/dsh-pele-mermaid`。
+独立的 `@deepseek-ai/dsh` CLI 可管理 web profile；desktop profile 使用应用自带 CLI。
 
 安装、卸载或切换该行后请重启 profile / Desktop 应用：客户端启动图在 Host 启动时组装，普通页面刷新不会重新读取已变化的 loader 行。
 
@@ -96,7 +102,7 @@ dsh plugin --profile web remove dsh-pele-mermaid
 | `--pele-font` / `--pele-font-mono` | `--dsw-font-family` / DSH 代码字体栈 |
 | `--pele-radius` | `--dsw-radius-md` |
 
-主题/明暗切换纯 CSS；源码变化、宿主节点替换及字体输入变化可能重建图表。Appearance 字号尚未传给 Pele：字号事件会请求重建，但不会改变 Pele 默认的 16 px。扫描与字体刷新之间仍有调度竞争，详见[已知限制](docs/KNOWN-LIMITATIONS.md)。想微调图表配色，在自己的样式表里覆盖 `.dsh-pele-mermaid-diagram` 上的 `--pele-*` 即可，无需改插件代码。导出的 SVG 在下载时固化已解析变量，因此保留当前主题，但不会跟随之后的主题切换；全屏查看器相反，它在打开期间保留 token 表达式并跟随实时主题切换。
+主题/明暗切换纯 CSS；源码变化、宿主节点替换及字体输入变化可能重建图表。Appearance 字号尚未传给 Pele：字号事件会请求重建，但不会改变 Pele 默认的 16 px。扫描与字体刷新之间仍有调度竞争，详见[已知限制](https://github.com/Farewe1ll/dsh-pele-mermaid/blob/main/docs/KNOWN-LIMITATIONS.md)。想微调图表配色，在自己的样式表里覆盖 `.dsh-pele-mermaid-diagram` 上的 `--pele-*` 即可，无需改插件代码。导出的 SVG 在下载时固化已解析变量，因此保留当前主题，但不会跟随之后的主题切换；全屏查看器相反，它在打开期间保留 token 表达式并跟随实时主题切换。
 
 ## 安全
 
@@ -108,39 +114,43 @@ dsh plugin --profile web remove dsh-pele-mermaid
 
 ## 兼容性
 
-- **已验证目标**：DSH `0.2.1-rc.2`、React/React DOM `18.3.1`（即 `0.1.1` / `0.2.1-rc.2` 行）。安装包宿主组件探针也在 DSH `0.2.2-rc.3` 上运行并通过，但它是对已安装 CodeBlock 的 fixture 适配器探针，不是实时聊天会话。**DSH `0.2.2` 仍待验证**：不要假定端到端可用，目前不声明 `0.2.2` 兼容行。已安装的 Desktop profile 仍运行插件 `0.1.1`，本次 `0.2.0` 迭代没有替换它。
+- **已检查的集成范围**：DSH `0.2.2-rc.3` 已安装 CodeBlock 组件探针，以及隔离 web profile 的 tarball 安装、资源路由、禁用和卸载检查。React 生命周期测试使用 `18.3.1`。准确范围与产物身份见[验证记录](https://github.com/Farewe1ll/dsh-pele-mermaid/blob/main/docs/VERIFICATION.md)。
 - 除公开的 `theme` 服务与 Markdown DOM 外，通用横幅识别依赖私有 React Fiber 字段；这些字段对版本敏感，语言不可读时保留原生代码块。宿主探针按已安装前端版本解析压缩后的绑定，未知版本给出可操作的错误；在声明新宿主兼容前需重跑探针。
-- 除 DOM 观察外，每秒检查一次纯 props 变化；后台计时器节流可能增加延迟。剩余风险见[已知限制](docs/KNOWN-LIMITATIONS.md)。
+- 除 DOM 观察外，每秒检查一次纯 props 变化；后台计时器节流可能增加延迟。剩余风险见[已知限制](https://github.com/Farewe1ll/dsh-pele-mermaid/blob/main/docs/KNOWN-LIMITATIONS.md)。
 - 内置 Pele `1.9.0`（MIT），精确锁定版本。Mermaid 语法覆盖跟随 Pele：Mermaid 12.1.0 内置的全部图表类型。
 - 不要与其他 Mermaid 围栏渲染插件同时启用，两个插件会争抢同一批代码块。
 
 ## 已验证
 
-完整证据见 `docs/VERIFICATION.md`；`0.2.0` 的实测要点（`lib/client.js` 739,526 字节，SHA-256
-`906b1cc2f77c99a41e8453d85bd1554e60ff36b7a9d12558b3e998a56f1ea4af`）：
+当前 bundle 为 **739,776 字节**，SHA-256：
+`1862b3d0363c068f940fe660569cdafb23e5b608200477ab61f5215ef41379cb`。
 
-- **123 个自动化测试**（`npm test`）：123 通过、0 失败、0 跳过 —— 引擎、主题 CSS、代码块管理器、导出、查看器、宿主绑定、真实 React 18.3.1 生命周期和构建产物冒烟。`npm run verify` 还会在 `lib/client.js` 过期时失败。
-- **宿主探针**（`npm run verify:host`）：在 DSH `0.2.2-rc.3` 上 PASS（前端资源 `index-Ciz7DZxv.js`，1,093,870 字节，SHA-256 `65411dab…92d308b`），六项检查：已提交 props、仅挂载 mermaid、卸载后 props 消失、卡片横幅 + 宿主 Copy、plain/static/streaming 三种源码结构与 Copy 一致性。样式、工具栏与分词辅助函数使用 fixture 适配器，不代表完整运行中宿主的端到端验证。
-- **真实浏览器**（`DSH_VISUAL_CHROME_NO_SANDBOX=1 npm run verify:visual`，headless Chrome 157.0.8103.79）：八个图表（含 Pele 1.9 的中文换行、类图分组、泛型标签、富文本标签用例）、四按钮工具栏、明暗切换**零重渲染**、源码切换保留同一宿主 `<pre>`、全屏查看器（打开/缩放/适应/Esc/焦点）、720×2200 窄栏截图、十张留档截图，以及只移除插件新增节点的销毁验证。浏览器运行还会在明暗主题下捕获真实的下载 SVG 字节（背景矩形等于解析后的 `--pele-bg`：`#f9fafb` / `#1b1b1c`），把深色导出渲染到白色替代页面上，并在查看器打开时切换主题，确认图表与对话框同步重绘。
-- **P6 决策：`0.2.0` 不采用懒加载** —— Pele 继续内联打包。raw / gzip / brotli 分别为 739,526 / 276,084 / 223,848 字节；本地路由下 bundle 请求+求值约 34 ms 内完成，首个图表冷启动约 395 ms、热加载约 370 ms（主要来自 150 ms 扫描去抖 + 180 ms 稳定窗口）。未测得已安装路由的编码/缓存指标，也没有构建拆分原型来测量首图回归，因此路线图的采纳条件无法满足。证据：`docs/evidence/2026-11-17/p6-measurement.json`。
-- **「关闭 = 完全正常」**（`0.1.1` 历史安装记录）：禁用该行后启动图零插件条目、index HTML 零出现、旧 bundle 路由 404；禁用后的启动图与全新卸载的 profile 结构完全一致。
-- **未验证**：DSH `0.2.2` 的实时对话（P0）—— 曾向运行中的会话发送样例，但未获得桌面截图授权，因此没有留存证据。打包/安装路径（tarball、served route、禁用/卸载）已在隔离 profile 中验证；发布步骤会重新打包最终 bundle，针对该 tarball 的实时回归仍待完成，见兼容性一节。
+- 自动化测试覆盖渲染、源码所有权、React 生命周期、导出、查看器、清理和发布保护。
+- `npm run verify` 在内存中重建并比较已提交 bundle，再运行构建产物冒烟测试。
+- `npm run verify:package` 实际打包并解包临时 tarball，检查十文件清单、完整第三方声明、文件字节一致性及 Host / Client 入口。
+- 宿主探针用 fixture 适配器运行 DSH `0.2.2-rc.3` 的真实 CodeBlock；隔离 profile 检查安装、bundle 路由、禁用后 404，以及禁用与卸载后的启动图一致性。
+
+[当前结果](https://github.com/Farewe1ll/dsh-pele-mermaid/blob/main/docs/VERIFICATION.md)与[历史测量](https://github.com/Farewe1ll/dsh-pele-mermaid/blob/main/docs/VERIFICATION-2026-11-17-BASELINE.md)分开维护；复现和发布步骤见[发布清单](https://github.com/Farewe1ll/dsh-pele-mermaid/blob/main/docs/RELEASING.md)。
 
 ## 开发
 
 ```sh
-npm install
+npm ci
 npm run build      # 构建 lib/client.js（esbuild，内联 Pele 1.9.0）
 npm test           # node:test 单测（引擎、主题 CSS、代码块、导出、查看器）
 npm run verify     # build --check + bundle 冒烟测试
 npm run verify:host # 安装包 CodeBlock 探针（需 macOS 应用）
 npm run verify:visual # 隔离 Chrome 截图与配套 JSON
+npm run verify:release # 全量测试 + 构建一致性 + 实际打包检查
 ```
 
 在渲染器沙箱无法启动的受限环境中，用 `DSH_VISUAL_CHROME_NO_SANDBOX=1` 运行视觉验证（只添加 `--no-sandbox --disable-setuid-sandbox`）；正常运行保留 Chrome 沙箱。
 
 `docs/ARCH.md` 记录模块契约、Markdown DOM 结构、打包 wrapper、导出/查看器内部实现、宿主探针版本映射与禁用/清理保证；`docs/VERIFICATION.md` 记录当前证据与复现步骤；[CHANGELOG.md](CHANGELOG.md) 列出 `0.2.0` 变更。
 
+开发使用 mise 管理的最新 Node LTS（`mise use node@lts`），CI 跟随 `lts/*`；用户安装的是预构建 bundle，不需要开发依赖。
+`npm pack` 与从目录执行的 `npm publish` 会通过 `prepack` 自动运行 `verify:release`。CI 执行相同检查，依赖 Desktop 安装的宿主探针在本地运行。
+
 ## License
 
-MIT。Pele 亦为 MIT，详见其仓库。
+MIT。[THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt) 包含完整 Pele MIT 与内置 Lucide 图标 ISC 声明。

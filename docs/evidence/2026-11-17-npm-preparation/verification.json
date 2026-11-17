@@ -1,0 +1,53 @@
+{
+  "status": "PASS",
+  "date": "2026-11-17",
+  "sourceBaseCommit": "80e88f49b2d22a0f2374628665adcc38f107d9ef",
+  "sourceState": "Uncommitted npm preparation on the base commit; runtime files unchanged. Input hashes identify reviewed working files.",
+  "node": "v26.13.1",
+  "npm": "11.20.0",
+  "nodeManager": "mise, existing global node@lts",
+  "checks": {
+    "tests": {
+      "pass": 150,
+      "fail": 0,
+      "skip": 0
+    },
+    "bundleSmoke": {
+      "pass": 7,
+      "fail": 0
+    },
+    "prepackReleaseGate": "PASS",
+    "isolatedArchiveCheck": "PASS",
+    "cleanNpmCi": "PASS",
+    "cleanInstallReleaseGate": "PASS (before final documentation and LTS-only workflow edits)",
+    "installedHostComponentProbe": "PASS",
+    "finalTarballProfileLifecycle": "PASS",
+    "remoteCI": "Workflow configured; not run remotely"
+  },
+  "tarball": {
+    "path": "dist/npm-preparation-2026-11-17/dsh-pele-mermaid-0.2.0.tgz",
+    "bytes": 297951,
+    "sha256": "0dad9b54b9ff55e29c23ab919724ca50b63e628f27e3dc22f1acb3f47cbedb6a",
+    "integrity": "sha512-M5+/oppOluUCpe8mx4EYUqEH2ltCNYrAgiZYmcHL2n3ui+UE16zPWdzVjgQD+7VIqPAvMWSNQVHkwDG6qsDNNg=="
+  },
+  "bundle": {
+    "bytes": 739776,
+    "sha256": "1862b3d0363c068f940fe660569cdafb23e5b608200477ab61f5215ef41379cb"
+  },
+  "inputs": {
+    ".github/workflows/verify.yml": "1ef390ed5a6a4cb2b7e251cb87b7a00889a16a619d9ba450c91f3f8c00692ae3",
+    "CHANGELOG.md": "4c28d3bc70a73a54c1a597ba4bd7914d3ad33ca1276b67fb270473ed039db493",
+    "LICENSE": "9cad48796ccfc5efc38d73e55fee2e83d39f149b6d845ba39f56fe9f49c0834c",
+    "README.md": "9774ab181a005c9b0cea64013d9b0e88be820daa2650a233766da7625cd2ec7e",
+    "README.zh.md": "6262d2073b398354b8f521209ec2a8e281999283128d06679ff07db26fad3e28",
+    "THIRD-PARTY-NOTICES.txt": "db5bd04b497fe029413f1e00cc979386378b3401e370d83bce0397d4dd6e5a86",
+    "cordis.patch.yml": "8da894950aaede2715663b3f42db3fdf2fc49fffdd5a0233be7c377120456bdb",
+    "docs/KNOWN-LIMITATIONS.md": "9c2d2204d17eb07fb1f37ffc924d90686bb4c7cafc7579a52246a3a201103ac0",
+    "index.js": "4881e82951e8567efa15c39e0590edb463edd07eb373a929c5753112e9a5d2c9",
+    "lib/client.js": "1862b3d0363c068f940fe660569cdafb23e5b608200477ab61f5215ef41379cb",
+    "package-lock.json": "65fcd296fbdd7c0ab394aa6b66a1af8c88f5bfc2cfe7d2bf8f0bf2ed2030e1cb",
+    "package.json": "1ecf350e2da85c4dc0edc45a96064728802ada4d3b6167105ccf50881de3d00a",
+    "scripts/verify-package.mjs": "0bcc9e55dda58281d506c09b88d7005cb4525f2b7e36b56989ac2dd8bf1f56be",
+    "tests/package.test.mjs": "478456b99c3bcd41583a4297f2ca05ef00a85d5320eb3c42cae6e119d7f60303"
+  }
+}

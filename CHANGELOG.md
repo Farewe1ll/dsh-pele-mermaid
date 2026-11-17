@@ -3,9 +3,23 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 semantic versioning. This project has not published to a registry; versions are
-repository working builds unless a GitHub Release says otherwise.
+repository working builds until the corresponding registry or release publication.
 
 ## [Unreleased]
+
+### Release preparation
+
+- Include the full Pele 1.9.0 MIT license and Lucide ISC notice in
+  `THIRD-PARTY-NOTICES.txt`, shipped in the npm tarball.
+- Add repository/homepage/issues metadata, npm installation instructions,
+  durable documentation links, and a release checklist.
+- Run tests, bundle freshness and actual tarball checks from `prepack` and CI.
+  Check the exact package inventory, bundled notices, isolated entry loading,
+  archive byte identity and package/lockfile version consistency.
+- Align the lockfile version with `0.2.0` and pin build/test tools. Development
+  uses the latest Node LTS managed by mise; CI follows the same LTS channel.
+- Keep current verification separate from historical measurements.
+
 
 ### Fixed
 
@@ -27,7 +41,11 @@ repository working builds unless a GitHub Release says otherwise.
   cases. Visual output stays in a new staging run; historical evidence is kept.
   Temporary Chrome profile cleanup retries transient directory-write races.
 
-## [0.2.0] — 2026-11-17
+## [0.2.0] — 2026-11-17 implementation baseline
+
+The measurements in this section describe the earlier implementation iteration.
+Current release preparation is above; current results are in
+[VERIFICATION.md](https://github.com/Farewe1ll/dsh-pele-mermaid/blob/main/docs/VERIFICATION.md).
 
 ### Added
 
@@ -153,69 +171,7 @@ repository working builds unless a GitHub Release says otherwise.
 
 ### Verification
 
-- `npm test`: **123 tests, 123 pass, 0 fail, 0 cancelled, 0 skipped, 0 todo**
-  (about 7 s). Suites: export (9), viewer (13), host bindings (6), block manager
-  (45), plus engine, theme CSS, real React lifecycle and built bundle tests.
-- `npm run verify`: **PASS** — build freshness (`build --check` up to date,
-  739,526 bytes) and the 7-test built-bundle smoke suite.
-- `npm run verify:host`: **PASS** on installed DSH `0.2.2-rc.3` with bundle
-  SHA-256 `906b1cc2…f1ea4af` — frontend asset
-  `index-Ciz7DZxv.js` (1,093,870 bytes, SHA-256
-  `65411dabad4de33466b12643cf30376d3d41ea1b7ce10ce329e97c89992d308b`), component
-  SHA-256 `99afefb4fe88333ec0f28540cf0381523922abbde7559c3ca15ca43914b09839`,
-  React 18.3.1, six checks (plain banner props/mount, unmount props, card banner
-  + Copy, plain/static/streaming source shapes + Copy). Scope: fixture adapters,
-  not a live DSH session.
-- `DSH_VISUAL_CHROME_NO_SANDBOX=1 npm run verify:visual`: **PASS** with headless
-  Chrome 157.0.8103.79; ten screenshots with recorded sizes/hashes, P1 layout
-  facts, the four-control toolbar, byte-identical fixture teardown, and the two
-  review-fix checks: downloaded light/dark exports carry a background rectangle
-  equal to the resolved `--pele-bg` (`#f9fafb` / `#1b1b1c`), the dark download
-  renders readably on a white stand-in page
-  (`fixture-export-dark-preview.png`, 813×135), and an open viewer repaints its
-  diagram background and dialog chrome when the theme switches
-  (`fixture-viewer-dark.png`).
-- **P6 lazy-runtime decision: NO-GO for 0.2.0** — keep Pele bundled inline.
-  Final bundle: raw 739,526 bytes, `gzip -9` 276,084, brotli 223,848; local
-  plain-HTTP route bundle request+eval by ~34 ms cold, first diagram ready
-  ~395 ms cold / ~370 ms warm (dominated by the 150 ms scan debounce + 180 ms
-  settle window). Installed-route `Content-Encoding`/`encodedBodySize`/cache
-  metrics and a split-prototype first-diagram regression were not measured, so
-  the roadmap adopt rule cannot be satisfied; the default no stands. Evidence:
-  `docs/evidence/2026-11-17/p6-measurement.json`.
-- **Packaging/install path verified from a packed tarball**
-  (`dist/dsh-pele-mermaid-0.2.0.tgz`; `dist/` is not committed): installed into
-  an isolated `DSH_HOME` web profile, boot graph entry present, served route 200
-  with 739,599 bytes = the full 739,526-byte bundle plus the 73-byte loader
-  source-map suffix, disable/uninstall restored the baseline (rev-normalized).
-  Tarball identity (size, SHA-256) is recorded in
-  `docs/evidence/2026-11-17/install.json`; the release step re-packs the final
-  bundle and refreshes that record, `install.log`, and
-  `package-dry-run.json`.
-- Compatibility unchanged: `0.1.1` / `0.2.1-rc.2` remains the only verified
-  row. `0.1.1` / `0.2.2-rc.3` and `0.2.0` / `0.2.2-rc.3` are **pending** until a
-  controlled live chat run; the installed Desktop profile still runs plugin
-  `0.1.1` and was not replaced in this iteration.
-
-### Still pending
-
-- **P0 live verification** of `0.1.1` on DSH `0.2.2-rc.3` (and then of `0.2.0`)
-  in a controlled live chat session with the 10-case matrix and screenshots. A
-  sample was posted to a running session, but desktop screenshot consent was
-  not granted, so no evidence was captured. `DG1` stays unresolved.
-- **P7 release steps**: re-pack the final bundle and refresh the packaging
-  evidence, run the live chat regression on the installed tarball (blocked with
-  P0), then publish the GitHub Release with the tarball and evidence links and
-  create the `0.2.0` tag. The install path itself is verified — see Verification
-  above.
-- **GitHub Release** with the packed tarball and evidence links; no npm or
-  GitHub Packages publication in 0.2.0.
-- Live check of export and viewer in a real `0.2.0` DSH session (currently
-  covered by automated tests and the real-browser fixture only).
-
----
-
-Earlier versions were working-tree builds without a changelog; the 0.1.0 and
-0.1.1 verification records are preserved in
-[docs/VERIFICATION-HISTORY.md](docs/VERIFICATION-HISTORY.md) and
-[docs/VERIFICATION.md](docs/VERIFICATION.md).
+Current test, package and isolated-install results are maintained in
+[VERIFICATION.md](https://github.com/Farewe1ll/dsh-pele-mermaid/blob/main/docs/VERIFICATION.md).
+The earlier feature measurements are preserved in the
+[implementation verification archive](https://github.com/Farewe1ll/dsh-pele-mermaid/blob/main/docs/VERIFICATION-2026-11-17-BASELINE.md).

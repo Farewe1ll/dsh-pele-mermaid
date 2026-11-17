@@ -25,3 +25,5 @@ SOFTWARE.
 This package bundles Pele (https://github.com/obsidianmd/pele), also MIT
 licensed. The Mermaid syntax accepted by Pele follows Mermaid
 (https://github.com/mermaid-js/mermaid), MIT licensed.
+
+The complete Pele and Lucide notices are reproduced in THIRD-PARTY-NOTICES.txt.

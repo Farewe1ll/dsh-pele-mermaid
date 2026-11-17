@@ -5,8 +5,8 @@ committed in `a8197776c879ca60af2e2d7800b67e60dd014d92` and archived out of
 `HEAD` with verified restoration in
 [`evidence/2026-10-19/PUBLICATION.md`](evidence/2026-10-19/PUBLICATION.md);
 documentation/comment alignment and the manifest/isolation tooling (`13/13`
-governance tests in `tests/tooling-governance.test.mjs`) are complete. P0/P7
-live verification remains pending.
+governance tests in `tests/tooling-governance.test.mjs`) are complete. The current
+release process is in [RELEASING.md](RELEASING.md).
 Last updated: 2026-11-17
 
 This document governs the maintenance work alongside [ROADMAP.md](ROADMAP.md).
@@ -147,11 +147,12 @@ Evaluate any workspace change across three independent dimensions:
      versions. `node scripts/build-client.mjs --check` proves only that an
      in-memory rebuild matches the current `lib/client.js` on disk; also compare
      the full SHA-256 to prove it still matches a recorded baseline.
-   - `.tgz` identity depends on the **actual 9-file pack inventory**
-     (`package.json` itself plus the 8 entries in `package.json#files`:
+   - `.tgz` identity depends on the **actual 10-file pack inventory**
+     (`package.json` itself plus the 9 entries in `package.json#files`:
      `index.js`, `cordis.patch.yml`, `lib/client.js`, `README.md`,
-     `README.zh.md`, `CHANGELOG.md`, `LICENSE`, `docs/KNOWN-LIMITATIONS.md`).
-     Any byte change in those 9 files produces a new tarball SHA-256 on
+     `README.zh.md`, `CHANGELOG.md`, `LICENSE`, `THIRD-PARTY-NOTICES.txt`,
+     `docs/KNOWN-LIMITATIONS.md`).
+     Any byte change in those 10 files produces a new tarball SHA-256 on
      re-pack.
 3. **Verification coverage:** changes to `tests/**` or `scripts/verify-*.mjs`
    alter verification semantics and require re-running the affected checks.

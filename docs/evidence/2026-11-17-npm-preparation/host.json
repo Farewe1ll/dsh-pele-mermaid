@@ -1,0 +1,27 @@
+{
+  "status": "PASS",
+  "date": "2026-11-17T12:07:03.963Z",
+  "hostVersion": "0.2.2-rc.3",
+  "bindingVersion": "0.2.2-rc.3",
+  "supportedBindingVersions": [
+    "0.2.1-rc.2",
+    "0.2.2-rc.3"
+  ],
+  "reactVersion": "18.3.1",
+  "archive": "/Applications/DeepSeek Harness.app/Contents/Resources/app.asar",
+  "componentAsset": "dsh/node_modules/@deepseek-ai/dsh-web-frontend/dist/assets/index-Ciz7DZxv.js",
+  "componentAssetBytes": 1093870,
+  "frontendAssetSha256": "65411dabad4de33466b12643cf30376d3d41ea1b7ce10ce329e97c89992d308b",
+  "componentSha256": "99afefb4fe88333ec0f28540cf0381523922abbde7559c3ca15ca43914b09839",
+  "componentBytes": 2981,
+  "bundleSha256": "1862b3d0363c068f940fe660569cdafb23e5b608200477ab61f5215ef41379cb",
+  "scope": "Installed CodeBlock function, real React; fixture styling/toolbar/visibility/tokenization helpers. Not a live DSH session.",
+  "checks": [
+    "plain banner: exact lang/code props across five committed renders; mermaid-only mount; host <pre> parent preserved",
+    "unmounted component supplies no React props",
+    "card banner: toolbarLabels branch keeps [data-code-block-banner], mounts mermaid, preserves source parent, host Copy works",
+    "plain: source shape and host Copy preserve all but one trailing newline",
+    "static: source shape and host Copy preserve all but one trailing newline",
+    "streaming: source shape and host Copy preserve all but one trailing newline"
+  ]
+}

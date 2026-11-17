@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "pathBase": "run-dir",
+  "generatedAt": "2026-11-17T12:39:40.179Z",
+  "runId": "2026-11-17-npm-preparation",
+  "package": {
+    "name": "dsh-pele-mermaid",
+    "version": "0.2.0"
+  },
+  "evidenceFiles": {
+    "host.json": {
+      "bytes": 1433,
+      "sha256": "9788a5114c52155289c992ed2931c65bb749aa19105422cb4c48eea904eb855b"
+    },
+    "install.json": {
+      "bytes": 3110,
+      "sha256": "978b3127970638fce5079cb5c0e1088bcaed9519f6453fdd6d7ccad49e5a664d"
+    },
+    "package.json": {
+      "bytes": 1363,
+      "sha256": "10d50ade123bb76f10e6991dc7c7f11360ee0ed9f012b851a7edbba210030362"
+    },
+    "verification.json": {
+      "bytes": 2579,
+      "sha256": "6d5ddb8ba5282541bf6c58ee8f2c6ea272e166b0fc040bc5694ebd9b9cecf384"
+    }
+  }
+}

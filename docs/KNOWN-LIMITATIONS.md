@@ -2,12 +2,12 @@
 
 Owner for the follow-ups below: repository maintainer. These are tracked risks,
 not claims that every scenario has been reproduced in a full DSH session.
-Current validation and its exact scope are in [VERIFICATION.md](VERIFICATION.md);
-the release plan and decision gates are in [ROADMAP.md](ROADMAP.md).
+Current validation and its exact scope are in [VERIFICATION.md](https://github.com/Farewe1ll/dsh-pele-mermaid/blob/main/docs/VERIFICATION.md);
+the release plan and decision gates are in [ROADMAP.md](https://github.com/Farewe1ll/dsh-pele-mermaid/blob/main/docs/ROADMAP.md).
 
-Compatibility is still claimed only for the verified `0.1.1` / `0.2.1-rc.2`
-tuple. The installed-host probe passes on `0.2.2-rc.3`, but that is a
-fixture-adapter probe of the installed CodeBlock, not a live chat session (L10).
+Current integration checks cover the installed DSH `0.2.2-rc.3` CodeBlock
+component and isolated web-profile installation. See [VERIFICATION.md](https://github.com/Farewe1ll/dsh-pele-mermaid/blob/main/docs/VERIFICATION.md)
+for artifact identities and the scope of each check.
 
 | ID | Trigger / impact | Current handling / next task |
 | --- | --- | --- |
@@ -20,7 +20,6 @@ fixture-adapter probe of the installed CodeBlock, not a live chat session (L10).
 | L7 — resource-policy scope | Future Pele features may introduce other automatic resource references; filtered links can navigate when clicked; exported SVG keeps http(s)/mailto/tel links. | Image embeds are disabled and three URL forms are tested. Browser network evidence covers fixture samples only. Export sanitizes active content but intentionally keeps ordinary links. Audit new resource-emitting features on Pele upgrades; do not treat the renderer or the exporter as a complete security sandbox. |
 | L8 — settle window | Streaming pauses for more than 180 ms before a fence is complete. | Partial source may render or show an error; later source changes retry. A host completion signal would be needed for a strict “only after completion” guarantee. |
 | L9 — versioned host probe | The extracted CodeBlock closes over minified identifiers that are specific to one installed frontend build. A host upgrade can change names, extraction boundaries, or the DOM hooks the probe asserts. | Bindings are keyed by frontend version (`0.2.1-rc.2` retained, `0.2.2-rc.3` added). Unknown versions fail with a typed `unsupported-host` error instead of a `ReferenceError`; a known version with stale identifiers raises a stale-map diagnostic. The `0.2.1-rc.2` map is unit-tested but no longer render-verified because that bundle is not installed. The probe uses fixture adapters for styling/toolbar/tokenization and never proves a live session. |
-| L10 — missing live `0.2.2` verification (P0) | No controlled live chat run on DSH `0.2.2-rc.3` is recorded for `0.1.1` or `0.2.0`. The installed Desktop profile still runs plugin `0.1.1`; no `0.2.2` compatibility row is claimed. A sample was posted to a running session, but desktop screenshot consent was not granted and no evidence was captured. | Do not promote `0.2.2` compatibility from the component probe. Follow-up: reproduce the P0 preconditions (Desktop profile, bundled `dsh` CLI, restart/refresh, fixed run directory), run the 10-case matrix, and record `docs/VERIFICATION-0.2.2.md` with host/frontend/bundle hashes and screenshots. Then repeat on the final `0.2.0` tarball (P7). |
 | L11 — export limitations | Export never re-renders Pele and always writes natural size, so an inline zoom/pan state is not exported. A downloaded file freezes the resolved theme values at download time (no later theme tracking) and paints a first-child background rectangle covering the natural canvas, so dark exports are readable on a white page; the in-app viewer instead uses live token expressions (L12). Exports keep `https`/`mailto`/`tel` links and drop any content the sanitizer does not understand (for example `foreignObject`-based labels). The filename uses the client's local time. | Automated tests cover sanitization, sizing, theming, both theme modes, the background rectangle, filenames, and object-URL revocation; browser/fixture evidence captures the downloaded light/dark SVG bytes, a dark download rendered on a white stand-in page, and the viewer path. Opening the file in a vector editor was not separately verified in this iteration. Keep the sanitizer conservative; re-audit if Pele starts emitting new elements. |
 | L12 — viewer limitations | The SVG viewport fills the stage content box; fit centers the complete diagram, zoom uses the full viewport, and axes smaller than the view stay centered. Resize retains relative-to-fit zoom and the diagram-space center where bounds allow. Blank margins use the dialog background. Invalid stage measurements temporarily retain the natural viewBox until a valid resize, preserving the last valid center for recovery; explicit fit resets that center. The viewer is mouse/keyboard oriented: no pinch gesture, wheel zoom requires Ctrl/Cmd (plain wheel is ignored), drag panning uses pointer events, and zoom/pan state is not persisted across close. One overlay exists per page, so two diagrams cannot be compared side by side. Keyboard panning moves in fixed 48 px steps. An open viewer follows host theme switches by design (it uses the `inherit` export mode), so it does not keep stale colors. | Automated tests cover full-stage aspect/sizing, both axis states, invalid measurements, resize and drag cancellation, open/close, zoom/fit bounds, wheel at pointer, drag clamp, Escape, focus trap/restore, scroll lock/restore, repeated open, and teardown; export tests cover the `inherit` mode. The real-browser fixture covers the same flow with real Escape key events and a theme switch while the overlay is open (diagram background and dialog chrome repaint). Add pinch/persisted-zoom only if requested, with tests. |
 | L13 — P6 no-go leaves the renderer inline | Pele stays in the client bundle; every page load still downloads the whole inline bundle. Route-level `Content-Encoding`, `encodedBodySize`, and cache behavior on the installed DSH route were not measured, and no split prototype was built, so the lazy-loading decision cannot be revisited from current evidence. | Recorded no-go in `docs/evidence/2026-11-17/p6-measurement.json` and `docs/ARCH.md`. Revisit only with authenticated installed-route `PerformanceResourceTiming` plus a split prototype measuring first-diagram regression. |
@@ -31,10 +30,6 @@ establish failure frequency, performance, or compatibility for every live DSH
 conversation. The installed-host probe executes the real CodeBlock body with
 fixture adapters for its external styling/toolbar/tokenization helpers.
 
-Version is `0.2.0` in the working tree; no package has been published to a
-registry. Packaging/install, the served-route suffix check, and the
-disable/uninstall baseline are verified in an isolated profile (the release step
-re-packs the final bundle and refreshes that record). The live chat regression on
-the final tarball, the GitHub Release, and the tag remain pending release steps
-(P7), so the compatibility matrix keeps the `0.1.1` / `0.2.1-rc.2` row as its
-only verified entry.
+Version `0.2.0` is prepared for npm distribution. The release package contains
+prebuilt runtime files and complete third-party notices. The [release checklist](https://github.com/Farewe1ll/dsh-pele-mermaid/blob/main/docs/RELEASING.md)
+requires checking the final tarball and recording its identity before publication.

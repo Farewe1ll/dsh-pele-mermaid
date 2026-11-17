@@ -18,6 +18,7 @@
     "README.zh.md",
     "CHANGELOG.md",
     "LICENSE",
+    "THIRD-PARTY-NOTICES.txt",
     "docs/KNOWN-LIMITATIONS.md"
   ],
   "keywords": [
@@ -45,16 +46,27 @@
     "test": "node --test \"tests/*.test.mjs\"",
     "verify": "node scripts/verify-bundle.mjs",
     "verify:host": "node scripts/verify-host.mjs",
-    "verify:visual": "node scripts/verify-visual.mjs"
+    "verify:visual": "node scripts/verify-visual.mjs",
+    "verify:package": "node scripts/verify-package.mjs",
+    "verify:release": "npm test && npm run verify && npm run verify:package",
+    "prepack": "npm run verify:release"
   },
   "devDependencies": {
-    "esbuild": "^0.28.2",
-    "jsdom": "^29.1.1",
+    "esbuild": "0.28.2",
+    "jsdom": "29.1.1",
     "pele": "1.9.0",
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },
   "engines": {
     "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Farewe1ll/dsh-pele-mermaid.git"
+  },
+  "homepage": "https://github.com/Farewe1ll/dsh-pele-mermaid#readme",
+  "bugs": {
+    "url": "https://github.com/Farewe1ll/dsh-pele-mermaid/issues"
   }
 }
