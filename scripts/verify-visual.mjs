@@ -22,6 +22,35 @@ const WIDE = { width: 1400, height: 2400, deviceScaleFactor: 1, mobile: false }
 const NARROW = { width: 720, height: 2200, deviceScaleFactor: 1, mobile: false }
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex')
+
+/** Relative luminance of #rrggbb / rgb(...) colors, for the export background. */
+function luminanceOf(color) {
+  let channels = null
+  const hex = /^#([0-9a-f]{6})$/i.exec(String(color).trim())
+  if (hex) {
+    channels = [0, 2, 4].map((index) => Number.parseInt(hex[1].slice(index, index + 2), 16) / 255)
+  } else {
+    const rgb = /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i.exec(String(color).trim())
+    if (rgb) channels = [1, 2, 3].map((index) => Number(rgb[index]) / 255)
+  }
+  if (!channels) return null
+  const linear = channels.map((channel) =>
+    channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4,
+  )
+  return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+}
+
+/** Background rect facts from one downloaded SVG text. */
+function backgroundOf(text) {
+  const rect = /<rect[^>]*data-dsh-pele-mermaid-background[^>]*>/.exec(text)
+  if (!rect) return null
+  return {
+    element: rect[0],
+    fill: /fill="([^"]+)"/.exec(rect[0])?.[1] ?? null,
+    width: /width="([^"]+)"/.exec(rect[0])?.[1] ?? null,
+    height: /height="([^"]+)"/.exec(rect[0])?.[1] ?? null,
+  }
+}
 const profile = await mkdtemp(path.join(os.tmpdir(), 'dsh-pele-visual-'))
 let server, chrome, ws
 const pending = new Map()
@@ -143,6 +172,48 @@ try {
   }
   const flat = (entry, count) => Array.from({ length: count }, () => entry).flat()
 
+  /* -------------------- downloaded-SVG capture harness -------------------- */
+  // The plugin builds a Blob and clicks a temporary anchor. Keep that blob URL
+  // alive and remember the click, then read the exact SVG text back in-page —
+  // no file-system download behavior or browser flags needed.
+  await evaluate(`(() => {
+    window.__fixtureDownloads = [];
+    window.__originalAnchorClick = HTMLAnchorElement.prototype.click;
+    HTMLAnchorElement.prototype.click = function () {
+      if (this.download) {
+        window.__fixtureDownloads.push({ href: this.href, name: this.download });
+        return;
+      }
+      return window.__originalAnchorClick.call(this);
+    };
+    window.__originalRevokeObjectURL = URL.revokeObjectURL;
+    URL.revokeObjectURL = function () {};
+    return true;
+  })()`)
+
+  async function captureDownload(label) {
+    const clicked = await evaluate(`(() => {
+      const button = Array.from(document.querySelectorAll('.dsh-pele-mermaid-toolbar button[aria-label="Download SVG"]'))[0];
+      if (!button || button.disabled) return false;
+      window.__fixtureDownloads.length = 0;
+      button.click();
+      return true;
+    })()`)
+    assert.equal(clicked, true, `${label}: export button is enabled`)
+    const download = await evaluate(`(async () => {
+      for (let i = 0; i < 100 && window.__fixtureDownloads.length === 0; i += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      }
+      const entry = window.__fixtureDownloads[window.__fixtureDownloads.length - 1];
+      if (!entry) return null;
+      const text = await (await fetch(entry.href)).text();
+      return { name: entry.name, bytes: text.length, text };
+    })()`)
+    assert.ok(download, `${label}: download captured`)
+    assert.match(download.name, /^pele-[a-z-]+-\d{8}-\d{6}\.svg$/)
+    return download
+  }
+
   /* ---------------------------- wide column ---------------------------- */
   evidence.light = await capture('light')
   const light = evidence.light
@@ -185,6 +256,25 @@ try {
   assert.ok(light.dom.hostWidths.every((width) => width > 0))
   assert.equal(await evaluate("[...document.querySelectorAll('pre[data-dsh-pele-mermaid-source-hidden]')].every(pre => getComputedStyle(pre).display === 'none')"), true)
 
+  /* ------------------ exported SVG: fixed theme + background -------------- */
+  const lightExport = await captureDownload('light export')
+  const lightExportBackground = backgroundOf(lightExport.text)
+  evidence.exportLight = {
+    name: lightExport.name,
+    bytes: lightExport.bytes,
+    background: lightExportBackground,
+    themeValue: /--pele-bg:\s*([^;"]+)/.exec(lightExport.text)?.[1]?.trim() ?? null,
+  }
+  assert.ok(lightExportBackground, 'the downloaded file contains a background rect')
+  assert.ok(Number(lightExportBackground.width) > 0)
+  assert.ok(Number(lightExportBackground.height) > 0)
+  assert.equal(
+    lightExportBackground.fill,
+    evidence.exportLight.themeValue,
+    'the canvas background uses the same resolved --pele-bg value as the file',
+  )
+  assert.ok(luminanceOf(lightExportBackground.fill) > 0.5, `light export background is light, got ${lightExportBackground.fill}`)
+
   /* --------------------- P1 visual facts, wide column --------------------- */
   const wideFacts = await evaluate('window.__fixture.diagramFacts()')
   evidence.p1Wide = wideFacts
@@ -214,6 +304,51 @@ try {
   evidence.dark = await capture('dark')
   assert.equal(evidence.dark.remounts, evidence.light.remounts, 'colour theme flip re-renders nothing')
   assert.notEqual(evidence.dark.pele.vars['--pele-bg'], evidence.light.pele.vars['--pele-bg'])
+
+  /* ------------------- dark exported SVG: readable background ------------- */
+  const darkExport = await captureDownload('dark export')
+  const darkExportBackground = backgroundOf(darkExport.text)
+  evidence.exportDark = {
+    name: darkExport.name,
+    bytes: darkExport.bytes,
+    background: darkExportBackground,
+    themeValue: /--pele-bg:\s*([^;"]+)/.exec(darkExport.text)?.[1]?.trim() ?? null,
+  }
+  assert.ok(darkExportBackground, 'the dark download also has its own background rect')
+  assert.equal(
+    darkExportBackground.fill,
+    evidence.exportDark.themeValue,
+    'the dark canvas background uses the resolved dark --pele-bg',
+  )
+  assert.notEqual(darkExportBackground.fill, lightExportBackground.fill, 'dark export is visually different')
+  assert.ok(luminanceOf(darkExportBackground.fill) < 0.2, `dark export background is dark, got ${darkExportBackground.fill}`)
+  assert.match(darkExport.text, /--pele-fg:\s*(?:#f|rgb\(2[0-9][0-9])/i, 'dark export keeps the light text color')
+
+  // Open the downloaded bytes themselves on a white stand-in page: this is the
+  // reviewer-visible claim — a dark export must stay readable outside DSH.
+  const darkSvgUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(darkExport.text)}`
+  await evaluate(`(() => {
+    const wrap = document.createElement('div');
+    wrap.id = 'export-dark-preview';
+    wrap.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#fff;display:flex;align-items:center;justify-content:center;padding:32px;box-sizing:border-box';
+    const img = document.createElement('img');
+    img.alt = 'downloaded dark SVG';
+    img.src = ${JSON.stringify(darkSvgUrl)};
+    img.style.cssText = 'width:100%;max-width:1200px;height:auto;box-shadow:0 0 0 1px #dddddd';
+    wrap.appendChild(img);
+    document.body.appendChild(wrap);
+    return true;
+  })()`)
+  await sleep(150)
+  const darkPreview = await evaluate(`(() => {
+    const img = document.querySelector('#export-dark-preview img');
+    return img ? { naturalWidth: img.naturalWidth, naturalHeight: img.naturalHeight } : null;
+  })()`)
+  assert.ok(darkPreview && darkPreview.naturalWidth > 0, 'standalone dark export rendered on the white page')
+  evidence.exportDarkPreview = darkPreview
+  evidence.exportDarkPreviewShot = await capture('export-dark-preview')
+  await evaluate("document.getElementById('export-dark-preview')?.remove()")
+  await sleep(100)
 
   /* ----------------------------- source view ----------------------------- */
   assert.equal(await evaluate("window.__sourcePre = document.querySelector('.md-code-block pre'); window.__sourceParent = window.__sourcePre.parentNode; window.__fixture.clickSource(); window.__sourcePre.parentNode === window.__sourceParent && getComputedStyle(window.__sourcePre).display !== 'none'"), true)
@@ -250,6 +385,41 @@ try {
   await evaluate("(() => { const buttons = document.querySelectorAll('.dsh-pele-mermaid-viewer-toolbar button'); if (buttons[2]) buttons[2].click() })()")
   await sleep(100)
   assert.equal(await evaluate("document.querySelector('.dsh-pele-mermaid-viewer-svg').getAttribute('viewBox')"), baseViewBox, 'fit restores the whole diagram')
+  /* -------------- viewer stays theme-live while open (P5 fix) ------------- */
+  const viewerTheme = (label) => evaluate(`(() => {
+    const svg = document.querySelector('.dsh-pele-mermaid-viewer-svg');
+    const rect = svg && svg.querySelector('[data-dsh-pele-mermaid-background]');
+    const dialog = document.querySelector('.dsh-pele-mermaid-viewer-dialog');
+    return {
+      label: ${JSON.stringify(label)},
+      hasBackground: !!rect,
+      backgroundFill: rect ? getComputedStyle(rect).fill : null,
+      dialogBackground: dialog ? getComputedStyle(dialog).backgroundColor : null,
+      inlineStyle: svg ? svg.getAttribute('style') : null,
+    };
+  })()`)
+  const viewerLight = await viewerTheme('light')
+  assert.equal(viewerLight.hasBackground, true, 'viewer svg has the framed background rect')
+  assert.match(String(viewerLight.inlineStyle), /var\(--dsw-/, 'viewer keeps token expressions, not frozen colors')
+  assert.ok(luminanceOf(viewerLight.backgroundFill) > 0.5, `light viewer background is light, got ${viewerLight.backgroundFill}`)
+
+  await evaluate('window.__fixture.toggleTheme()')
+  await sleep(400)
+  const viewerDark = await viewerTheme('dark')
+  assert.equal(await evaluate('window.__fixture.report().dom.viewerOpen'), true, 'theme switch keeps the viewer open')
+  assert.equal(await evaluate('window.__fixture.report().dom.viewerOverlays'), 1, 'still exactly one overlay')
+  assert.notEqual(viewerDark.backgroundFill, viewerLight.backgroundFill, 'viewer diagram repaints on theme switch')
+  assert.notEqual(viewerDark.dialogBackground, viewerLight.dialogBackground, 'viewer chrome repaints on theme switch')
+  assert.ok(luminanceOf(viewerDark.backgroundFill) < 0.5, `dark viewer background is dark, got ${viewerDark.backgroundFill}`)
+  evidence.viewerTheme = { light: viewerLight, dark: viewerDark }
+  evidence.viewerDark = await capture('viewer-dark')
+  assert.equal(evidence.viewerDark.dom.viewerOpen, true, 'viewer stays open after the theme switch')
+
+  await evaluate('window.__fixture.toggleTheme()')
+  await sleep(400)
+  const viewerRelit = await viewerTheme('light-again')
+  assert.equal(await evaluate('window.__fixture.report().dom.viewerOpen'), true)
+  assert.equal(viewerRelit.backgroundFill, viewerLight.backgroundFill, 'viewer returns to the light theme value')
   evidence.viewer = await capture('viewer')
   assert.equal(evidence.viewer.dom.viewerOpen, true)
 
@@ -336,7 +506,17 @@ try {
   assert.equal(evidence.teardown.teardown.tornDown, true)
   assert.equal(evidence.teardown.teardown.restored, true)
   assert.deepEqual(exceptions, [])
-  const external = requests.filter((request) => !request.startsWith(new URL(url).origin + '/'))
+  const origin = new URL(url).origin + '/'
+  // Blob URLs created by the export path resolve to the same fixture origin;
+  // they are in-page object URLs, not external traffic.
+  const external = requests.filter((request) => {
+    if (request.startsWith(origin)) return false
+    // In-page object/data URLs from the export and preview harness are local
+    // content, not external traffic.
+    if (request.startsWith(`blob:${origin}`)) return false
+    if (request.startsWith('data:')) return false
+    return true
+  })
   assert.deepEqual(external, [], 'fixture page makes no external requests')
   evidence.network = { scope: 'Requests from this fixture page only, for these sample diagrams', externalRequests: external }
   assert.deepEqual(consoleErrors, [], 'the whole run produced no error-level console messages')

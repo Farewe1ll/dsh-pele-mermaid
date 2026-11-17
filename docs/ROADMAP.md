@@ -56,13 +56,13 @@ probe and a real chat exercise different paths.
 | Item | Value |
 | --- | --- |
 | Package | `dsh-pele-mermaid@0.2.0` working build; no registry publication |
-| Client bundle | `lib/client.js`, 738,710 bytes, SHA-256 `3259e916…913c82`; 11,290 bytes headroom under the 750,000-byte raw budget |
+| Client bundle | `lib/client.js`, 739,526 bytes, SHA-256 `906b1cc2…f1ea4af`; 10,474 bytes headroom under the 750,000-byte raw budget |
 | Pele | `1.9.0`, exact pin, bundled inline (P6 no-go) |
-| Automated tests | `npm test`: **120/120 pass**, 0 fail/skip/todo; `npm run verify`: PASS; `npm run verify:host`: PASS on `0.2.2-rc.3`; `npm run verify:visual`: PASS (8 screenshots) |
+| Automated tests | `npm test`: **123/123 pass**, 0 fail/skip/todo; `npm run verify`: PASS; `npm run verify:host`: PASS on `0.2.2-rc.3`; `npm run verify:visual`: PASS (10 screenshots) |
 | Compatibility claim | Unchanged: only `0.1.1` / `0.2.1-rc.2` is verified. `0.2.2` rows are pending (P0). |
 | P0 live 0.2.2 | **Not recorded**; blocked/deferred (DG1 unresolved) |
 | P6 decision | **NO-GO**; keep Pele bundled inline |
-| Release | P7 partial: version + `CHANGELOG.md` + final tarball install/served-route/disable-uninstall verified; live regression and GitHub Release pending |
+| Release | P7 partial: version + `CHANGELOG.md` + packed-tarball install/served-route/disable-uninstall verified (release step re-packs the final bundle); live regression and GitHub Release pending |
 
 The plan was drafted against DSH `0.2.2-rc.1`; by this iteration the installed
 desktop runtime is `0.2.2-rc.3`, so the status records and matrix below use
@@ -92,8 +92,8 @@ artifact hash. P0's `0.1.1` result does not transfer to `0.2.0`.
 - `npm run verify` passing.
 
 This was build-level evidence, not visual acceptance; P1 confirmed the upgrade.
-The final `0.2.0` bundle is 738,710 bytes after P3/P4/P5, still inside the
-750,000-byte whole-inline budget (11,290 bytes headroom).
+The final `0.2.0` bundle is 739,526 bytes after P3/P4/P5, still inside the
+750,000-byte whole-inline budget (10,474 bytes headroom).
 
 ## 3. Principles
 
@@ -219,13 +219,13 @@ does not contradict a future P0 result (P0 wins if they disagree).
 **Status (2026-11-17): Done.** `pele` is pinned to exact `1.9.0` in
 `package.json#devDependencies` and the lockfile was refreshed; the bundle was
 rebuilt and version references updated. Pele 1.9.0 alone measured 718,094 bytes;
-the final `0.2.0` bundle with P3/P4/P5 is 738,710 bytes, inside the
+the final `0.2.0` bundle with P3/P4/P5 is 739,526 bytes, inside the
 750,000-byte whole-inline budget. The extended fixture (10 cards / 9 diagram
 cases / 8 rendered diagrams) and `npm run verify:visual` PASS assert the P1
 benefits: CJK labels wrap between characters with closing punctuation retained,
 class groups sit on one row wide / three rows narrow, `List<T>`/`Map<K,V>` text
 survives, and `<sub>`/`<sup>`/`<code>`/`<kbd>`/`<samp>` labels render. Evidence:
-[`visual.log`](evidence/2026-11-17/visual.log) and the eight screenshots under
+[`visual.log`](evidence/2026-11-17/visual.log) and the ten screenshots under
 `tests/fixtures/screenshots/`. The old 1.6.0 captures were historical and have
 since been overwritten, so "match or improve on 1.6.0" is supported by asserted
 layout facts, not a pixel diff.
@@ -365,14 +365,21 @@ P3's required dependency remains P0.
 **Status (2026-11-17): Done (automated + real-browser fixture).** New
 `src/client/export.js` and a localized icon control export the pristine
 natural-size SVG (never the zoom/pan-mutated inline view), restore
-width/height/`viewBox`, write the resolved `--pele-*` theme variables, sanitize
-scripts/foreignObject/frames/objects/media/`on*`/`src`/unsafe style, keep
-`https`/`mailto`/`tel`/`#` links, use the
-`pele-<type>-YYYYMMDD-HHmmss.svg` name, and revoke the object URL.
-`tests/export.test.mjs` has 7 tests; the browser fixture captures the control.
-The exit criterion "opens in a vector tool" was **not independently verified**
-— exported output is asserted to be well-formed XML with the expected geometry
-via DOMParser/XMLSerializer only.
+width/height/`viewBox`, insert a first-child background rectangle covering the
+natural canvas (resolved `--pele-bg` fill for downloads), and support two theme
+modes: `resolved` (default; freeze today's colors into the file) and `inherit`
+(token expressions for an in-app surface that follows the live theme). The clone
+is sanitized (scripts/foreignObject/frames/objects/media/`on*`/`src`/unsafe
+style removed), keeps `https`/`mailto`/`tel`/`#` links, uses the
+`pele-<type>-YYYYMMDD-HHmmss.svg` name, and revokes the object URL.
+`tests/export.test.mjs` has 9 tests (sanitization, sizing, filename, download,
+background rectangle, dark/light luminance and inherit-mode tokens); the browser
+fixture captures real downloaded light/dark bytes, asserts the background equals
+the resolved `--pele-bg`, and renders the dark download on a white page
+(`fixture-export-dark-preview.png`). The exit criterion "opens in a vector
+tool" was **not independently verified** — exported output is asserted to be
+well-formed XML with the expected geometry/background via
+DOMParser/XMLSerializer plus a browser-rendered preview.
 
 **Goal:** let a reader save a diagram that opens correctly outside DSH.
 
@@ -412,11 +419,14 @@ via DOMParser/XMLSerializer only.
 inline zoom factor, Ctrl/Cmd + wheel zoom at the pointer, bounded drag pan,
 Escape close, Tab focus trap, focus restore, scroll lock + restore,
 `prefers-reduced-motion` support, and full teardown. It reuses the sanitized SVG
-and never re-renders Pele. `tests/viewer.test.mjs` has 13 tests; the browser
-fixture asserts viewer open/zoom/fit/Escape/focus and captures
-`fixture-viewer.png`. The exit criterion "live check on the `0.2.0` build with
-the P0 fixture set" is **pending with P0/P7** because no live chat evidence
-exists.
+and never re-renders Pele; the overlay receives the `inherit` export mode, so it
+keeps token expressions and repaints with live theme switches while open (the
+downloaded file keeps its captured colors). `tests/viewer.test.mjs` has 13 tests;
+the browser fixture asserts viewer open/zoom/fit/Escape/focus, captures
+`fixture-viewer.png`, and switches theme while the viewer is open to assert the
+diagram background and dialog chrome repaint (`fixture-viewer-dark.png`). The
+exit criterion "live check on the `0.2.0` build with the P0 fixture set" is
+**pending with P0/P7** because no live chat evidence exists.
 
 **Goal:** make wide diagrams usable without changing the inline source DOM.
 
@@ -447,11 +457,11 @@ exists.
 
 ### P6 — Lazy runtime — decision gate
 
-**Status (2026-11-17): NO-GO recorded.** Final bundle 738,710 raw / 275,784
-`gzip -9` / 223,454 brotli bytes; whole-inline budget met with 11,290 bytes
+**Status (2026-11-17): NO-GO recorded.** Final bundle 739,526 raw / 276,084
+`gzip -9` / 223,848 brotli bytes; whole-inline budget met with 10,474 bytes
 headroom. On a local plain-HTTP route (no `Content-Encoding`,
-`cache-control: no-cache`) bundle request+eval completed by ~40 ms cold, and the
-first diagram was ready in ~411 ms cold / ~368 ms warm — dominated by the fixed
+`cache-control: no-cache`) bundle request+eval completed by ~34 ms cold, and the
+first diagram was ready in ~395 ms cold / ~370 ms warm — dominated by the fixed
 150 ms scan debounce + 180 ms settle window, not bundle size. Installed-route
 `Content-Encoding`/`encodedBodySize`/cache metrics and a split-prototype
 first-diagram regression were not measured, so the adopt rule cannot be
@@ -525,22 +535,26 @@ is a startup optimization, not a universal download reduction.
 
 ### P7 — Packaging, docs, 0.2.0 release
 
-**Status (2026-11-17): Partially done — packaging verified, release steps
-pending.** Completed: version bumped to `0.2.0`; `CHANGELOG.md` created and
-listed in `package.json#files`; both READMEs updated with the installation matrix
-(desktop uses the app's bundled `dsh`, standalone CLI cannot manage desktop;
-uninitialized vs lock distinction; restart/refresh) and the pending compatibility
-wording; `scripts/verify-install.mjs` gained `--source=<tarball>` for the final
-check. The final tarball `dsh-pele-mermaid-0.2.0.tgz` (295,928 bytes, SHA-256
-`309aa03f…ebc96d`) was installed into an isolated `DSH_HOME` web profile:
-the boot graph contains the plugin entry, the served route is 200 with 738,783
-bytes = the full 738,710-byte bundle plus a 73-byte loader source-map suffix, and
-disable/uninstall restores the baseline structurally (rev-normalized). Evidence:
-[`docs/evidence/2026-11-17/install.json`](evidence/2026-11-17/install.json)
-and `install.log`; `package-dry-run.json` records the packed file list.
-**Pending:** live chat regression on that installed tarball (blocked with P0),
-the `0.2.0` / `0.2.2` compatibility row, GitHub Release, and tag. No
-npm/GitHub Packages publication in 0.2.0.
+**Status (2026-11-17): Partially done — packaging/install verified from a packed
+tarball, release steps pending.** Completed: version bumped to `0.2.0`;
+`CHANGELOG.md` created and listed in `package.json#files`; both READMEs updated
+with the installation matrix (desktop uses the app's bundled `dsh`, standalone
+CLI cannot manage desktop; uninitialized vs lock distinction; restart/refresh)
+and the pending compatibility wording; `scripts/verify-install.mjs` gained
+`--source=<tarball>` for the final check. A packed
+`dsh-pele-mermaid-0.2.0.tgz` was installed into an isolated `DSH_HOME` web
+profile: the boot graph contains the plugin entry, the served route is 200 with
+739,599 bytes = the full 739,526-byte bundle plus a 73-byte loader source-map
+suffix, and disable/uninstall restores the baseline structurally
+(rev-normalized). Tarball size/SHA-256 and the full install transcript are
+recorded in `docs/evidence/2026-11-17/install.json`, `install.log`, and
+`package-dry-run.json`; the post-review re-pack for the final bundle (the two
+review fixes changed it) is
+`dsh-pele-mermaid-0.2.0.tgz` = 297,759 bytes, SHA-256 `824a8e06…acc630`, and
+`install.json` is authoritative for the shipped artifact. **Pending:** live
+chat regression on that tarball (blocked with P0), the `0.2.0` / `0.2.2`
+compatibility row,
+GitHub Release, and tag. No npm/GitHub Packages publication in 0.2.0.
 
 **Goal:** make installation instructions match real CLI behavior and produce a
 reproducible 0.2.0 artifact.
@@ -624,27 +638,28 @@ reproducible 0.2.0 artifact.
 
 - [ ] P0 live verification recorded for the `0.1.1` / `0.2.2` tuple.
 - [x] Automated tests meet the [behavior-based gate](MAINTENANCE.md#6-behavior-based-test-gate),
-      actual results are recorded (120/120 pass, 0 fail/skip/todo), and
+      actual results are recorded (123/123 pass, 0 fail/skip/todo), and
       `npm run verify` passes.
 - [x] Host probe passes on 0.2.2-rc.3, or its limitation is accepted in writing
       (PASS with fixture-adapter scope accepted; DG4).
-- [x] Pele 1.9 visual checks recorded; bundle hash updated (738,710 bytes,
-      `3259e916…913c82`).
+- [x] Pele 1.9 visual checks recorded; bundle hash updated (739,526 bytes,
+      `906b1cc2…f1ea4af`).
 - [x] Explicit aliases covered by tests and README.
 - [x] SVG export and fullscreen viewer have automated + real-browser checks
       (the live-session check remains part of P0/P7).
 - [x] P6 adopt/no-go decision recorded with raw, encoded, and timing measurements
       (NO-GO).
 - [x] README/ARCH/KNOWN-LIMITATIONS/VERIFICATION agree.
-- [x] Final `.tgz` installed in an isolated profile; served route contains the
+- [x] Packed `.tgz` installed in an isolated profile; served route contains the
       full tarball bundle plus only the loader source-map suffix; artifact and
       response hashes recorded separately; disable/uninstall restore the baseline
-      (tarball SHA-256 `309aa03f…ebc96d`, bundle SHA-256 `3259e916…913c82`,
-      route 738,783 bytes; evidence `docs/evidence/2026-11-17/install.json`).
+      (bundle SHA-256 `906b1cc2…f1ea4af`, route 739,599 bytes; final tarball
+      297,759 bytes, SHA-256 `824a8e06…acc630`; evidence
+      `docs/evidence/2026-11-17/install.json`).
 - [ ] `0.2.0` / `0.2.2` row backed by a live regression on the final tarball.
 - [x] `npm pack --dry-run` contents and bundle SHA recorded
-      (`docs/evidence/2026-11-17/package-dry-run.json`, 9 files, 295,928-byte
-      tarball).
+      (`docs/evidence/2026-11-17/package-dry-run.json`, 9 files, final
+      297,759-byte tarball).
 - [x] `CHANGELOG.md` added and included in the tarball (verified in the packed
       file list).
 - [ ] GitHub Release published with the tarball and evidence links.
@@ -670,7 +685,7 @@ Recorded 2026-11-17:
 | Decision | Choice | Consequence |
 | --- | --- | --- |
 | P1 renderer | Pele 1.9.0, exact pin | Label/layout fixes shipped; bundle rebuilt and recorded |
-| P4/P5 scope | Ship export + fullscreen viewer in 0.2.0 | Two new browser-half modules, 20 new tests, browser evidence |
+| P4/P5 scope | Ship export + fullscreen viewer in 0.2.0 | Two new browser-half modules, 22 new tests (export 9 + viewer 13), browser evidence |
 | Alias set | `mermaid`, `mermaidjs`, `mmd` | P3 done; no heuristics added |
 | P2 probe | Versioned binding map with `0.2.2-rc.3` adapter + typed `unsupported-host` error | DG4 accepted; probe stays a component check, not compatibility proof |
 | P6 | NO-GO; keep Pele bundled inline | No host route/cache layer in 0.2.0 |
@@ -688,10 +703,12 @@ These remain open after the 2026-11-17 iteration:
 2. **P6 threshold evidence.** The no-go stands for 0.2.0. Reconsider only with
    authenticated installed-route `PerformanceResourceTiming`/`Content-Encoding`/
    cache data and a split prototype measuring first-diagram regression.
-3. **P7 release steps.** Packaging is verified from the final `.tgz`
-   (`docs/evidence/2026-11-17/install.json`). Remaining: the live chat
-   regression on that installed tarball (blocked with P0), then the GitHub
-   Release with the tarball and evidence links, and the `0.2.0` tag.
+3. **P7 release steps.** Packaging/install is verified from a packed `.tgz`;
+   the release step re-packs the final bundle and refreshes
+   `docs/evidence/2026-11-17/install.json` (authoritative for the shipped
+   artifact). Remaining: the live chat regression on that installed tarball
+   (blocked with P0), then the GitHub Release with the tarball and evidence
+   links, and the `0.2.0` tag.
 4. **Registry publication after 0.2.0.** Revisit npm or GitHub Packages only
    after the GitHub Release/tarball install path is stable; 0.2.0 does not
    publish to a registry.

@@ -1,9 +1,9 @@
 {
   "status": "PASS",
-  "date": "2026-11-17T03:53:34.961Z",
+  "date": "2026-11-17T04:54:32.259Z",
   "browser": "Chrome/157.0.8103.79",
   "scope": "Browser fixture with static committed-shape Fiber objects; real React lifecycle is tested separately. P1 cases: CJK wrapping, class-diagram group wrapping (wide vs narrow column), generic angle-bracket labels, rich <sub>/<sup>/<code>/<kbd>/<samp> labels.",
-  "url": "http://127.0.0.1:64556/tests/fixtures/fixture.html",
+  "url": "http://127.0.0.1:52310/tests/fixtures/fixture.html",
   "query": "?locale=en",
   "viewport": {
     "width": 1400,
@@ -11,7 +11,7 @@
     "deviceScaleFactor": 1,
     "mobile": false
   },
-  "bundleSha256": "3259e916e0017a66090781493376b982ef2ab373be062bbb8795ec54cd913c82",
+  "bundleSha256": "906b1cc2f77c99a41e8453d85bd1554e60ff36b7a9d12558b3e998a56f1ea4af",
   "screenshots": {
     "fixture-light.png": {
       "bytes": 403650,
@@ -25,25 +25,33 @@
       "bytes": 409746,
       "sha256": "45a047528b2438717940c510304a70270477d4fec73cd8017b4a3aa470af35eb"
     },
+    "fixture-export-dark-preview.png": {
+      "bytes": 47888,
+      "sha256": "8a2098234c5f5845f97247039d5c0620af4b81987b5e01dd0f5256ddc0f3b9f1"
+    },
     "fixture-source-view.png": {
       "bytes": 408878,
       "sha256": "700b8651d331e5427f7b15efc5756f1fae6881725b83ea8e5e5f44d3e7f4153b"
     },
+    "fixture-viewer-dark.png": {
+      "bytes": 53133,
+      "sha256": "d456118db0a4fb500d9357e1258a514362400fc6e894d983625a67b831c82faa"
+    },
     "fixture-viewer.png": {
-      "bytes": 52355,
-      "sha256": "00fa6f58989e116ff1e5d7bf3cfadd14af22a6c8c241d66f0ec3be6dbb4fb23b"
+      "bytes": 53167,
+      "sha256": "71766d20cebac806c7bcdbec8d16f77800fc67f96f01ae7d4705adb1945647f8"
     },
     "fixture-narrow.png": {
       "bytes": 153277,
       "sha256": "c099a8fbb8e7b8326790dcfdb1f4982816efbff89656e89583b65b7b308d260c"
     },
     "fixture-font-refresh.png": {
-      "bytes": 401666,
-      "sha256": "8d753c1ee9f11a3fc4d7072c64f9ef8579fa9b37b7786f179cabdb1ffb04819c"
+      "bytes": 401732,
+      "sha256": "de0f0ad8738c1d4c2795ae41451055a44b81358c1157d66789162babd36a3a73"
     },
     "fixture-teardown.png": {
-      "bytes": 361006,
-      "sha256": "0795a6925024e90d5ccb09f05d338f85196cb590c52141d0195bdc017dd5d0ca"
+      "bytes": 361080,
+      "sha256": "9c19ccaeef43deadc85c4ed03c0d0021150579b3fd58d02f844a51ad2fc4f18f"
     }
   },
   "light": {
@@ -243,13 +251,13 @@
       {
         "count": 8,
         "remounts": 8,
-        "at": 467
+        "at": 447
       }
     ],
     "themeEvents": [
       {
         "theme": "light",
-        "at": 23
+        "at": 12
       }
     ],
     "errors": [],
@@ -270,6 +278,17 @@
         "--pele-font-mono": "\"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\", \"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\""
       }
     }
+  },
+  "exportLight": {
+    "name": "pele-flowchart-20261117-125432.svg",
+    "bytes": 5688,
+    "background": {
+      "element": "<rect data-dsh-pele-mermaid-background=\"\" class=\"pele-export-background\" x=\"0\" y=\"0\" width=\"813\" height=\"135\" fill=\"#f9fafb\" pointer-events=\"none\"/>",
+      "fill": "#f9fafb",
+      "width": "813",
+      "height": "135"
+    },
+    "themeValue": "#f9fafb"
   },
   "p1Wide": {
     "cjk": {
@@ -520,13 +539,13 @@
       {
         "count": 8,
         "remounts": 8,
-        "at": 467
+        "at": 447
       }
     ],
     "themeEvents": [
       {
         "theme": "light",
-        "at": 23
+        "at": 12
       }
     ],
     "errors": [],
@@ -745,17 +764,261 @@
       {
         "count": 8,
         "remounts": 8,
-        "at": 467
+        "at": 447
       }
     ],
     "themeEvents": [
       {
         "theme": "light",
-        "at": 23
+        "at": 12
       },
       {
         "theme": "dark",
-        "at": 1277
+        "at": 1257
+      }
+    ],
+    "errors": [],
+    "pele": {
+      "target": "first .dsh-pele-mermaid-diagram",
+      "backgroundColor": "rgb(27, 27, 28)",
+      "vars": {
+        "--pele-bg": "#1b1b1c",
+        "--pele-fg": "#f9fafb",
+        "--pele-muted": "#adb2b8",
+        "--pele-line": "#cfd3d6",
+        "--pele-surface": "#232324",
+        "--pele-surface-alt": "#2c2c2e",
+        "--pele-border": "#ffffff1f",
+        "--pele-accent": "#f9fafb",
+        "--pele-radius": "12px",
+        "--pele-font": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+        "--pele-font-mono": "\"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\", \"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\""
+      }
+    }
+  },
+  "exportDark": {
+    "name": "pele-flowchart-20261117-125433.svg",
+    "bytes": 5691,
+    "background": {
+      "element": "<rect data-dsh-pele-mermaid-background=\"\" class=\"pele-export-background\" x=\"0\" y=\"0\" width=\"813\" height=\"135\" fill=\"#1b1b1c\" pointer-events=\"none\"/>",
+      "fill": "#1b1b1c",
+      "width": "813",
+      "height": "135"
+    },
+    "themeValue": "#1b1b1c"
+  },
+  "exportDarkPreview": {
+    "naturalWidth": 813,
+    "naturalHeight": 135
+  },
+  "exportDarkPreviewShot": {
+    "theme": "dark",
+    "darkAttribute": true,
+    "bodyBackground": "rgb(21, 21, 23)",
+    "bodyColor": "rgb(249, 250, 251)",
+    "registrationId": "dsh-pele-mermaid",
+    "factoryType": "function",
+    "exportsFace": {
+      "apply": "function",
+      "inject": [
+        "theme"
+      ]
+    },
+    "applied": true,
+    "ready": true,
+    "requireCalls": 0,
+    "applyCalls": 1,
+    "effectCalls": 1,
+    "themeHandlers": 1,
+    "dom": {
+      "blocks": 10,
+      "mountedContainers": 8,
+      "hosts": 8,
+      "diagramSvgs": 8,
+      "svgTypes": [
+        "flowchart",
+        "sequence",
+        "pie",
+        "gantt",
+        "flowchart",
+        "class",
+        "flowchart",
+        "flowchart"
+      ],
+      "zoomIconSvgs": 24,
+      "toolbars": 8,
+      "toolbarButtons": 32,
+      "ariaPressed": [
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null
+      ],
+      "toolbarLabels": [
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        ""
+      ],
+      "toolbarButtonsPerDiagram": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "iconButtons": 16,
+      "downloadButtons": 8,
+      "fullscreenButtons": 8,
+      "disabledToolbarButtons": 0,
+      "diagramWidths": [
+        813,
+        518,
+        371,
+        800,
+        508,
+        752,
+        594,
+        190
+      ],
+      "diagramHeights": [
+        135,
+        314,
+        296,
+        197,
+        598,
+        120,
+        64,
+        448
+      ],
+      "hostWidths": [
+        845,
+        845,
+        845,
+        845,
+        845,
+        845,
+        845,
+        845
+      ],
+      "viewerOpen": false,
+      "viewerOverlays": 0,
+      "viewerDialogs": 0,
+      "viewerToolbarButtons": 0,
+      "viewerViewBox": null,
+      "viewerFocusRestored": null,
+      "errorNotes": 1,
+      "errorTexts": [
+        "Pele: No diagram type detected for the given text."
+      ],
+      "styleElements": 1,
+      "sourceViews": 0,
+      "nonMermaidPre": true,
+      "bannerTexts": [
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "javascript"
+      ]
+    },
+    "expectedDiagrams": 8,
+    "diagramKinds": [
+      "flowchart",
+      "sequenceDiagram",
+      "pie",
+      "gantt",
+      "flowchart (CJK wrapping)",
+      "classDiagram (group wrapping)",
+      "flowchart (generic labels)",
+      "flowchart (rich labels)",
+      "mermaid (invalid)"
+    ],
+    "invalidSources": 1,
+    "remounts": 8,
+    "teardown": {
+      "tornDown": false,
+      "restored": null
+    },
+    "mountEvents": [
+      {
+        "count": 8,
+        "remounts": 8,
+        "at": 447
+      }
+    ],
+    "themeEvents": [
+      {
+        "theme": "light",
+        "at": 12
+      },
+      {
+        "theme": "dark",
+        "at": 1257
       }
     ],
     "errors": [],
@@ -974,17 +1237,275 @@
       {
         "count": 8,
         "remounts": 8,
-        "at": 467
+        "at": 447
       }
     ],
     "themeEvents": [
       {
         "theme": "light",
-        "at": 23
+        "at": 12
       },
       {
         "theme": "dark",
-        "at": 1277
+        "at": 1257
+      }
+    ],
+    "errors": [],
+    "pele": {
+      "target": "first .dsh-pele-mermaid-diagram",
+      "backgroundColor": "rgb(27, 27, 28)",
+      "vars": {
+        "--pele-bg": "#1b1b1c",
+        "--pele-fg": "#f9fafb",
+        "--pele-muted": "#adb2b8",
+        "--pele-line": "#cfd3d6",
+        "--pele-surface": "#232324",
+        "--pele-surface-alt": "#2c2c2e",
+        "--pele-border": "#ffffff1f",
+        "--pele-accent": "#f9fafb",
+        "--pele-radius": "12px",
+        "--pele-font": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+        "--pele-font-mono": "\"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\", \"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\""
+      }
+    }
+  },
+  "viewerTheme": {
+    "light": {
+      "label": "light",
+      "hasBackground": true,
+      "backgroundFill": "rgb(249, 250, 251)",
+      "dialogBackground": "rgb(255, 255, 255)",
+      "inlineStyle": "max-width: 100%; height: 218.856px; --_bg: var(--pele-bg,#fff); --_fg: var(--pele-fg,#1f1f1f); --_m: var(--pele-muted,#6e6e6e); --_l: var(--pele-line,#1f1f1f); --_s: var(--pele-surface,#f3f3f3); --_a: var(--pele-surface-alt,#e6e6e6); --_b: var(--pele-border,#8a8a8a); --_c: var(--pele-accent,#5b7bd5); color: var(--_fg); --_r: var(--pele-radius,4px); --_fm: var(--pele-font-mono,\"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\", \"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\"); font-style: normal; font-variant: normal; font-size-adjust: none; font-language-override: normal; font-kerning: auto; font-optical-sizing: auto; font-feature-settings: normal; font-variation-settings: normal; font-weight: normal; font-stretch: normal; font-size: 16px; line-height: normal; letter-spacing: normal; word-spacing: normal; text-transform: none; direction: ltr; font-family: var(--pele-font,-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif); --pele-bg: var(--dsw-alias-markdown-code-block); --pele-fg: var(--dsw-alias-label-primary); --pele-muted: var(--dsw-alias-label-tertiary); --pele-line: var(--dsw-alias-label-secondary); --pele-surface: var(--dsw-alias-bg-layer-1); --pele-surface-alt: var(--dsw-alias-markdown-code-block-banner); --pele-border: var(--dsw-alias-border-l2); --pele-accent: var(--dsw-alias-brand-primary); --pele-critical: var(--dsw-alias-state-error-primary); --pele-error: var(--dsw-alias-state-error-primary); --pele-font: var(--dsw-font-family); --pele-font-mono: var(--ds-font-family-code, ui-monospace, monospace); --pele-radius: var(--dsw-radius-md); width: 1318px;"
+    },
+    "dark": {
+      "label": "dark",
+      "hasBackground": true,
+      "backgroundFill": "rgb(27, 27, 28)",
+      "dialogBackground": "rgb(35, 35, 36)",
+      "inlineStyle": "max-width: 100%; height: 218.856px; --_bg: var(--pele-bg,#fff); --_fg: var(--pele-fg,#1f1f1f); --_m: var(--pele-muted,#6e6e6e); --_l: var(--pele-line,#1f1f1f); --_s: var(--pele-surface,#f3f3f3); --_a: var(--pele-surface-alt,#e6e6e6); --_b: var(--pele-border,#8a8a8a); --_c: var(--pele-accent,#5b7bd5); color: var(--_fg); --_r: var(--pele-radius,4px); --_fm: var(--pele-font-mono,\"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\", \"SF Mono\", \"JetBrains Mono\", \"Fira Code\", Consolas, \"Liberation Mono\", Menlo, Courier, \"PingFang SC\", \"Microsoft YaHei\"); font-style: normal; font-variant: normal; font-size-adjust: none; font-language-override: normal; font-kerning: auto; font-optical-sizing: auto; font-feature-settings: normal; font-variation-settings: normal; font-weight: normal; font-stretch: normal; font-size: 16px; line-height: normal; letter-spacing: normal; word-spacing: normal; text-transform: none; direction: ltr; font-family: var(--pele-font,-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial, sans-serif); --pele-bg: var(--dsw-alias-markdown-code-block); --pele-fg: var(--dsw-alias-label-primary); --pele-muted: var(--dsw-alias-label-tertiary); --pele-line: var(--dsw-alias-label-secondary); --pele-surface: var(--dsw-alias-bg-layer-1); --pele-surface-alt: var(--dsw-alias-markdown-code-block-banner); --pele-border: var(--dsw-alias-border-l2); --pele-accent: var(--dsw-alias-brand-primary); --pele-critical: var(--dsw-alias-state-error-primary); --pele-error: var(--dsw-alias-state-error-primary); --pele-font: var(--dsw-font-family); --pele-font-mono: var(--ds-font-family-code, ui-monospace, monospace); --pele-radius: var(--dsw-radius-md); width: 1318px;"
+    }
+  },
+  "viewerDark": {
+    "theme": "dark",
+    "darkAttribute": true,
+    "bodyBackground": "rgb(21, 21, 23)",
+    "bodyColor": "rgb(249, 250, 251)",
+    "registrationId": "dsh-pele-mermaid",
+    "factoryType": "function",
+    "exportsFace": {
+      "apply": "function",
+      "inject": [
+        "theme"
+      ]
+    },
+    "applied": true,
+    "ready": true,
+    "requireCalls": 0,
+    "applyCalls": 1,
+    "effectCalls": 1,
+    "themeHandlers": 1,
+    "dom": {
+      "blocks": 10,
+      "mountedContainers": 8,
+      "hosts": 8,
+      "diagramSvgs": 8,
+      "svgTypes": [
+        "flowchart",
+        "sequence",
+        "pie",
+        "gantt",
+        "flowchart",
+        "class",
+        "flowchart",
+        "flowchart"
+      ],
+      "zoomIconSvgs": 24,
+      "toolbars": 8,
+      "toolbarButtons": 32,
+      "ariaPressed": [
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null,
+        "true",
+        "false",
+        null,
+        null
+      ],
+      "toolbarLabels": [
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        "",
+        "Diagram",
+        "Source",
+        "",
+        ""
+      ],
+      "toolbarButtonsPerDiagram": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "iconButtons": 16,
+      "downloadButtons": 8,
+      "fullscreenButtons": 8,
+      "disabledToolbarButtons": 0,
+      "diagramWidths": [
+        849,
+        518,
+        371,
+        800,
+        508,
+        752,
+        594,
+        190
+      ],
+      "diagramHeights": [
+        152,
+        314,
+        296,
+        197,
+        598,
+        120,
+        64,
+        448
+      ],
+      "hostWidths": [
+        860,
+        860,
+        860,
+        860,
+        860,
+        860,
+        860,
+        860
+      ],
+      "viewerOpen": true,
+      "viewerOverlays": 1,
+      "viewerDialogs": 1,
+      "viewerToolbarButtons": 4,
+      "viewerViewBox": "0 0 813 135",
+      "viewerFocusRestored": false,
+      "errorNotes": 1,
+      "errorTexts": [
+        "Pele: No diagram type detected for the given text."
+      ],
+      "styleElements": 1,
+      "sourceViews": 0,
+      "nonMermaidPre": true,
+      "bannerTexts": [
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "代码块",
+        "javascript"
+      ]
+    },
+    "expectedDiagrams": 8,
+    "diagramKinds": [
+      "flowchart",
+      "sequenceDiagram",
+      "pie",
+      "gantt",
+      "flowchart (CJK wrapping)",
+      "classDiagram (group wrapping)",
+      "flowchart (generic labels)",
+      "flowchart (rich labels)",
+      "mermaid (invalid)"
+    ],
+    "invalidSources": 1,
+    "remounts": 9,
+    "teardown": {
+      "tornDown": false,
+      "restored": null
+    },
+    "mountEvents": [
+      {
+        "count": 8,
+        "remounts": 8,
+        "at": 447
+      },
+      {
+        "count": 1,
+        "remounts": 9,
+        "at": 3285
+      }
+    ],
+    "themeEvents": [
+      {
+        "theme": "light",
+        "at": 12
+      },
+      {
+        "theme": "dark",
+        "at": 1257
+      },
+      {
+        "theme": "light",
+        "at": 2866
+      },
+      {
+        "theme": "dark",
+        "at": 3501
       }
     ],
     "errors": [],
@@ -1203,26 +1724,34 @@
       {
         "count": 8,
         "remounts": 8,
-        "at": 467
+        "at": 447
       },
       {
         "count": 1,
         "remounts": 9,
-        "at": 2913
+        "at": 3285
       }
     ],
     "themeEvents": [
       {
         "theme": "light",
-        "at": 23
+        "at": 12
       },
       {
         "theme": "dark",
-        "at": 1277
+        "at": 1257
       },
       {
         "theme": "light",
-        "at": 2491
+        "at": 2866
+      },
+      {
+        "theme": "dark",
+        "at": 3501
+      },
+      {
+        "theme": "light",
+        "at": 4084
       }
     ],
     "errors": [],
@@ -1441,26 +1970,34 @@
       {
         "count": 8,
         "remounts": 8,
-        "at": 467
+        "at": 447
       },
       {
         "count": 1,
         "remounts": 9,
-        "at": 2913
+        "at": 3285
       }
     ],
     "themeEvents": [
       {
         "theme": "light",
-        "at": 23
+        "at": 12
       },
       {
         "theme": "dark",
-        "at": 1277
+        "at": 1257
       },
       {
         "theme": "light",
-        "at": 2491
+        "at": 2866
+      },
+      {
+        "theme": "dark",
+        "at": 3501
+      },
+      {
+        "theme": "light",
+        "at": 4084
       }
     ],
     "errors": [],
@@ -1602,7 +2139,7 @@
       "fullscreenButtons": 8,
       "disabledToolbarButtons": 0,
       "diagramWidths": [
-        849,
+        813,
         518,
         371,
         800,
@@ -1612,7 +2149,7 @@
         190
       ],
       "diagramHeights": [
-        152,
+        135,
         314,
         296,
         197,
@@ -1670,7 +2207,7 @@
       "mermaid (invalid)"
     ],
     "invalidSources": 1,
-    "remounts": 9,
+    "remounts": 10,
     "teardown": {
       "tornDown": false,
       "restored": null
@@ -1679,26 +2216,39 @@
       {
         "count": 8,
         "remounts": 8,
-        "at": 467
+        "at": 447
       },
       {
         "count": 1,
         "remounts": 9,
-        "at": 2913
+        "at": 3285
+      },
+      {
+        "count": 1,
+        "remounts": 10,
+        "at": 4680
       }
     ],
     "themeEvents": [
       {
         "theme": "light",
-        "at": 23
+        "at": 12
       },
       {
         "theme": "dark",
-        "at": 1277
+        "at": 1257
       },
       {
         "theme": "light",
-        "at": 2491
+        "at": 2866
+      },
+      {
+        "theme": "dark",
+        "at": 3501
+      },
+      {
+        "theme": "light",
+        "at": 4084
       }
     ],
     "errors": [],
@@ -1966,7 +2516,7 @@
       "mermaid (invalid)"
     ],
     "invalidSources": 1,
-    "remounts": 13,
+    "remounts": 14,
     "teardown": {
       "tornDown": false,
       "restored": null
@@ -1975,46 +2525,59 @@
       {
         "count": 8,
         "remounts": 8,
-        "at": 467
+        "at": 447
       },
       {
         "count": 1,
         "remounts": 9,
-        "at": 2913
+        "at": 3285
       },
       {
         "count": 1,
         "remounts": 10,
-        "at": 3337
+        "at": 4680
       },
       {
         "count": 1,
         "remounts": 11,
-        "at": 3338
+        "at": 4696
       },
       {
         "count": 1,
         "remounts": 12,
-        "at": 3340
+        "at": 4712
       },
       {
         "count": 1,
         "remounts": 13,
-        "at": 3340
+        "at": 4715
+      },
+      {
+        "count": 1,
+        "remounts": 14,
+        "at": 4715
       }
     ],
     "themeEvents": [
       {
         "theme": "light",
-        "at": 23
+        "at": 12
       },
       {
         "theme": "dark",
-        "at": 1277
+        "at": 1257
       },
       {
         "theme": "light",
-        "at": 2491
+        "at": 2866
+      },
+      {
+        "theme": "dark",
+        "at": 3501
+      },
+      {
+        "theme": "light",
+        "at": 4084
       }
     ],
     "errors": [],
@@ -2224,7 +2787,7 @@
       "mermaid (invalid)"
     ],
     "invalidSources": 1,
-    "remounts": 25,
+    "remounts": 26,
     "teardown": {
       "tornDown": false,
       "restored": null
@@ -2232,61 +2795,69 @@
     "mountEvents": [
       {
         "count": 1,
-        "remounts": 11,
-        "at": 3338
-      },
-      {
-        "count": 1,
         "remounts": 12,
-        "at": 3340
+        "at": 4712
       },
       {
         "count": 1,
         "remounts": 13,
-        "at": 3340
+        "at": 4715
       },
       {
         "count": 1,
         "remounts": 14,
-        "at": 3820
+        "at": 4715
       },
       {
         "count": 1,
         "remounts": 15,
-        "at": 3820
+        "at": 5179
       },
       {
         "count": 1,
         "remounts": 16,
-        "at": 3821
+        "at": 5179
       },
       {
         "count": 1,
         "remounts": 17,
-        "at": 3821
+        "at": 5180
+      },
+      {
+        "count": 1,
+        "remounts": 18,
+        "at": 5180
       },
       {
         "count": 8,
-        "remounts": 25,
-        "at": 4442
+        "remounts": 26,
+        "at": 5798
       }
     ],
     "themeEvents": [
       {
         "theme": "light",
-        "at": 23
+        "at": 12
       },
       {
         "theme": "dark",
-        "at": 1277
+        "at": 1257
       },
       {
         "theme": "light",
-        "at": 2491
+        "at": 2866
+      },
+      {
+        "theme": "dark",
+        "at": 3501
+      },
+      {
+        "theme": "light",
+        "at": 4084
       },
       {
         "emit": "font",
-        "at": 4261
+        "at": 5620
       }
     ],
     "errors": [],
@@ -2310,8 +2881,8 @@
   },
   "remounts": {
     "initial": 8,
-    "beforeFont": 17,
-    "afterFont": 25,
+    "beforeFont": 18,
+    "afterFont": 26,
     "fontDelta": 8,
     "note": "The initial mount adds one svg.pele per diagram (8). Colour-only theme flips add zero. Resize re-renders add nodes too, so the font refresh is measured as a +8 delta from the value immediately before it."
   },
@@ -2390,7 +2961,7 @@
       "mermaid (invalid)"
     ],
     "invalidSources": 1,
-    "remounts": 25,
+    "remounts": 26,
     "teardown": {
       "tornDown": true,
       "restored": true
@@ -2398,61 +2969,69 @@
     "mountEvents": [
       {
         "count": 1,
-        "remounts": 11,
-        "at": 3338
-      },
-      {
-        "count": 1,
         "remounts": 12,
-        "at": 3340
+        "at": 4712
       },
       {
         "count": 1,
         "remounts": 13,
-        "at": 3340
+        "at": 4715
       },
       {
         "count": 1,
         "remounts": 14,
-        "at": 3820
+        "at": 4715
       },
       {
         "count": 1,
         "remounts": 15,
-        "at": 3820
+        "at": 5179
       },
       {
         "count": 1,
         "remounts": 16,
-        "at": 3821
+        "at": 5179
       },
       {
         "count": 1,
         "remounts": 17,
-        "at": 3821
+        "at": 5180
+      },
+      {
+        "count": 1,
+        "remounts": 18,
+        "at": 5180
       },
       {
         "count": 8,
-        "remounts": 25,
-        "at": 4442
+        "remounts": 26,
+        "at": 5798
       }
     ],
     "themeEvents": [
       {
         "theme": "light",
-        "at": 23
+        "at": 12
       },
       {
         "theme": "dark",
-        "at": 1277
+        "at": 1257
       },
       {
         "theme": "light",
-        "at": 2491
+        "at": 2866
+      },
+      {
+        "theme": "dark",
+        "at": 3501
+      },
+      {
+        "theme": "light",
+        "at": 4084
       },
       {
         "emit": "font",
-        "at": 4261
+        "at": 5620
       }
     ],
     "errors": [],

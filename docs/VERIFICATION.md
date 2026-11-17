@@ -19,16 +19,16 @@ under [`evidence/2026-11-17/`](evidence/2026-11-17/) and
 | Claim | State | Evidence |
 | --- | --- | --- |
 | Built bundle is fresh, single-loader, dependency-free | **Verified** | `npm run verify`: build `--check` + 7-test bundle smoke |
-| Automated behavior suite passes | **Verified** | `npm test`: 120/120, 0 fail/skip/todo (section 3) |
+| Automated behavior suite passes | **Verified** | `npm test`: 123/123, 0 fail/skip/todo (section 3) |
 | Installed CodeBlock (DSH `0.2.2-rc.3`) keeps its props/DOM/Copy contracts | **Verified (component probe)** | `evidence/2026-11-17/host-probe.{log,json}` (section 4) |
-| Pele 1.9 visual cases, toolbar, export/viewer browser behavior | **Verified (real-browser fixture)** | `evidence/2026-11-17/visual.log`, `screenshots/` (section 5) |
+| Pele 1.9 visual cases, toolbar, export backgrounds and viewer live theming | **Verified (real-browser fixture)** | `evidence/2026-11-17/visual.log`, `screenshots/` (section 5) |
 | Lazy-runtime decision has measurements | **Recorded: NO-GO** | `evidence/2026-11-17/p6-measurement.json` (section 6) |
 | `0.1.1` / DSH `0.2.1-rc.2` install/disable/absent behavior | **Verified historically** | Appendix A; [`evidence/manifest.json`](evidence/manifest.json) |
 | `0.1.1` or `0.2.0` in a live DSH `0.2.2` conversation | **NOT verified** | P0: no screenshots/recording; consent was not granted |
-| Final `0.2.0` `.tgz` install + served-route suffix + disable/uninstall | **Verified** | `evidence/2026-11-17/install.json`, `install.log` (section 7) |
+| Packed `.tgz` install + served-route suffix + disable/uninstall (release step re-packs the final bundle) | **Verified** | `evidence/2026-11-17/install.json`, `install.log` (section 7) |
 | `0.2.0` live chat regression on the installed tarball | **NOT verified** | P0/P7 live step blocked (section 7) |
 | Installed-route `Content-Encoding`/`encodedBodySize`/cache metrics; split prototype | **NOT measured** | P6 route caveat (section 6) |
-| Exported SVG opens in a vector editor | **NOT verified** | Automated parse/sanitize assertions only |
+| Exported SVG opens in a vector editor | **NOT verified** | Automated parse/sanitize/background assertions and a browser-rendered dark preview only |
 | `0.2.1-rc.2` binding map still render-verified | **NOT currently** | Map is unit-tested only; that host bundle is not installed |
 
 The installed Desktop profile still runs plugin `0.1.1`; it was not replaced
@@ -39,10 +39,10 @@ during this iteration.
 | Item | Verified value |
 | --- | --- |
 | Package | `dsh-pele-mermaid@0.2.0` (working build, not published) |
-| Bundle | `lib/client.js`, **738,710 bytes** |
-| Bundle SHA-256 | `3259e916e0017a66090781493376b982ef2ab373be062bbb8795ec54cd913c82` |
+| Bundle | `lib/client.js`, **739,526 bytes** |
+| Bundle SHA-256 | `906b1cc2f77c99a41e8453d85bd1554e60ff36b7a9d12558b3e998a56f1ea4af` |
 | Wrapper ID | `dsh-pele-mermaid` |
-| Raw budget | 750,000 bytes for the whole inline bundle; **11,290 bytes headroom** |
+| Raw budget | 750,000 bytes for the whole inline bundle; **10,474 bytes headroom** |
 | Pele | `1.9.0` (exact devDependency, bundled) |
 | Node / npm | `v26.13.1` / `11.20.0` |
 | Installed DSH desktop runtime | `@deepseek-ai/dsh-desktop-runtime` `0.2.2-rc.3` (app.asar); `dsh` CLI `0.2.2-rc.3` |
@@ -54,22 +54,24 @@ during this iteration.
 
 ## 3. Automated verification
 
-### `npm test` — 120/120 PASS
+### `npm test` — 123/123 PASS
 
 ```text
-ℹ tests 120
-ℹ pass 120
+ℹ tests 123
+ℹ pass 123
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 7465.07775
+ℹ duration_ms 6799.814
 ```
 
 The behavior-based gate is met with actual totals recorded above: engine,
-theme CSS, block manager, export (7 tests), viewer (13), installed-host
+theme CSS, block manager (45 tests), export (9), viewer (13), installed-host
 bindings (6), real React 18.3.1 lifecycle, and the built-bundle smoke suite
-(which is also run by `npm run verify`).
+(which is also run by `npm run verify`). The export suite covers both theme
+modes, the background rectangle and dark/light luminance; the block-manager
+suite covers resolved-vs-inherit routing plus a real export-builder integration.
 
 ### `npm run verify` — PASS
 
@@ -79,8 +81,8 @@ step 2/2: bundle smoke test (jsdom, real built bundle): PASS (7/7 tests)
 
 === bundle identity ===
 file:        lib/client.js
-bytes:       738,710
-sha256:      3259e916e0017a66090781493376b982ef2ab373be062bbb8795ec54cd913c82
+bytes:       739,526
+sha256:      906b1cc2f77c99a41e8453d85bd1554e60ff36b7a9d12558b3e998a56f1ea4af
 wrapper id:  "dsh-pele-mermaid" (package dsh-pele-mermaid@0.2.0)
 
 verify: PASS — 2 steps
@@ -101,7 +103,7 @@ Evidence: [host-probe.log](evidence/2026-11-17/host-probe.log),
 | Supported binding versions | `0.2.1-rc.2`, `0.2.2-rc.3` |
 | Frontend asset | `index-Ciz7DZxv.js`, 1,093,870 bytes, `65411dab…92d308b` |
 | Component | `99afefb4…4b09839`, 2,981 bytes |
-| Bundle SHA-256 | `3259e916…913c82` |
+| Bundle SHA-256 | `906b1cc2…f1ea4af` |
 | React | `18.3.1` |
 | Scope | Installed CodeBlock function with fixture styling/toolbar/visibility/tokenization adapters; **not** a live DSH session |
 
@@ -128,7 +130,7 @@ Command:
 the env var adds only `--no-sandbox --disable-setuid-sandbox` — normal runs keep
 Chrome's renderer sandbox). Browser: `Chrome/157.0.8103.79`, wide viewport
 1400×2400, narrow viewport 720×2200, device scale 1, `?locale=en`, bundle
-SHA-256 `3259e916…913c82`. Evidence:
+SHA-256 `906b1cc2…f1ea4af`. Evidence:
 [visual.log](evidence/2026-11-17/visual.log) and
 [`screenshots/visual-evidence.json`](../tests/fixtures/screenshots/visual-evidence.json).
 
@@ -143,16 +145,35 @@ Fullscreen); colour theme flips add zero remounts; a font change adds exactly 8
 re-mounts; Escape closes the viewer, focus returns, scroll lock is released;
 teardown leaves zero diagrams/toolbars/overlays and restores the fixture thread.
 
+The two post-review fixes are covered by the same run:
+
+- **Exported SVG background.** The script hooks the plugin's temporary anchor,
+  reads the actual `Blob` SVG bytes back, and asserts a first-child
+  `<rect data-dsh-pele-mermaid-background>` covers the full natural canvas
+  (813×135). Light export fill is `#f9fafb` and dark export fill `#1b1b1c`,
+  each equal to that file's resolved `--pele-bg` (light luminance > 0.5, dark
+  < 0.2), and the dark file keeps light text. The dark download is then opened
+  as an image on a white stand-in page at natural size 813×135
+  (`fixture-export-dark-preview.png`).
+- **Viewer follows live theme.** With the overlay open, a theme switch keeps the
+  same single overlay and changes the viewer diagram background
+  `rgb(249, 250, 251)` → `rgb(27, 27, 28)` and the dialog background
+  `rgb(255, 255, 255)` → `rgb(35, 35, 36)`; the viewer SVG keeps
+  `var(--dsw-*)` token expressions rather than frozen colors, and switching
+  back restores the light values. `fixture-viewer-dark.png` records the state.
+
 | Screenshot | Bytes | SHA-256 |
 | --- | ---: | --- |
 | [Light](../tests/fixtures/screenshots/fixture-light.png) | 403,650 | `1bed9a0524b00340c03a75ae0e0343de840d848b0733ff5399252bedecb350b1` |
 | [Wide P1](../tests/fixtures/screenshots/fixture-wide-p1.png) | 401,022 | `0d720c0ed4d8e5933c04102a3d28ebacefb2b24a1d0c91a795a409cabd3d3b80` |
 | [Dark](../tests/fixtures/screenshots/fixture-dark.png) | 409,746 | `45a047528b2438717940c510304a70270477d4fec73cd8017b4a3aa470af35eb` |
+| [Export dark preview](../tests/fixtures/screenshots/fixture-export-dark-preview.png) | 47,888 | `8a2098234c5f5845f97247039d5c0620af4b81987b5e01dd0f5256ddc0f3b9f1` |
 | [Source](../tests/fixtures/screenshots/fixture-source-view.png) | 408,878 | `700b8651d331e5427f7b15efc5756f1fae6881725b83ea8e5e5f44d3e7f4153b` |
-| [Viewer](../tests/fixtures/screenshots/fixture-viewer.png) | 52,355 | `00fa6f58989e116ff1e5d7bf3cfadd14af22a6c8c241d66f0ec3be6dbb4fb23b` |
+| [Viewer (light)](../tests/fixtures/screenshots/fixture-viewer.png) | 53,167 | `71766d20cebac806c7bcdbec8d16f77800fc67f96f01ae7d4705adb1945647f8` |
+| [Viewer (dark theme)](../tests/fixtures/screenshots/fixture-viewer-dark.png) | 53,133 | `d456118db0a4fb500d9357e1258a514362400fc6e894d983625a67b831c82faa` |
 | [Narrow](../tests/fixtures/screenshots/fixture-narrow.png) | 153,277 | `c099a8fbb8e7b8326790dcfdb1f4982816efbff89656e89583b65b7b308d260c` |
-| [Font refresh](../tests/fixtures/screenshots/fixture-font-refresh.png) | 401,666 | `8d753c1ee9f11a3fc4d7072c64f9ef8579fa9b37b7786f179cabdb1ffb04819c` |
-| [Teardown](../tests/fixtures/screenshots/fixture-teardown.png) | 361,006 | `0795a6925024e90d5ccb09f05d338f85196cb590c52141d0195bdc017dd5d0ca` |
+| [Font refresh](../tests/fixtures/screenshots/fixture-font-refresh.png) | 401,732 | `de0f0ad8738c1d4c2795ae41451055a44b81358c1157d66789162babd36a3a73` |
+| [Teardown](../tests/fixtures/screenshots/fixture-teardown.png) | 361,080 | `9c19ccaeef43deadc85c4ed03c0d0021150579b3fd58d02f844a51ad2fc4f18f` |
 
 The 720×2200 narrow capture is deliberate: at 760 px the harness content column
 is ~642 px, which stays above Pele's 640 px `autoDirection` breakpoint and
@@ -171,14 +192,14 @@ Decision: **keep Pele bundled inline; do not split a lazy runtime in 0.2.0.**
 
 | Measurement | Value |
 | --- | --- |
-| Bundle raw / `gzip -9` / brotli | 738,710 / 275,784 / 223,454 bytes |
+| Bundle raw / `gzip -9` / brotli | 739,526 / 276,084 / 223,848 bytes |
 | Route | local plain-HTTP, no `Content-Encoding`, `cache-control: no-cache` (NOT the installed DSH route) |
-| Bundle request+eval, cold | `transferSize` 739,010; `encodedBodySize` = `decodedBodySize` = 738,710; registration by ~40 ms after navigation |
-| First diagram ready, cold / warm reload | ~410.8 ms / ~367.5 ms after navigation |
-| Budget | whole inline bundle 750,000 raw; met with 11,290 bytes headroom |
+| Bundle request+eval, cold | `transferSize` 739,826; `encodedBodySize` = `decodedBodySize` = 739,526; registration by ~34 ms after navigation |
+| First diagram ready, cold / warm reload | ~394.8 ms / ~370.2 ms after navigation |
+| Budget | whole inline bundle 750,000 raw; met with 10,474 bytes headroom |
 
-Rationale: measured bundle request+parse/eval cost is ~12–20 ms, while
-first-diagram latency is ~368–411 ms and dominated by the fixed 150 ms scan
+Rationale: measured bundle request+parse/eval cost is ~12–34 ms, while
+first-diagram latency is ~370–395 ms and dominated by the fixed 150 ms scan
 debounce + 180 ms settle window, so a split cannot deliver a ≥200 ms cold-start
 time win on this evidence. The byte side looks material in principle
 (gzip/brotli), but installed-route encoding/cache metrics and a split-prototype
@@ -189,29 +210,32 @@ another implementation, not this plugin's measurement.
 
 ## 7. Packaging, installation, and compatibility
 
-P7 is **partially done — packaging verified, release steps pending**. Version
-`0.2.0` and `CHANGELOG.md` are in `package.json#files`, and
-`scripts/verify-install.mjs` accepts `--source=<tarball>`.
+P7 is **partially done — packaging/install verified from a packed tarball,
+release steps pending**. Version `0.2.0` and `CHANGELOG.md` are in
+`package.json#files`, and `scripts/verify-install.mjs` accepts
+`--source=<tarball>`.
 
-The final tarball was packed and verified end to end in an isolated profile
-(authoritative evidence:
-[`evidence/2026-11-17/install.json`](evidence/2026-11-17/install.json),
-`install.log`, and `package-dry-run.json`):
+A packed tarball was verified end to end in an isolated profile (authoritative
+evidence: [`evidence/2026-11-17/install.json`](evidence/2026-11-17/install.json),
+`install.log`, and `package-dry-run.json`). The post-review re-pack for the final
+bundle (739,526 bytes) produced `dist/dsh-pele-mermaid-0.2.0.tgz` = **297,759
+bytes**, SHA-256 `824a8e06d5442f63cda6ef34efd96874a7f065b5820b4574b2e6941fe4acc630`;
+`install.json` remains authoritative after the re-pack.
 
 | P7 item | Verified value |
 | --- | --- |
-| Final tarball | `dist/dsh-pele-mermaid-0.2.0.tgz`, 295,928 bytes, SHA-256 `309aa03f57234182e7e5aa624005e70364f77e6f5c5951a10ca9b2dc84ebc96d` (not committed; `dist/` is ignored) |
-| Pack contents | 9 files, 786,779 unpacked bytes: `CHANGELOG.md`, `LICENSE`, both READMEs, `cordis.patch.yml`, `docs/KNOWN-LIMITATIONS.md`, `index.js`, `lib/client.js`, `package.json` |
+| Tarball | `dist/dsh-pele-mermaid-0.2.0.tgz` (not committed; `dist/` is ignored): 297,759 bytes, SHA-256 `824a8e06d5442f63cda6ef34efd96874a7f065b5820b4574b2e6941fe4acc630`; recorded in `install.json`. |
+| Pack contents | 9 files: `CHANGELOG.md`, `LICENSE`, both READMEs, `cordis.patch.yml`, `docs/KNOWN-LIMITATIONS.md`, `index.js`, `lib/client.js`, `package.json`; per-file sizes in `package-dry-run.json`. |
 | Install | `DSH_HOME=<tmp> dsh plugin --profile web add <tarball>`; profile depends on the tarball (`file:…/dsh-pele-mermaid-0.2.0.tgz`) and lists the bundle layer; `dsh -V` = `0.2.2-rc.3` |
 | Boot graph | entry `dsh-pele-mermaid` with `inject: ["@deepseek-ai/dsh-client-ui-theme"]` and a batch URL |
-| Served route | 200, 738,783 bytes = 738,710-byte bundle (SHA-256 `3259e916…913c82`) + 73-byte loader source-map suffix `;\n//# sourceMappingURL=??dsh-pele-mermaid/client.js.map&rev=…`; artifact and response hashes are different and recorded separately |
+| Served route | 200, 739,599 bytes = 739,526-byte bundle (SHA-256 `906b1cc2…f1ea4af`) + 73-byte loader source-map suffix `;\n//# sourceMappingURL=??dsh-pele-mermaid/client.js.map&rev=…`; artifact and response hashes are different and recorded separately (`install.json`) |
 | Disable / uninstall | disabled: entry absent, 0 occurrences in the index HTML, route 404; disabled boot graph is structurally identical to a freshly uninstalled profile (rev-normalized, 75 entries / 3 batches) |
 | Cleanup | temp `DSH_HOME` removed after PASS; real `~/.dsh` untouched |
 
-The remaining P7 items are the **live chat regression on that installed tarball**
-(blocked with P0), the `0.2.0` / `0.2.2` compatibility row, the GitHub Release
-with the tarball, and the `0.2.0` tag. No npm/GitHub Packages publication is
-planned for 0.2.0.
+The remaining P7 items are the re-pack/evidence refresh for the final bundle, the
+**live chat regression on that installed tarball** (blocked with P0), the
+`0.2.0` / `0.2.2` compatibility row, the GitHub Release with the tarball, and
+the `0.2.0` tag. No npm/GitHub Packages publication is planned for 0.2.0.
 
 Compatibility matrix (claims are per plugin/host tuple):
 
@@ -220,7 +244,7 @@ Compatibility matrix (claims are per plugin/host tuple):
 | 0.1.1 | 0.2.1-rc.2 | Appendix A + [`evidence/manifest.json`](evidence/manifest.json) | **Verified** (recorded 2026-10-19; 84 tests at the time) |
 | 0.1.1 | 0.2.2-rc.3 | P0 — no live session evidence | **Pending** (blocked) |
 | 0.2.0 | 0.2.1-rc.2 | Component/bundle tests only; no live session | **Unknown** |
-| 0.2.0 | 0.2.2-rc.3 | Host probe passes; final tarball install verified (section 7); live chat session pending | **Pending** |
+| 0.2.0 | 0.2.2-rc.3 | Host probe passes; packed-tarball install verified (section 7, re-pack pending); live chat session pending | **Pending** |
 
 P0 remains blocked: a sample was posted to a running session, but desktop
 screenshot consent was not granted, so no controlled live chat evidence exists.
@@ -231,10 +255,11 @@ loads, fixed run directory), run the 10-case matrix from the P0 section of [ROAD
 hashes and screenshots, and only then promote a host row. Repeat it on the final
 `0.2.0` tarball.
 
-Done in this iteration: final `npm pack` dry-run and tarball, isolated tarball
-install, served-route suffix check, disable/uninstall baseline for `0.2.0`.
-Not done: live chat regression on the tarball, GitHub Release, `0.2.0` tag, and
-npm/GitHub Packages publication (not planned for 0.2.0).
+Done in this iteration: `npm pack` dry-run and a packed tarball, isolated
+tarball install, served-route suffix check, and disable/uninstall baseline for
+`0.2.0` (the release step re-packs/refreshes these for the final bundle). Not
+done: live chat regression on the repacked tarball, GitHub Release, `0.2.0`
+tag, and npm/GitHub Packages publication (not planned for 0.2.0).
 
 ## 8. Reproduce
 
@@ -252,7 +277,7 @@ node scripts/verify-install.mjs --source=dist/dsh-pele-mermaid-0.2.0.tgz \
   --output=docs/evidence/2026-11-17/install.json
 ```
 
-`npm run verify:visual` regenerates the eight PNGs and
+`npm run verify:visual` regenerates the ten PNGs and
 `visual-evidence.json`. Set `CHROME_BIN` to use another Chrome/Chromium
 binary; the temporary profile and loopback server are cleaned up afterwards. A
 later code/build change requires fresh evidence for affected checks; a later

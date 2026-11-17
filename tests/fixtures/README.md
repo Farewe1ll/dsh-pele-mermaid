@@ -131,8 +131,10 @@ npm run verify:visual
 This command starts a loopback server and an isolated headless Chrome profile,
 checks rendering, the 4-button toolbar, theme changes, source visibility/parent
 identity, the fullscreen viewer (open, zoom/fit, Escape close, focus restore,
-repeated open/close), the narrow-column P1 layout, font refresh and teardown, and
-regenerates eight PNGs together with `visual-evidence.json`:
+repeated open/close, and a live theme switch while open), the downloaded SVG
+(light + dark background rectangle, dark file rendered on a white stand-in
+page), the narrow-column P1 layout, font refresh and teardown, and regenerates
+ten PNGs together with `visual-evidence.json`:
 
 | PNG | Content |
 | --- | --- |
@@ -141,6 +143,8 @@ regenerates eight PNGs together with `visual-evidence.json`:
 | `fixture-dark.png` | wide column, dark theme (CSS-only repaint, no remount) |
 | `fixture-source-view.png` | Diagram/Source toggle keeps the host `<pre>` parent and text |
 | `fixture-viewer.png` | fullscreen viewer overlay: one dialog, four controls, natural-size SVG viewBox |
+| `fixture-viewer-dark.png` | same open overlay after switching to dark while open: both the diagram and the dialog chrome repaint (live `var(--dsw-*)` theme) |
+| `fixture-export-dark-preview.png` | the downloaded dark SVG bytes rendered on a white stand-in page: the export paints its own background, so text stays readable outside DSH |
 | `fixture-narrow.png` | 720×2200 narrow column scrolled to the P1 cards: class groups on three rows, CJK labels still wrapped |
 | `fixture-font-refresh.png` | after a font-metric change (re-mount, +8 diagrams) |
 | `fixture-teardown.png` | after teardown: zero diagrams, zero plugin styles |
@@ -153,9 +157,13 @@ not just captured.
 
 The JSON records browser version, wide and narrow viewport, locale/query, bundle
 hash, each PNG's size/hash, the wide/narrow P1 facts, the viewer open/closed
-reports, and the remount delta. It also records external requests from this
+reports, and the remount delta. It also records the downloaded-SVG checks
+(`exportLight`/`exportDark` background rectangle, the dark preview, and the
+`viewerTheme` light/dark computed colors), and external requests from this
 fixture page for these inputs; it does not claim complete network coverage of
-all diagram types. Set `CHROME_BIN` to use another Chrome/Chromium binary. The
+all diagram types. Downloads are captured without writing files: the script
+intercepts the temporary anchor click, keeps the Blob URL alive, and fetches the
+exact SVG text back inside the page. Set `CHROME_BIN` to use another Chrome/Chromium binary. The
 temporary profile and server are cleaned up after the run. No daily browser or
 DSH profile is used.
 

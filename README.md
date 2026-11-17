@@ -114,7 +114,11 @@ Explicit fence languages (case-insensitive, first token only):
 - **Download SVG** saves `pele-<type>-YYYYMMDD-HHmmss.svg` built from Pele's
   pristine render result: the whole diagram at natural size (an inline zoom/pan
   can never crop the file) with the resolved `--pele-*` theme variables written
-  onto the root. The clone is sanitized: scripts, event handlers,
+  onto the root. A background rectangle covering the full natural canvas is
+  inserted first, filled with the resolved `--pele-bg`, so a dark-theme export
+  is readable on a white standalone page instead of being light text on a
+  transparent background; the file keeps the colors it was saved with. The
+  clone is sanitized: scripts, event handlers,
   `foreignObject`, frames, embedded objects, media/image elements, `src`, and
   unsafe style/`url()` values are removed; `https`/`mailto`/`tel`/`#` links are
   kept. The button is disabled until a diagram renders.
@@ -123,7 +127,9 @@ Explicit fence languages (case-insensitive, first token only):
   pointer; dragging pans within the diagram bounds; Escape closes; Tab focus is
   trapped and returns to the trigger; background scrolling is locked and the
   previous scroll position restored; `prefers-reduced-motion` is respected. The
-  viewer reuses the sanitized SVG and never re-renders Pele.
+  viewer reuses the sanitized SVG and never re-renders Pele. It keeps
+  `var(--dsw-*)` token expressions instead of frozen colors, so an open viewer
+  repaints its diagram background and dialog chrome when the host theme switches.
 - If Pele cannot draw a diagram (syntax/limit), the original code block stays
   visible and a short plain-text note shows the error. An edit to the source
   retries automatically; export and viewer stay disabled for that block.
@@ -161,7 +167,8 @@ by overriding tokens work too. To tune diagram colors, override
 the `--pele-*` variables on `.dsh-pele-mermaid-diagram` in your own stylesheet;
 no plugin code changes are needed. The exported SVG captures the resolved
 variables at download time, so it keeps the current theme but does not follow
-later theme switches.
+later theme switches; the fullscreen viewer is the opposite — it keeps token
+expressions and follows live theme changes while open.
 
 ## Security
 
@@ -205,10 +212,10 @@ later theme switches.
 ## Verified
 
 `docs/VERIFICATION.md` records the full evidence; the measured highlights for
-`0.2.0` (`lib/client.js` 738,710 bytes, SHA-256
-`3259e916e0017a66090781493376b982ef2ab373be062bbb8795ec54cd913c82`):
+`0.2.0` (`lib/client.js` 739,526 bytes, SHA-256
+`906b1cc2f77c99a41e8453d85bd1554e60ff36b7a9d12558b3e998a56f1ea4af`):
 
-- **120 automated tests** (`npm test`): 120 pass, 0 fail, 0 skipped — engine,
+- **123 automated tests** (`npm test`): 123 pass, 0 fail, 0 skipped — engine,
   theme CSS, block manager, export, viewer, installed-host bindings, real React
   18.3.1 lifecycle cases, and built-bundle smoke. `npm run verify` also fails on
   a stale `lib/client.js`.
@@ -223,13 +230,17 @@ later theme switches.
   class-group, generic-label and rich-label cases), a four-control toolbar,
   light↔dark flips with **zero re-renders**, source toggling that keeps the same
   host-owned `<pre>`, the fullscreen viewer (open/zoom/fit/Escape/focus),
-  a 720×2200 narrow-column capture, eight recorded screenshots, and teardown that
-  removes only plugin additions.
+  a 720×2200 narrow-column capture, ten recorded screenshots, and teardown that
+  removes only plugin additions. The browser run also captures the real
+  downloaded SVG bytes in light and dark themes (background rectangle equals the
+  resolved `--pele-bg`: `#f9fafb` / `#1b1b1c`), renders the dark download on a
+  white stand-in page, and switches theme while the viewer is open to confirm
+  the diagram and dialog repaint.
 - **P6 decision: NO-GO for lazy loading in `0.2.0`** — Pele stays bundled
-  inline. Raw/gzip/brotli sizes are 738,710 / 275,784 / 223,454 bytes; the local
-  route's bundle request+eval finishes by ~40 ms cold and the first diagram is
-  ready in ~411 ms cold / ~368 ms warm (dominated by the scan debounce + settle
-  window). Installed-route encoding/cache metrics and a split-prototype
+  inline. Raw/gzip/brotli sizes are 739,526 / 276,084 / 223,848 bytes; the local
+  route's bundle request+eval finishes by ~34 ms cold and the first diagram is
+  ready in ~395 ms cold / ~370 ms warm (dominated by the 150 ms scan debounce +
+  180 ms settle window). Installed-route encoding/cache metrics and a split-prototype
   first-diagram regression were not measured, so the roadmap adopt rule cannot
   be satisfied. Evidence: `docs/evidence/2026-11-17/p6-measurement.json`.
 - **"Off ⇒ exactly normal"** (historical `0.1.1` install record): with the row
@@ -238,8 +249,10 @@ later theme switches.
   structurally identical to a freshly uninstalled profile.
 - **Not verified:** a live DSH `0.2.2` conversation (P0) — a sample was posted to
   a running session but desktop screenshot consent was not granted, so no
-  evidence was captured. The final `0.2.0` tarball install, served-route check,
-  and live regression are pending; see the compatibility section.
+  evidence was captured. The packaging/install path (tarball, served route,
+  disable/uninstall) is verified in an isolated profile; the release step
+  re-packs the final bundle and the live regression on that tarball is still
+  pending.
 
 ## Develop
 

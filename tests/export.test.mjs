@@ -11,6 +11,8 @@ import assert from 'node:assert/strict'
 import { JSDOM } from 'jsdom'
 
 import {
+  BACKGROUND_ATTR,
+  BACKGROUND_CLASS,
   buildExportSvg,
   collectThemeVariables,
   downloadSvg,
@@ -50,6 +52,17 @@ function parseSvg(document, text) {
   return new document.defaultView.DOMParser().parseFromString(text, 'image/svg+xml')
 }
 
+/** WCAG relative luminance for #rrggbb colors used in the dark-export check. */
+function luminance(hex) {
+  const value = String(hex).trim()
+  assert.match(value, /^#[0-9a-f]{6}$/i)
+  const channels = [1, 3, 5].map((index) => {
+    const channel = Number.parseInt(value.slice(index, index + 2), 16) / 255
+    return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4
+  })
+  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+}
+
 test('buildExportSvg restores the complete natural-size diagram', () => {
   const { document, window } = makeDoc()
   const exported = buildExportSvg(SNAPSHOT, { document, view: window })
@@ -64,6 +77,18 @@ test('buildExportSvg restores the complete natural-size diagram', () => {
   assert.equal(root.getAttribute('height'), '64')
   // The zoomed inline viewBox must never leak into the exported file.
   assert.equal(root.getAttribute('viewBox'), '0 0 210 64')
+
+  // A background rectangle covers the natural canvas, behind the diagram.
+  const background = root.firstElementChild
+  assert.equal(background?.localName, 'rect')
+  assert.equal(background.getAttribute(BACKGROUND_ATTR), '')
+  assert.match(background.getAttribute('class') || '', new RegExp(BACKGROUND_CLASS))
+  assert.equal(background.getAttribute('width'), '210')
+  assert.equal(background.getAttribute('height'), '64')
+  assert.equal(background.getAttribute('x'), '0')
+  assert.equal(background.getAttribute('y'), '0')
+  // Without a theme container the SVG keeps Pele's own white fallback.
+  assert.equal(background.getAttribute('fill'), 'var(--pele-bg, #ffffff)')
 })
 
 test('buildExportSvg strips active content and external references', () => {
@@ -103,6 +128,58 @@ test('buildExportSvg writes resolved --pele-* theme variables onto the root', ()
   assert.match(style, /--pele-fg:\s*#123456/)
   // Pele's own inline variables are preserved next to ours.
   assert.match(style, /--_bg:/)
+
+  // Download mode fixes the resolved background color into the canvas rect.
+  const background = parsed.querySelector(`rect[${BACKGROUND_ATTR}]`)
+  assert.ok(background, 'background rect exists')
+  assert.equal(background.getAttribute('fill'), 'rgb(1, 2, 3)')
+})
+
+test('dark export draws a dark canvas background and light resolved text', () => {
+  const { document, window } = makeDoc()
+  const container = document.createElement('div')
+  container.style.setProperty('--pele-bg', '#0f1115')
+  container.style.setProperty('--pele-fg', '#f9fafb')
+  container.style.setProperty('--pele-line', '#e5e7eb')
+
+  const parsed = parseSvg(document, buildExportSvg(SNAPSHOT, { document, view: window, container }))
+  const background = parsed.querySelector(`rect[${BACKGROUND_ATTR}]`)
+  assert.ok(background, 'a standalone export always has a background rect')
+  assert.equal(background.getAttribute('fill'), '#0f1115', 'dark card color becomes the canvas background')
+  assert.equal(background.getAttribute('width'), '210')
+  assert.equal(background.getAttribute('height'), '64')
+
+  const style = parsed.documentElement.getAttribute('style') || ''
+  assert.match(style, /--pele-bg:\s*#0f1115/)
+  assert.match(style, /--pele-fg:\s*#f9fafb/)
+  // The exported file has a dark canvas and light text (contrast direction is
+  // preserved), so a white standalone page can never render light-on-white.
+  const backgroundFill = background.getAttribute('fill')
+  assert.ok(luminance(backgroundFill) < 0.05, `dark canvas, got ${backgroundFill}`)
+  assert.ok(luminance('#f9fafb') > 0.8)
+})
+
+test('viewer (inherit) mode keeps token expressions so theme switches repaint', () => {
+  const { document, window } = makeDoc()
+  const container = document.createElement('div')
+  container.style.setProperty('--pele-bg', 'rgb(1, 2, 3)')
+  container.style.setProperty('--pele-fg', '#123456')
+
+  const parsed = parseSvg(document, buildExportSvg(SNAPSHOT, {
+    document,
+    view: window,
+    container,
+    theme: 'inherit',
+  }))
+  const style = parsed.documentElement.getAttribute('style') || ''
+  // The DSH token expressions, not the resolved colors, are written.
+  assert.match(style, /--pele-bg:\s*var\(--dsw-alias-markdown-code-block\)/)
+  assert.match(style, /--pele-fg:\s*var\(--dsw-alias-label-primary\)/)
+  assert.doesNotMatch(style, /rgb\(1, 2, 3\)/)
+  assert.doesNotMatch(style, /#123456/)
+
+  const background = parsed.querySelector(`rect[${BACKGROUND_ATTR}]`)
+  assert.equal(background.getAttribute('fill'), 'var(--pele-bg)', 'the viewer background follows the live theme')
 })
 
 test('buildExportSvg fails closed for unusable input', () => {

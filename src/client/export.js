@@ -6,8 +6,13 @@
  *
  *  - the natural-size `width`/`height` and `viewBox` are restored, so an inline
  *    zoom/pan state can never crop the exported diagram;
- *  - the resolved `--pele-*` theme variables are written onto the root element,
- *    so the file keeps the current DSH colors outside the app;
+ *  - a background rectangle covers the complete natural-size canvas, so the
+ *    file is readable on a white standalone page in dark themes instead of
+ *    relying on the DSH card background that does not exist outside the app;
+ *  - theme handling has two modes: `resolved` (default) writes the currently
+ *    computed `--pele-*` values, for a downloadable file that keeps today's
+ *    colors; `inherit` writes the `--dsw-*` token expressions instead, so an
+ *    in-app surface (the fullscreen viewer) follows live theme switches;
  *  - the clone is sanitized (no scripts, event-handler attributes,
  *    `foreignObject`, or external image/asset references) before serialization.
  *
@@ -15,13 +20,28 @@
  *
  * @module dsh-pele-mermaid/export
  */
-import { PELE_VARIABLE_NAMES } from './theme-css.js'
+import { PELE_VARIABLES, PELE_VARIABLE_NAMES } from './theme-css.js'
 
 /** SVG namespace used by the exported root. */
 const SVG_NS = 'http://www.w3.org/2000/svg'
 
 /** Hard cap on exported markup; Pele's own output limits are well below this. */
 const MAX_SVG_LENGTH = 4_000_000
+
+/**
+ * Attribute marking the background rectangle this module inserts. It is part
+ * of the exported SVG contract (tests and the viewer locate it by this hook).
+ */
+export const BACKGROUND_ATTR = 'data-dsh-pele-mermaid-background'
+
+/** Class on the same rectangle, for styling/debugging outside the tests. */
+export const BACKGROUND_CLASS = 'pele-export-background'
+
+/**
+ * Standalone fallback only: when no computed `--pele-bg` is available the SVG
+ * keeps Pele's own white default background instead of a transparent canvas.
+ */
+const BACKGROUND_FALLBACK = 'var(--pele-bg, #ffffff)'
 
 /** Elements that must never reach an exported file. */
 const FORBIDDEN_ELEMENTS = Object.freeze(new Set([
@@ -179,27 +199,86 @@ function sanitizeTree(root) {
 }
 
 /**
- * Append resolved theme variables to the root element's `style` attribute,
+ * Append custom-property declarations to the root's `style` attribute,
  * preserving Pele's own inline style declarations.
  *
  * @param {Element} root
- * @param {Record<string, string>} variables
+ * @param {Array<[string, string]>} declarations name/value pairs
  */
-function applyThemeVariables(root, variables) {
-  const names = Object.keys(variables)
-  if (names.length === 0) return
+function appendRootStyle(root, declarations) {
+  const entries = declarations.filter(
+    (entry) => Array.isArray(entry) && typeof entry[0] === 'string' && typeof entry[1] === 'string' && entry[1] !== '',
+  )
+  if (entries.length === 0) return
   let existing = ''
   try {
     existing = String(root.getAttribute('style') || '').trim()
   } catch {
     existing = ''
   }
-  const suffix = names.map((name) => `${name}: ${variables[name]}`).join('; ')
+  const suffix = entries.map(([name, value]) => `${name}: ${value}`).join('; ')
   const style = existing === '' ? suffix : `${existing.replace(/;\s*$/, '')}; ${suffix}`
   try {
     root.setAttribute('style', style)
   } catch {
     // A root that rejects attributes is simply not styled further.
+  }
+}
+
+/**
+ * Fix the *currently resolved* theme colors into the file (download mode).
+ *
+ * @param {Element} root
+ * @param {Record<string, string>} variables
+ */
+function applyThemeVariables(root, variables) {
+  appendRootStyle(root, Object.entries(variables))
+}
+
+/**
+ * Write the DSH token expressions instead of resolved colors (viewer mode).
+ * The SVG then repaints when the host theme changes, exactly like the inline
+ * diagram card: the custom properties resolve through `--dsw-*` at paint time.
+ *
+ * @param {Element} root
+ */
+function applyThemeTokens(root) {
+  appendRootStyle(root, PELE_VARIABLES)
+}
+
+/**
+ * Insert a background rectangle covering the natural-size canvas. Without it a
+ * dark-theme export is light text on a transparent page background; with it the
+ * file looks the same outside DSH. `fill` is a concrete color for downloads and
+ * `var(--pele-bg)` for the live viewer.
+ *
+ * @param {Element} root
+ * @param {string} fill
+ * @param {number | null} width
+ * @param {number | null} height
+ */
+function addBackground(root, fill, width, height) {
+  if (width === null || height === null) return
+  const doc = root.ownerDocument
+  if (!doc || typeof doc.createElementNS !== 'function') return
+  let rect
+  try {
+    rect = doc.createElementNS(SVG_NS, 'rect')
+  } catch {
+    return
+  }
+  try {
+    rect.setAttribute(BACKGROUND_ATTR, '')
+    rect.setAttribute('class', BACKGROUND_CLASS)
+    rect.setAttribute('x', '0')
+    rect.setAttribute('y', '0')
+    rect.setAttribute('width', String(width))
+    rect.setAttribute('height', String(height))
+    rect.setAttribute('fill', fill)
+    rect.setAttribute('pointer-events', 'none')
+    root.insertBefore(rect, root.firstChild)
+  } catch {
+    // A background is an enhancement; never fail the whole export over it.
   }
 }
 
@@ -211,6 +290,9 @@ function applyThemeVariables(root, variables) {
  * @param {Document} [options.document]
  * @param {DOMWindow} [options.view]
  * @param {Element | null} [options.container] inline diagram card for theme vars
+ * @param {'resolved'|'inherit'} [options.theme] `resolved` (default) fixes the
+ *   current colors for a downloaded file; `inherit` keeps `var(--dsw-*)` token
+ *   expressions so an in-app surface follows live theme switches
  * @returns {string | null} serialized SVG, or null when it cannot be exported
  */
 export function buildExportSvg(snapshot, options = {}) {
@@ -244,7 +326,15 @@ export function buildExportSvg(snapshot, options = {}) {
     }
     if (root.getAttribute('xmlns') === null) root.setAttribute('xmlns', SVG_NS)
 
-    applyThemeVariables(root, collectThemeVariables(options?.container, view))
+    const inherit = options?.theme === 'inherit'
+    if (inherit) {
+      applyThemeTokens(root)
+      addBackground(root, 'var(--pele-bg)', width, height)
+    } else {
+      const variables = collectThemeVariables(options?.container, view)
+      applyThemeVariables(root, variables)
+      addBackground(root, variables['--pele-bg'] || BACKGROUND_FALLBACK, width, height)
+    }
     return new Serializer().serializeToString(parsed)
   } catch {
     return null

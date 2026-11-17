@@ -12,14 +12,21 @@ repository working builds unless a GitHub Release says otherwise.
 - **Standalone SVG export (P4).** A localized icon control in the diagram
   toolbar saves the diagram as `pele-<type>-YYYYMMDD-HHmmss.svg`. The file is
   built from Pele's pristine render result (never from the zoom/pan-mutated
-  inline SVG), keeps the full natural width/height and `viewBox`, and writes the
-  resolved `--pele-*` theme variables onto the root, so it opens outside DSH
-  with the same geometry and colors. The clone is sanitized: `script`,
+  inline SVG), keeps the full natural width/height and `viewBox`, and paints a
+  first-child background rectangle covering the natural-size canvas, so a
+  dark-theme export is readable on a white standalone page instead of being
+  light text on a transparent background. Download mode writes the resolved
+  `--pele-*` theme values and the resolved background color into the file
+  (colors fixed at download time); the in-app viewer uses the alternate
+  `inherit` mode that writes `var(--dsw-*)` token expressions and a
+  `var(--pele-bg)` background so it follows live theme switches. The clone is
+  sanitized: `script`,
   `foreignObject`, `iframe`, `object`, `embed`, `image`, `audio`, `video`,
   `on*` attributes, `src`, and unsafe `style`/`url()` values are removed;
   `https`/`mailto`/`tel`/`#` links are kept. Object URLs are revoked. The control
   is disabled until a pristine render exists. New module:
-  `src/client/export.js`; 7 tests in `tests/export.test.mjs`.
+  `src/client/export.js` (exports `BACKGROUND_ATTR`, `BACKGROUND_CLASS`);
+  9 tests in `tests/export.test.mjs`.
 - **Fullscreen viewer (P5).** A localized icon control opens one reusable
   overlay dialog (`role="dialog"`, `aria-modal="true"`) with zoom out, zoom in,
   fit-to-window, and close controls. It opens at the inline zoom factor,
@@ -27,8 +34,11 @@ repository working builds unless a GitHub Release says otherwise.
   diagram bounds, Escape to close, a Tab/Shift+Tab focus trap, focus return to
   the trigger, background scroll lock with scroll-position restore, and
   `prefers-reduced-motion` support. It reuses the sanitized SVG and never
-  re-renders Pele. New module: `src/client/viewer.js`; 13 tests in
-  `tests/viewer.test.mjs`; browser evidence `fixture-viewer.png`.
+  re-renders Pele. The viewer's SVG keeps token expressions, so an open overlay
+  repaints when the host theme switches (diagram background and dialog chrome);
+  a downloaded file keeps the colors it was saved with. New module:
+  `src/client/viewer.js`; 13 tests in `tests/viewer.test.mjs`; browser evidence
+  `fixture-viewer.png` and `fixture-viewer-dark.png`.
 - **Explicit fence aliases (P3).** `mermaidjs` and `mmd` are accepted in
   addition to `mermaid`, through the existing committed-React-props-first /
   explicit-banner-fallback path. No source heuristics and no `language-*` class
@@ -47,11 +57,13 @@ repository working builds unless a GitHub Release says otherwise.
   JavaScript fence. The new cases are CJK long-label wrapping and closing
   punctuation, `classDiagram` group wrapping in the wide and narrow columns,
   `List<T>`/`Map<K,V>` labels, and rich `<sub>`/`<sup>`/`<code>`/`<kbd>`/`<samp>`
-  labels. Two new captures: `fixture-wide-p1.png` and `fixture-narrow.png`.
+  labels. New captures include `fixture-wide-p1.png`, `fixture-narrow.png`,
+  `fixture-viewer.png`, `fixture-viewer-dark.png`, and
+  `fixture-export-dark-preview.png` (ten screenshots total).
 - Launcher icons (`src/client/icons.js`) for the export and viewer controls:
   decorative inline SVGs, `currentColor`, no font/sprite/remote resource.
 - Evidence for this iteration under `docs/evidence/2026-11-17/`: host probe,
-  visual run, and P6 measurements.
+  visual run, P6 measurements, and packaging/install records.
 
 ### Changed
 
@@ -59,16 +71,21 @@ repository working builds unless a GitHub Release says otherwise.
   `package.json#devDependencies`; the lockfile was refreshed. This brings the
   label/layout fixes exercised by the P1 cases; the plugin adds no text shaping
   or heuristics of its own.
-- **Client bundle:** `lib/client.js` is 738,710 bytes, SHA-256
-  `3259e916e0017a66090781493376b982ef2ab373be062bbb8795ec54cd913c82`, wrapper id
+- **Client bundle:** `lib/client.js` is 739,526 bytes, SHA-256
+  `906b1cc2f77c99a41e8453d85bd1554e60ff36b7a9d12558b3e998a56f1ea4af`, wrapper id
   `dsh-pele-mermaid`. The whole-inline-bundle raw budget is 750,000 bytes, so
-  11,290 bytes of headroom remain. Pele 1.9.0 alone produced 718,094 bytes before
+  10,474 bytes of headroom remain. Pele 1.9.0 alone produced 718,094 bytes before
   P3/P4/P5 were added.
 - **Version 0.2.0** and a new `CHANGELOG.md`, included in `package.json#files` so
   the tarball ships it.
 - `npm run verify:visual` now asserts the P1 layout facts, the four-control
   toolbar, the viewer open/zoom/fit/Escape/focus path, a 720×2200 narrow-column
-  capture, and eight screenshots. Restricted sandboxes opt into Chrome's
+  capture, and ten screenshots. It also captures the actual downloaded SVG
+  bytes in light and dark themes, asserts the background rectangle uses the
+  same resolved `--pele-bg`, renders the dark download on a white stand-in page
+  (`fixture-export-dark-preview.png`), and switches theme while the viewer is
+  open to assert the diagram and dialog repaint (`fixture-viewer-dark.png`).
+  Restricted sandboxes opt into Chrome's
   `--no-sandbox --disable-setuid-sandbox` flags explicitly with
   `DSH_VISUAL_CHROME_NO_SANDBOX=1`; normal runs keep Chrome's sandbox.
 - `scripts/verify-install.mjs` accepts `--source=<tarball>` so the final release
@@ -89,6 +106,14 @@ repository working builds unless a GitHub Release says otherwise.
 - Viewer state: closing the overlay releases every listener, scroll lock, and
   node; a backdrop click closes it while a click inside the dialog does not; the
   same overlay instance is reused and teardown destroys it.
+- Exported dark SVGs are no longer transparent/light-text on a white page: the
+  export now inserts a background rectangle covering the full natural canvas
+  (resolved `--pele-bg` fill for downloads, `var(--pele-bg)` for the viewer,
+  `var(--pele-bg, #ffffff)` fallback when no computed color exists).
+- The fullscreen viewer now follows live theme switches: it receives the
+  `inherit` export mode, so its SVG keeps `--dsw-*` token expressions and the
+  diagram background plus dialog chrome repaint with the host theme instead of
+  keeping stale light/dark colors until reopened.
 
 ### Security
 
@@ -106,11 +131,13 @@ repository working builds unless a GitHub Release says otherwise.
 
 ### Verification
 
-- `npm test`: **120 tests, 120 pass, 0 fail, 0 cancelled, 0 skipped, 0 todo**
-  (about 7.5 s). New suites: export (7), viewer (13), host bindings (6).
+- `npm test`: **123 tests, 123 pass, 0 fail, 0 cancelled, 0 skipped, 0 todo**
+  (about 7 s). Suites: export (9), viewer (13), host bindings (6), block manager
+  (45), plus engine, theme CSS, real React lifecycle and built bundle tests.
 - `npm run verify`: **PASS** — build freshness (`build --check` up to date,
-  738,710 bytes) and the 7-test built-bundle smoke suite.
-- `npm run verify:host`: **PASS** on installed DSH `0.2.2-rc.3` — frontend asset
+  739,526 bytes) and the 7-test built-bundle smoke suite.
+- `npm run verify:host`: **PASS** on installed DSH `0.2.2-rc.3` with bundle
+  SHA-256 `906b1cc2…f1ea4af` — frontend asset
   `index-Ciz7DZxv.js` (1,093,870 bytes, SHA-256
   `65411dabad4de33466b12643cf30376d3d41ea1b7ce10ce329e97c89992d308b`), component
   SHA-256 `99afefb4fe88333ec0f28540cf0381523922abbde7559c3ca15ca43914b09839`,
@@ -118,25 +145,31 @@ repository working builds unless a GitHub Release says otherwise.
   + Copy, plain/static/streaming source shapes + Copy). Scope: fixture adapters,
   not a live DSH session.
 - `DSH_VISUAL_CHROME_NO_SANDBOX=1 npm run verify:visual`: **PASS** with headless
-  Chrome 157.0.8103.79; eight screenshots with recorded sizes/hashes, P1 layout
-  facts, the four-control toolbar, viewer evidence, and byte-identical fixture
-  teardown.
+  Chrome 157.0.8103.79; ten screenshots with recorded sizes/hashes, P1 layout
+  facts, the four-control toolbar, byte-identical fixture teardown, and the two
+  review-fix checks: downloaded light/dark exports carry a background rectangle
+  equal to the resolved `--pele-bg` (`#f9fafb` / `#1b1b1c`), the dark download
+  renders readably on a white stand-in page
+  (`fixture-export-dark-preview.png`, 813×135), and an open viewer repaints its
+  diagram background and dialog chrome when the theme switches
+  (`fixture-viewer-dark.png`).
 - **P6 lazy-runtime decision: NO-GO for 0.2.0** — keep Pele bundled inline.
-  Final bundle: raw 738,710 bytes, `gzip -9` 275,784, brotli 223,454; local
-  plain-HTTP route bundle request+eval by ~40 ms cold, first diagram ready
-  ~411 ms cold / ~368 ms warm (dominated by the 150 ms scan debounce + 180 ms
+  Final bundle: raw 739,526 bytes, `gzip -9` 276,084, brotli 223,848; local
+  plain-HTTP route bundle request+eval by ~34 ms cold, first diagram ready
+  ~395 ms cold / ~370 ms warm (dominated by the 150 ms scan debounce + 180 ms
   settle window). Installed-route `Content-Encoding`/`encodedBodySize`/cache
   metrics and a split-prototype first-diagram regression were not measured, so
   the roadmap adopt rule cannot be satisfied; the default no stands. Evidence:
   `docs/evidence/2026-11-17/p6-measurement.json`.
-- **Packaging verified from the final tarball** (`dist/dsh-pele-mermaid-0.2.0.tgz`;
-  `dist/` is not committed): installed into an isolated `DSH_HOME` web profile,
-  boot graph entry present, served route 200 with 738,783 bytes = the full
-  738,710-byte bundle plus the 73-byte loader source-map suffix,
-  disable/uninstall restored the baseline (rev-normalized). Tarball size and
-  SHA-256 are recorded in `docs/evidence/2026-11-17/install.json`, together with
-  the full transcript (`install.log`) and the packed file list
-  (`package-dry-run.json`).
+- **Packaging/install path verified from a packed tarball**
+  (`dist/dsh-pele-mermaid-0.2.0.tgz`; `dist/` is not committed): installed into
+  an isolated `DSH_HOME` web profile, boot graph entry present, served route 200
+  with 739,599 bytes = the full 739,526-byte bundle plus the 73-byte loader
+  source-map suffix, disable/uninstall restored the baseline (rev-normalized).
+  Tarball identity (size, SHA-256) is recorded in
+  `docs/evidence/2026-11-17/install.json`; the release step re-packs the final
+  bundle and refreshes that record, `install.log`, and
+  `package-dry-run.json`.
 - Compatibility unchanged: `0.1.1` / `0.2.1-rc.2` remains the only verified
   row. `0.1.1` / `0.2.2-rc.3` and `0.2.0` / `0.2.2-rc.3` are **pending** until a
   controlled live chat run; the installed Desktop profile still runs plugin
@@ -148,9 +181,11 @@ repository working builds unless a GitHub Release says otherwise.
   in a controlled live chat session with the 10-case matrix and screenshots. A
   sample was posted to a running session, but desktop screenshot consent was
   not granted, so no evidence was captured. `DG1` stays unresolved.
-- **P7 release steps**: the live chat regression on the installed tarball
-  (blocked with P0), then the GitHub Release with the tarball and evidence links,
-  and the `0.2.0` tag. Packaging itself is verified — see Verification above.
+- **P7 release steps**: re-pack the final bundle and refresh the packaging
+  evidence, run the live chat regression on the installed tarball (blocked with
+  P0), then publish the GitHub Release with the tarball and evidence links and
+  create the `0.2.0` tag. The install path itself is verified — see Verification
+  above.
 - **GitHub Release** with the packed tarball and evidence links; no npm or
   GitHub Packages publication in 0.2.0.
 - Live check of export and viewer in a real `0.2.0` DSH session (currently

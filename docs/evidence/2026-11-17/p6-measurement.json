@@ -1,61 +1,61 @@
 {
   "status": "NO-GO (0.2.0)",
-  "date": "2026-11-17T03:51:50.313Z",
+  "date": "2026-11-17T04:54:59.214Z",
   "phase": "P6 lazy runtime decision gate",
   "decision": "Keep Pele bundled inline; do not split a lazy runtime in 0.2.0.",
   "rule": "Adopt only if cold-start improvement is material (roadmap example: >=200 ms or >=200 KB encodedBodySize) AND first-diagram latency regression is acceptable (roadmap example: <=150 ms locally). One metric consistently on both sides. Default is no.",
   "measurements": {
     "artifact": "lib/client.js",
-    "rawBytes": 738710,
-    "gzip9Bytes": 275784,
-    "brotliBytes": 223454,
+    "rawBytes": 739526,
+    "gzip9Bytes": 276084,
+    "brotliBytes": 223848,
     "route": "local plain-HTTP server, no content-encoding, cache-control: no-cache, one HTML + bundle.js request",
     "routeCaveat": "Local plain-HTTP fixture route, NOT the installed DSH /plugins route: no Content-Encoding and no cache headers beyond no-cache. DSH's real encoding/caching was not measurable without an authenticated installed-host route run.",
     "cold": {
       "bundle": {
-        "name": "http://127.0.0.1:64301/bundle.js",
-        "transferSize": 739010,
-        "encodedBodySize": 738710,
-        "decodedBodySize": 738710,
-        "duration": 9.600000000558794,
+        "name": "http://127.0.0.1:52364/bundle.js",
+        "transferSize": 739826,
+        "encodedBodySize": 739526,
+        "decodedBodySize": 739526,
+        "duration": 13.299999998882413,
         "nextHopProtocol": "http/1.1",
         "renderBlockingStatus": "non-blocking"
       },
       "responseHeaders": {
         "cache-control": "no-cache",
-        "content-length": "738710",
+        "content-length": "739526",
         "Keep-Alive": "timeout=5",
-        "Date": "Tue, 17 Nov 2026 03:51:37 GMT",
+        "Date": "Tue, 17 Nov 2026 04:54:51 GMT",
         "content-type": "text/javascript; charset=utf-8",
         "Connection": "keep-alive"
       },
-      "registrationMsAfterNavigation": 40.40000000037253,
-      "firstDiagramReadyMsAfterNavigation": 410.79999999981374,
-      "observed": "bundle request+eval completes by ~40 ms after navigation; first diagram ready at ~411 ms (dominated by 150 ms scan debounce + 180 ms settle window, plus mount)"
+      "registrationMsAfterNavigation": 22.90000000037253,
+      "firstDiagramReadyMsAfterNavigation": 394.80000000074506,
+      "observed": "bundle request+eval completes by ~34 ms after navigation; first diagram ready at ~395 ms (dominated by 150 ms scan debounce + 180 ms settle window, plus mount)"
     },
     "warmReload": {
       "bundle": {
-        "name": "http://127.0.0.1:64301/bundle.js",
-        "transferSize": 739010,
-        "encodedBodySize": 738710,
-        "decodedBodySize": 738710,
-        "duration": 3,
+        "name": "http://127.0.0.1:52364/bundle.js",
+        "transferSize": 739826,
+        "encodedBodySize": 739526,
+        "decodedBodySize": 739526,
+        "duration": 3.599999999627471,
         "nextHopProtocol": "http/1.1",
         "renderBlockingStatus": "non-blocking"
       },
       "responseHeaders": {
         "cache-control": "no-cache",
-        "content-length": "738710",
+        "content-length": "739526",
         "Keep-Alive": "timeout=5",
-        "Date": "Tue, 17 Nov 2026 03:51:37 GMT",
+        "Date": "Tue, 17 Nov 2026 04:54:52 GMT",
         "content-type": "text/javascript; charset=utf-8",
         "Connection": "keep-alive"
       },
-      "registrationMsAfterNavigation": 18.600000000558794,
-      "firstDiagramReadyMsAfterNavigation": 367.5
+      "registrationMsAfterNavigation": 23.899999998509884,
+      "firstDiagramReadyMsAfterNavigation": 370.19999999925494
     },
     "browser": "Chrome 157.0.8103.79 (headless=new), Node 26, local loopback",
-    "artifactSha256": "3259e916e0017a66090781493376b982ef2ab373be062bbb8795ec54cd913c82"
+    "artifactSha256": "906b1cc2f77c99a41e8453d85bd1554e60ff36b7a9d12558b3e998a56f1ea4af"
   },
   "referenceSplitFromRoadmap": {
     "note": "Historical reference numbers from a comparable implementation, not measurements of this plugin.",
@@ -73,10 +73,10 @@
     "deltaNoDiagramGzip9": -235662
   },
   "rationale": [
-    "Measured local bundle cost (request + parse/eval) is ~12-20 ms; first-diagram latency is ~368-411 ms and is dominated by the fixed 150 ms scan debounce + 180 ms settle window, not by bundle size. Splitting Pele therefore cannot produce a >=200 ms cold-start *time* improvement on this evidence.",
-    "The byte side looks material in principle (gzip -9 275,784 B / brotli 223,454 B for the final 738,710 B inline bundle), but the installed DSH route's real Content-Encoding, cache behavior and encodedBodySize are unmeasured; the roadmap decision rule requires route-level metrics before a byte-based claim.",
+    "Measured local bundle cost (request + parse/eval) is ~12-34 ms; first-diagram latency is ~370-395 ms and is dominated by the fixed 150 ms scan debounce + 180 ms settle window, not by bundle size. Splitting Pele therefore cannot produce a >=200 ms cold-start *time* improvement on this evidence.",
+    "The byte side looks material in principle (gzip -9 276,084 B / brotli 223,848 B for the final 739,526 B inline bundle), but the installed DSH route's real Content-Encoding, cache behavior and encodedBodySize are unmeasured; the roadmap decision rule requires route-level metrics before a byte-based claim.",
     "A split adds a host half (same-origin route, webServer injection, cache-busting ?v=<hash>, immutable caching, failure fallback) plus a client loader path and tests. That is a new architecture surface, and the roadmap's default for 0.2.0 is no unless measurements support the change; no split prototype was built to measure the first-diagram regression the rule requires.",
-    "The whole inline bundle budget (750,000 B raw) is met at 738,710 B, so keeping the inline build does not breach the 0.2.0 budget."
+    "The whole inline bundle budget (750,000 B raw) is met at 739,526 B, so keeping the inline build does not breach the 0.2.0 budget."
   ],
   "revisitWhen": "Run PerformanceResourceTiming (encodedBodySize/transferSize/decodedBodySize), Cache-Status and Content-Encoding against the installed DSH plugin route, build a split prototype, and re-evaluate with cold-start time and first-diagram regression numbers on the same metric."
 }

@@ -792,16 +792,23 @@ export function createBlockManager(options = {}) {
   }
 
   /**
-   * Sanitized SVG text for export/viewer, with theme variables resolved from
-   * the inline card.
+   * Sanitized SVG text for export/viewer.
+   *
+   * `theme` decides how colors are handled:
+   *  - `resolved` (download): fix today's computed colors into the file, because
+   *    a downloaded SVG has no DSH theme context;
+   *  - `inherit` (viewer): keep `var(--dsw-*)` token expressions, so the open
+   *    overlay repaints when the host theme changes — exactly like the inline
+   *    diagram card.
    *
    * @param {BlockRecord} record
    * @param {{ svg: string, width: number, height: number, type: string }} snapshot
+   * @param {'resolved'|'inherit'} theme
    * @returns {string | null}
    */
-  function renderExportText(record, snapshot) {
+  function renderExportText(record, snapshot, theme) {
     try {
-      const text = renderExport(snapshot, { document: doc, view, container: record.container })
+      const text = renderExport(snapshot, { document: doc, view, container: record.container, theme })
       return typeof text === 'string' && text !== '' ? text : null
     } catch {
       return null
@@ -817,7 +824,7 @@ export function createBlockManager(options = {}) {
     if (destroyed || !record || record.status !== 'mounted') return false
     const snapshot = readSnapshot(record)
     if (!snapshot) return false
-    const svgText = renderExportText(record, snapshot)
+    const svgText = renderExportText(record, snapshot, 'resolved')
     if (svgText === null) return false
     let filename
     try {
@@ -868,7 +875,7 @@ export function createBlockManager(options = {}) {
     if (destroyed || !record || record.status !== 'mounted') return false
     const snapshot = readSnapshot(record)
     if (!snapshot) return false
-    const svgText = renderExportText(record, snapshot)
+    const svgText = renderExportText(record, snapshot, 'inherit')
     if (svgText === null) return false
     const viewer = getViewer()
     if (!viewer) return false

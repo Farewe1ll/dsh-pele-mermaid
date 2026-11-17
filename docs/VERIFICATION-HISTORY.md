@@ -625,17 +625,18 @@ builds above.
   [VERIFICATION.md](VERIFICATION.md) into its Appendix A. It remains the only
   **verified** compatibility row (`0.1.1` / `0.2.1-rc.2`). Nothing in sections
   0–9 above describes the `0.2.0` artifact.
-- The `0.2.0` iteration (Pele 1.9.0, export/viewer/aliases, host probe v2) is
+- The `0.2.0` iteration (Pele 1.9.0, export/viewer/aliases, host probe v2, plus
+  the post-review fixes for exported-SVG backgrounds and viewer live theming) is
   recorded in [VERIFICATION.md](VERIFICATION.md) sections 1–8 with evidence under
-  [`evidence/2026-11-17/`](evidence/2026-11-17/): 120/120 tests, bundle
-  738,710 bytes / SHA-256 `3259e916…913c82`, `verify:host` PASS on DSH
-  `0.2.2-rc.3` (fixture adapters, not a live session), eight real-browser
+  [`evidence/2026-11-17/`](evidence/2026-11-17/): 123/123 tests, bundle
+  739,526 bytes / SHA-256 `906b1cc2…f1ea4af`, `verify:host` PASS on DSH
+  `0.2.2-rc.3` (fixture adapters, not a live session), ten real-browser
   screenshots, and a P6 **NO-GO** decision.
 - No controlled live DSH `0.2.2` conversation was recorded (P0 deferred: the
   sample was posted but desktop screenshot consent was not granted). The
   installed Desktop profile still ran plugin `0.1.1`; no host row was promoted.
 - The screenshot-path caveat at the top of this file still applies, and is now
-  stronger: the eight PNGs currently in
+  stronger: the ten PNGs currently in
   [`tests/fixtures/screenshots/`](../tests/fixtures/screenshots/) are the
   2026-11-17 captures. The sizes/hashes quoted in sections 3 and 9 above, and in
   VERIFICATION.md Appendix A, identify the older captures only.

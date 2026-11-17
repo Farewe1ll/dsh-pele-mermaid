@@ -1152,6 +1152,7 @@ test('download action exports the pristine snapshot and saves it with the standa
   assert.equal(exported.length, 1)
   assert.equal(exported[0].snapshot, PRISTINE, 'the pristine result is handed to the exporter, never the zoomed DOM')
   assert.equal(exported[0].context.container, containerOf(block), 'theme variables resolve against the inline card')
+  assert.equal(exported[0].context.theme, 'resolved', 'downloads fix the current colors into the file')
   assert.equal(downloads.length, 1)
   assert.equal(downloads[0].text, '<svg data-exported="1"/>')
   assert.match(downloads[0].filename, /^pele-flowchart-\d{8}-\d{6}\.svg$/)
@@ -1175,10 +1176,14 @@ test('fullscreen action opens the viewer with the pristine snapshot and inline z
       this.destroyed += 1
     },
   }
+  const viewerExports = []
   const { doc, clock, manager } = setup({
     mountDiagram,
     manager: {
-      exportSvg: () => '<svg data-exported="1"/>',
+      exportSvg(snapshot, context) {
+        viewerExports.push({ snapshot, context })
+        return context.theme === 'inherit' ? '<svg data-viewer-inherit="1"/>' : '<svg data-resolved="1"/>'
+      },
       createViewer: () => fakeViewer,
     },
   })
@@ -1192,7 +1197,9 @@ test('fullscreen action opens the viewer with the pristine snapshot and inline z
 
   assert.equal(fakeViewer.opens.length, 1)
   const params = fakeViewer.opens[0]
-  assert.equal(params.svg, '<svg data-exported="1"/>')
+  assert.equal(params.svg, '<svg data-viewer-inherit="1"/>', 'the viewer builds in live-theme mode')
+  assert.equal(viewerExports.length, 1)
+  assert.equal(viewerExports[0].context.theme, 'inherit', 'the viewer keeps CSS-variable theme tokens')
   assert.equal(params.width, PRISTINE.width)
   assert.equal(params.height, PRISTINE.height)
   assert.equal(params.type, PRISTINE.type)
@@ -1211,6 +1218,54 @@ test('fullscreen action opens the viewer with the pristine snapshot and inline z
   assert.ok(fakeViewer.destroyed >= 1, 'plugin teardown destroys the viewer')
   assert.equal(manager.count, 0)
   assert.equal(doc.querySelector('[data-dsh-pele-mermaid-viewer]'), null)
+})
+
+test('real export builder: download resolves a background, viewer keeps live theme tokens', () => {
+  const mountDiagram = makeMount({ snapshot: PRISTINE })
+  const downloads = []
+  const fakeViewer = {
+    opens: [],
+    open(params) {
+      this.opens.push(params)
+      return true
+    },
+    close() {},
+    destroy() {},
+  }
+  const { doc, clock, manager } = setup({
+    mountDiagram,
+    manager: {
+      downloadSvg(text, filename) {
+        downloads.push({ text, filename })
+        return true
+      },
+      createViewer: () => fakeViewer,
+    },
+  })
+  const { block } = addBlock(doc)
+  manager.scan()
+  clock.advance(300)
+
+  // The inline card carries the live theme values, as the DSH stylesheet would.
+  const container = containerOf(block)
+  container.style.setProperty('--pele-bg', 'rgb(1, 2, 3)')
+  container.style.setProperty('--pele-fg', '#f9fafb')
+
+  buttonsOf(block)[2].click()
+  assert.equal(downloads.length, 1, 'download dispatched')
+  assert.match(downloads[0].text, /--pele-bg:\s*rgb\(1, 2, 3\)/)
+  assert.match(downloads[0].text, /data-dsh-pele-mermaid-background/)
+  assert.match(downloads[0].text, /fill="rgb\(1, 2, 3\)"/, 'the file paints its own resolved background')
+
+  buttonsOf(block)[3].click()
+  assert.equal(fakeViewer.opens.length, 1, 'viewer opened')
+  const viewerSvg = fakeViewer.opens[0].svg
+  assert.match(viewerSvg, /--pele-bg:\s*var\(--dsw-alias-markdown-code-block\)/)
+  assert.match(viewerSvg, /data-dsh-pele-mermaid-background/)
+  assert.match(viewerSvg, /fill="var\(--pele-bg\)"/, 'the overlay background follows live theme switches')
+  assert.doesNotMatch(viewerSvg, /rgb\(1, 2, 3\)/, 'the viewer does not freeze resolved colors')
+
+  manager.destroy()
 })
 
 test('export and viewer actions are inert when no pristine render is available', () => {

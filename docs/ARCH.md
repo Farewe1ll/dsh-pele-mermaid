@@ -307,14 +307,16 @@ Behavior:
    stub handle keeps them disabled, and clicking a disabled button is inert.
 7. **Export operation.** `downloadRecordDiagram(record)` takes
    `record.handle.snapshot()`, renders it through
-   `buildExportSvg(snapshot, { document, view, container })`, names it with
+   `buildExportSvg(snapshot, { document, view, container, theme: 'resolved' })`
+   (download mode: freeze today's resolved colors and background), names it with
    `exportFilename(snapshot.type)`, and calls `downloadSvg(text, filename)`.
    Any missing snapshot, rejected export, or download failure is a silent no-op
    (the controls are disabled, not error UI). The builder/downloader are
    injectable seams for tests.
 8. **Viewer operation.** A single lazily created viewer instance per page opens
-   on the sanitized SVG text with the snapshot's natural size and
-   `zoom.factor`. Opening a different diagram closes the previous overlay; a
+   on the sanitized SVG text rendered with `theme: 'inherit'` (token
+   expressions + `var(--pele-bg)` background, so the open overlay follows live
+   theme switches) with the snapshot's natural size and `zoom.factor`. Opening a different diagram closes the previous overlay; a
    record rebuild/unmount closes the overlay owned by that record; manager
    `destroy()` closes and destroys the viewer before releasing block DOM. The
    viewer gets explicit parameters and owned nodes; it never touches the
@@ -361,8 +363,20 @@ usable empty icon rather than throwing.
 /** Resolved `--pele-*` variables from the inline card (computed style, inline fallback). */
 export function collectThemeVariables(container, view): Record<string, string>
 
-/** Pristine snapshot → sanitized standalone SVG document string, or null. */
-export function buildExportSvg(snapshot, { document, view, container }): string | null
+/**
+ * Pristine snapshot → sanitized standalone SVG document string, or null.
+ * theme: 'resolved' (default) freezes current colors for a downloaded file;
+ * 'inherit' keeps var(--dsw-*) tokens for an in-app surface that follows the
+ * live theme.
+ */
+export function buildExportSvg(
+  snapshot,
+  { document, view, container, theme = 'resolved' },
+): string | null
+
+/** Attribute/class on the exported background rectangle (first child of the root). */
+export const BACKGROUND_ATTR = 'data-dsh-pele-mermaid-background'
+export const BACKGROUND_CLASS = 'pele-export-background'
 
 /** `pele-<type>-YYYYMMDD-HHmmss.svg` (local time; type reduced to filename-safe chars). */
 export function exportFilename(type, date = new Date()): string
@@ -384,9 +398,20 @@ Rules:
   `src`, unsafe `style` (`expression(`, `javascript:`, `vbscript:`,
   `@import`) and non-local `url()`; keep `href`/`xlink:href` only for
   `#fragment`, `https?`, `mailto:`, `tel:` (`use` allows only fragments).
-- Write the resolved theme variables onto the root `style`, preserving Pele's
-  own declarations; reject values containing `;`, braces, angle brackets, or
-  external `url()`.
+- Insert a first-child `<rect>` covering the natural-size canvas
+  (`x/y=0`, natural width/height, `pointer-events="none"`, marked with
+  `data-dsh-pele-mermaid-background` and class `pele-export-background`).
+  Download mode fills it with the resolved `--pele-bg` (fallback
+  `var(--pele-bg, #ffffff)`) so dark exports stay readable on a white page;
+  `inherit` mode fills it with `var(--pele-bg)` so the viewer repaints with the
+  theme.
+- Download mode writes the resolved theme variables onto the root `style`,
+  preserving Pele's own declarations; reject values containing `;`, braces,
+  angle brackets, or external `url()`. `inherit` mode instead writes the
+  `--pele-*: var(--dsw-*)` mapping from `PELE_VARIABLES`, so the SVG has no
+  frozen colors and follows the host tokens like the inline card.
+- The background is an enhancement: when it cannot be inserted the export still
+  returns a valid SVG (no throw, no failed download).
 - `downloadSvg` builds a `Blob` of type `image/svg+xml;charset=utf-8`, creates
   a temporary hidden anchor, clicks it, removes it, and revokes the object URL
   on the next tick. It returns `false` (no throw) when Blob/URL/anchor support
@@ -417,10 +442,14 @@ Rules:
   `role="toolbar"` with exactly four icon buttons — zoom out, zoom in, fit,
   close — then a stage containing the imported SVG. Exactly one overlay exists:
   `open()` closes a previous instance before creating the next.
-- The SVG passed in is the already-sanitized export text; the viewer parses it,
-  sets natural `width`/`height` and the full `viewBox`, marks it with
-  `viewerSvg`, removes `tabindex`, and never re-renders Pele or reads inline
-  zoom/pan state.
+- The SVG passed in is the already-sanitized `inherit`-mode export text (token
+  expressions, `var(--pele-bg)` background); the viewer parses it, sets natural
+  `width`/`height` and the full `viewBox`, marks it with `viewerSvg`, removes
+  `tabindex`, and never re-renders Pele or reads inline zoom/pan state. Because
+  the tokens are live, the diagram background repaints with the host theme while
+  the overlay is open; the dialog chrome uses DSH tokens directly and repaints
+  too. A downloaded file is the opposite by design: `resolved` colors frozen at
+  download time.
 - Zoom: opens at `zoomFactor` clamped to `[1, 8]`; button steps are ×1.25;
   fit resets to scale 1 and viewBox 0 0 w h; zoom is anchored at the pointer for
   Ctrl/Cmd + wheel (plain wheel is left to the page); the viewBox is cropped and
@@ -497,11 +526,11 @@ measurements justified the added host route. **Decision: keep Pele bundled
 inline; do not split in 0.2.0.** Recorded in
 [`evidence/2026-11-17/p6-measurement.json`](evidence/2026-11-17/p6-measurement.json):
 
-- Final inline bundle: 738,710 raw, 275,784 `gzip -9`, 223,454 brotli bytes;
-  the whole-inline budget (750,000 raw) is met with 11,290 bytes headroom.
+- Final inline bundle: 739,526 raw, 276,084 `gzip -9`, 223,848 brotli bytes;
+  the whole-inline budget (750,000 raw) is met with 10,474 bytes headroom.
 - Local plain-HTTP route (no `Content-Encoding`, `cache-control: no-cache`):
-  bundle request+eval completes by ~40 ms cold / ~19 ms warm after navigation;
-  first diagram ready ~411 ms cold / ~368 ms warm, dominated by the fixed
+  bundle request+eval completes by ~34 ms cold / ~24 ms warm after navigation;
+  first diagram ready ~395 ms cold / ~370 ms warm, dominated by the fixed
   150 ms scan debounce + 180 ms settle window, not by bundle size.
 - Installed DSH route `Content-Encoding`/`encodedBodySize`/cache metrics were not
   measurable in this iteration, and no split prototype was built to measure the
@@ -538,20 +567,23 @@ failure fallback.
 - Optional `--check` mode: build to memory and require byte equality with
   `lib/client.js`. Both modes check the wrapper/id and a fixed list of CDN
   markers; these checks are not a general network-policy audit.
-- Report the byte size. `0.2.0` ships 738,710 bytes with Pele 1.9.0 plus export
+- Report the byte size. `0.2.0` ships 739,526 bytes with Pele 1.9.0 plus export
   and viewer; the whole-inline-bundle raw budget is 750,000 bytes.
 
 ## Testing contract
 
 - `node --test "tests/*.test.mjs"`, Node ≥ 20, jsdom for DOM tests.
-- Unit tests import `src/client/*.js` directly (ESM). `0.2.0` totals **120
-  tests, 120 pass, 0 fail, 0 cancelled, 0 skipped, 0 todo**: engine, theme CSS,
-  block manager, export (7), viewer (13), installed-host bindings (6), real
+- Unit tests import `src/client/*.js` directly (ESM). `0.2.0` totals **123
+  tests, 123 pass, 0 fail, 0 cancelled, 0 skipped, 0 todo**: engine, theme CSS,
+  block manager (45), export (9), viewer (13), installed-host bindings (6), real
   React 18.3.1 lifecycle, and built-bundle smoke (7).
 - jsdom fixture blocks must match the DOM contract above (the primitives source
   is the reference). Export tests use a hostile SVG fixture to assert
   sanitization, natural sizing, theme variables, filename shape, and download
-  dispatch/revocation. Viewer tests inject a stage box through
+  dispatch/revocation, plus the background rectangle and both theme modes
+  (`resolved` dark/light fills and `inherit` token expressions) with luminance
+  checks. Block-manager tests cover resolved-vs-inherit routing and a real
+  export-builder integration. Viewer tests inject a stage box through
   `measureStage` and cover structure, zoom/pan/fit, keyboard/focus/scroll,
   backdrop close, reuse, and teardown.
 - `tests/bundle.test.mjs` evaluates the built bundle in a jsdom + vm sandbox:
@@ -566,9 +598,14 @@ failure fallback.
 - `scripts/verify-visual.mjs` drives the real built bundle in isolated headless
   Chrome against the fixture: P1 layout facts (CJK wrapping, class-group rows
   in wide/narrow columns, generic/rich labels), four-control toolbar, viewer,
-  theme/font behavior, narrow 720×2200 capture, and teardown. Restricted
-  sandboxes must set `DSH_VISUAL_CHROME_NO_SANDBOX=1` to add Chrome's
-  `--no-sandbox --disable-setuid-sandbox`; default runs keep the sandbox.
+  theme/font behavior, narrow 720×2200 capture, and teardown. It also captures
+  the real downloaded SVG bytes in light and dark themes, asserts the background
+  rectangle equals the resolved `--pele-bg` (with luminance checks), renders
+  the dark download on a white stand-in page, and switches theme with the viewer
+  open to assert the diagram and dialog repaint; ten screenshots are recorded.
+  Restricted sandboxes must set `DSH_VISUAL_CHROME_NO_SANDBOX=1` to add
+  Chrome's `--no-sandbox --disable-setuid-sandbox`; default runs keep the
+  sandbox.
 - No network in any test.
 
 ## Non-goals

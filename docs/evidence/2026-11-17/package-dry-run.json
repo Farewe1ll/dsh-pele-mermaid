@@ -3,15 +3,15 @@
     "id": "dsh-pele-mermaid@0.2.0",
     "name": "dsh-pele-mermaid",
     "version": "0.2.0",
-    "size": 295928,
-    "unpackedSize": 786779,
-    "shasum": "0572f53072547b7cb55b6197637a07e998274779",
-    "integrity": "sha512-JnkrwHahVHckcgevVhfNvkyV48CdHA6aDB/7rxS2guxeoLTHHwnw29zJwhMStGMHMTYGARctJcjj5u0uw0FW/w==",
+    "size": 297759,
+    "unpackedSize": 792592,
+    "shasum": "0127e90ce15dd9a7d1df4c67e7b53c687699887a",
+    "integrity": "sha512-KI4MwB22K6bA82TAyKXjVSx4bmDJ2BQx/tov43nIjDYUwsfZnOsRNM4SfcMi7Q4I6WaJG0cviQaYyYJqTAswow==",
     "filename": "dsh-pele-mermaid-0.2.0.tgz",
     "files": [
       {
         "path": "CHANGELOG.md",
-        "size": 9852,
+        "size": 12217,
         "mode": 384
       },
       {
@@ -21,12 +21,12 @@
       },
       {
         "path": "README.md",
-        "size": 14003,
+        "size": 14985,
         "mode": 384
       },
       {
         "path": "README.zh.md",
-        "size": 12683,
+        "size": 13564,
         "mode": 384
       },
       {
@@ -36,7 +36,7 @@
       },
       {
         "path": "docs/KNOWN-LIMITATIONS.md",
-        "size": 7603,
+        "size": 8372,
         "mode": 420
       },
       {
@@ -46,7 +46,7 @@
       },
       {
         "path": "lib/client.js",
-        "size": 738710,
+        "size": 739526,
         "mode": 420
       },
       {

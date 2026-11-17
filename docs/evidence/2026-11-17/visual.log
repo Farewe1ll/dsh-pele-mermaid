@@ -5,7 +5,7 @@
 {
   "status": "PASS",
   "browser": "Chrome/157.0.8103.79",
-  "bundleSha256": "3259e916e0017a66090781493376b982ef2ab373be062bbb8795ec54cd913c82",
+  "bundleSha256": "906b1cc2f77c99a41e8453d85bd1554e60ff36b7a9d12558b3e998a56f1ea4af",
   "viewport": {
     "width": 1400,
     "height": 2400,
@@ -32,25 +32,33 @@
       "bytes": 409746,
       "sha256": "45a047528b2438717940c510304a70270477d4fec73cd8017b4a3aa470af35eb"
     },
+    "fixture-export-dark-preview.png": {
+      "bytes": 47888,
+      "sha256": "8a2098234c5f5845f97247039d5c0620af4b81987b5e01dd0f5256ddc0f3b9f1"
+    },
     "fixture-source-view.png": {
       "bytes": 408878,
       "sha256": "700b8651d331e5427f7b15efc5756f1fae6881725b83ea8e5e5f44d3e7f4153b"
     },
+    "fixture-viewer-dark.png": {
+      "bytes": 53133,
+      "sha256": "d456118db0a4fb500d9357e1258a514362400fc6e894d983625a67b831c82faa"
+    },
     "fixture-viewer.png": {
-      "bytes": 52355,
-      "sha256": "00fa6f58989e116ff1e5d7bf3cfadd14af22a6c8c241d66f0ec3be6dbb4fb23b"
+      "bytes": 53167,
+      "sha256": "71766d20cebac806c7bcdbec8d16f77800fc67f96f01ae7d4705adb1945647f8"
     },
     "fixture-narrow.png": {
       "bytes": 153277,
       "sha256": "c099a8fbb8e7b8326790dcfdb1f4982816efbff89656e89583b65b7b308d260c"
     },
     "fixture-font-refresh.png": {
-      "bytes": 401666,
-      "sha256": "8d753c1ee9f11a3fc4d7072c64f9ef8579fa9b37b7786f179cabdb1ffb04819c"
+      "bytes": 401732,
+      "sha256": "de0f0ad8738c1d4c2795ae41451055a44b81358c1157d66789162babd36a3a73"
     },
     "fixture-teardown.png": {
-      "bytes": 361006,
-      "sha256": "0795a6925024e90d5ccb09f05d338f85196cb590c52141d0195bdc017dd5d0ca"
+      "bytes": 361080,
+      "sha256": "9c19ccaeef43deadc85c4ed03c0d0021150579b3fd58d02f844a51ad2fc4f18f"
     }
   }
 }
